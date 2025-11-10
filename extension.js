@@ -84,11 +84,22 @@ function traverseCommands(context, pre_cmds, nodes) {
       // Handle a group
       traverseCommands(context, pre_cmds, node.children);
     } else {
-      // Handle a command.
+      // Handle a leaf, it must have an action. If there are commands,
+      // we prefix the pre_cmds, e.g. to cd to the project dir.
+      // Note that we don't expand the -e env flag placeholder since the
+      // user can select a different env by the time the action will be
+      // selected.
+      const commands =
+        node.action?.cmds != null ? pre_cmds.concat(node.action.cmds) : null;
+
+      // Extract optional url. Null of doesn't exist.
+      const url = node.action?.url;
+
+      // Register the callback to execute the action once selected.
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          executeCommands(pre_cmds.concat(node.cmds))
+          execAction(commands, url)
         )
       );
     }
@@ -159,9 +170,19 @@ function log(msg = "") {
   outputChannel.appendLine(msg);
 }
 
-// A function to run a list of commands.
-function executeCommands(commands) {
+// A function to execute an action. Action can have commands anr/or url.
+function execAction(commands, url) {
   return () => {
+    // If url is specified open it in the default browser.
+    if (url != null) {
+      vscode.env.openExternal(vscode.Uri.parse(url));
+    }
+
+    // If no commands in this action we are done.
+    if (commands == null) {
+      return;
+    }
+
     const ws = vscode.workspace.workspaceFolders?.[0];
     if (!ws) {
       vscode.window.showErrorMessage("No workspace open");
