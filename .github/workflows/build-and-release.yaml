@@ -1,0 +1,85 @@
+name: build-and-release
+
+on:
+  # Run on each commit to this repo.
+  push:
+
+  # Run monthly on the 1st, 10AM UTC
+  schedule:
+    - cron: "0 10 1 * *"
+
+  # Allow manual activations.
+  workflow_dispatch:
+
+permissions:
+  # Allow release creation
+  contents: write
+
+jobs:
+  # ----- Parameters collection job
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      # E.g. "2025-11-02"
+      - name: Determine release tag
+        run: |
+          release_tag="$(date +'%Y-%m-%d')"
+          echo $release_tag
+          echo "RELEASE_TAG=$release_tag" >> $GITHUB_ENV
+
+      # E.g. "20251102"
+      - name: Determine package tag
+        run: |
+          package_tag="${RELEASE_TAG//-/}"
+          echo $package_tag
+          echo "PACKAGE_TAG=$package_tag" >> $GITHUB_ENV
+
+      - name: Determine package file name
+        run: |
+          package_name="apio-vscode-${PACKAGE_TAG}.vsix"
+          echo $package_name
+          echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Verify npx
+        run: npx --version
+
+      - name: Build extension package
+        run: |
+          ls -al
+          npx vsce package
+          ls -al
+
+      - name: Rename package file
+        run: |
+          mv apio*.vsix $PACKAGE_NAME
+          ls -al
+
+      - name: Show packaged files
+        run: |
+          unzip -l $PACKAGE_NAME
+
+      # In case we overwrite and exiting release.
+      - name: Force release tag update
+        run: |
+          git tag -f ${{env.RELEASE_TAG}}
+          git push origin -f ${{env.RELEASE_TAG}}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{env.RELEASE_TAG}}
+          name: ${{env.RELEASE_TAG}}
+          # body_path: RELEASE_BODY.txt
+          preserve_order: true
+          fail_on_unmatched_files: true
+          files: |
+            apio-vscode-${{env.PACKAGE_TAG}}.vsix

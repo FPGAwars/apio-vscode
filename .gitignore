@@ -1,0 +1,6 @@
+*.vsix
+node_modules
+.DS_Store
+eslint.config.mjs
+.run.sh
+
