@@ -210,19 +210,19 @@ const SETTINGS_TREE = [
 
 const HELP_TREE = [
   {
-    title: "Show system info",
-    tooltip: "Show system info",
+    title: "Apio info",
+    tooltip: "Show Apio installation info",
     id: "apio.info.system",
     cmds: ["apio info system"],
   },
   {
-    title: "Show env setting",
+    title: "Apio env",
     tooltip: "Show Apio env settings",
     id: "apio.raw.env",
     cmds: ["apio raw --verbose"],
   },
   {
-    title: "Documentation",
+    title: "Apio docs",
     tooltip: "Open Apio documentation",
     id: "apio.docs",
     cmds: ["apio docs"],
