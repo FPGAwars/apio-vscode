@@ -46,32 +46,20 @@
     "views": {
       "apioContainer": [
         {
-          "id": "apio.sidebar.project",
-          "name": "PROJECT",
+          "name": "COMMANDS",
+          "id": "apio.sidebar.commands",
           "icon": "media/sidebar-icon.svg",
           "type": "tree"
         },
         {
-          "id": "apio.sidebar.boards",
-          "name": "BOARDS",
-          "icon": "media/sidebar-icon.svg",
-          "type": "tree"
-        },
-        {
-          "id": "apio.sidebar.tools",
           "name": "TOOLS",
+          "id": "apio.sidebar.tools",
           "icon": "media/sidebar-icon.svg",
           "type": "tree"
         },
         {
-          "id": "apio.sidebar.settings",
-          "name": "SETTINGS",
-          "icon": "media/sidebar-icon.svg",
-          "type": "tree"
-        },
-                {
-          "id": "apio.sidebar.help",
           "name": "HELP",
+          "id": "apio.sidebar.help",
           "icon": "media/sidebar-icon.svg",
           "type": "tree"
         }

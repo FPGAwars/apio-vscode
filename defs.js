@@ -2,7 +2,7 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
-const PROJECT_TREE = [
+const COMMANDS_TREE = [
   {
     title: "Build",
     children: [
@@ -72,39 +72,31 @@ const PROJECT_TREE = [
       },
     ],
   },
-];
 
-const BOARDS_TREE = [
   {
-    title: "List boards",
-    tooltip: "List supported FPGA boards",
-    id: "apio.boards",
-    action: { cmds: ["apio boards"] },
+    title: "Boards",
+    children: [
+      {
+        title: "List boards",
+        tooltip: "List supported FPGA boards",
+        id: "apio.boards",
+        action: { cmds: ["apio boards"] },
+      },
+      {
+        title: "List FPGAs",
+        tooltip: "List supported FPGAs",
+        id: "apio.fpgas",
+        action: { cmds: ["apio fpgas"] },
+      },
+      {
+        title: "List examples",
+        tooltip: "List project examples",
+        id: "apio.examples.list",
+        action: { cmds: ["apio examples list"] },
+      },
+    ],
   },
-  {
-    title: "List FPGAs",
-    tooltip: "List supported FPGAs",
-    id: "apio.fpgas",
-    action: { cmds: ["apio fpgas"] },
-  },
-  {
-    title: "List examples",
-    tooltip: "List project examples",
-    id: "apio.examples.list",
-    action: { cmds: ["apio examples list"] },
-  },
-];
 
-const TOOLS_TREE = [
-  {
-    title: "Terminal",
-    tooltip: "Open terminal at project folder",
-    id: "apio.terminal",
-    action: { cmds: [] },
-  },
-];
-
-const SETTINGS_TREE = [
   {
     title: "Preferences",
     children: [
@@ -208,6 +200,17 @@ const SETTINGS_TREE = [
   },
 ];
 
+
+const TOOLS_TREE = [
+  {
+    title: "Terminal",
+    tooltip: "Open terminal at project folder",
+    id: "apio.terminal",
+    action: { cmds: [] },
+  },
+];
+
+
 const HELP_TREE = [
   {
     title: "System info",
@@ -256,10 +259,8 @@ const HELP_TREE = [
 // A mapping of sidebar sections to command trees.
 // Order doesn't matter, the view order is defined by package.json.
 const TREE_VIEWS = {
-  "apio.sidebar.project": PROJECT_TREE,
-  "apio.sidebar.boards": BOARDS_TREE,
+  "apio.sidebar.commands": COMMANDS_TREE,
   "apio.sidebar.tools": TOOLS_TREE,
-  "apio.sidebar.settings": SETTINGS_TREE,
   "apio.sidebar.help": HELP_TREE,
 };
 
