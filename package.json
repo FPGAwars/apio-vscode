@@ -27,7 +27,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zapta/apio-vscode.git"
+    "url": "https://github.com/fpgawars/apio-vscode.git"
   },
   "activationEvents": [
     "workspaceContains:apio.ini"
