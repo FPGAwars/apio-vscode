@@ -1,4 +1,4 @@
-// List of VSC icons at:
+// List of VSC text icons at:
 // https://code.visualstudio.com/api/references/icons-in-labels
 
 // Online Javascript linter at: https://eslint.org/play/
@@ -49,13 +49,14 @@ class ApioTreeGroup {
   }
 }
 
-// Tree is a list of nodes.
-function traverseHierarchy(nodes) {
+// Recursively traverse the definition tree and return it using
+// datatypes that are expected by vscode. Nodes is a list of nodes.
+function traverseAndConvertTree(nodes) {
   const result = [];
   for (const node of nodes) {
     if ("children" in node) {
       // Handle a group
-      const children = traverseHierarchy(node.children);
+      const children = traverseAndConvertTree(node.children);
       const item = new ApioTreeGroup(node.title, node.tooltip, children);
       result.push(item);
     } else {
@@ -77,12 +78,12 @@ function traverseHierarchy(nodes) {
 }
 
 // Tree is a list of nodes.
-function traverseCommands(context, pre_cmds, nodes) {
+function traverseAndRegisterCommands(context, pre_cmds, nodes) {
   // const result = [];
   for (const node of nodes) {
     if ("children" in node) {
       // Handle a group
-      traverseCommands(context, pre_cmds, node.children);
+      traverseAndRegisterCommands(context, pre_cmds, node.children);
     } else {
       // Handle a leaf, it must have an action. If there are commands,
       // we prefix the pre_cmds, e.g. to cd to the project dir.
@@ -97,29 +98,28 @@ function traverseCommands(context, pre_cmds, nodes) {
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(
-          node.id,
-          execAction(commands, url)
-        )
+        vscode.commands.registerCommand(node.id, execAction(commands, url))
       );
     }
   }
 }
 
-function registerTreeButtons(context, nodes_list) {
+function traverseAndRegisterTreeButtons(context, nodes_list) {
   for (const node of nodes_list) {
     if ("children" in node) {
       // Handle a group
-      registerTreeButtons(context, node.children);
+      traverseAndRegisterTreeButtons(context, node.children);
     } else {
       // Handle a leaf (command). It may or may not have a button
       // definitions.
       if ("btn" in node) {
-        log(`Registering button ${node.id}, priority ${node.btn.priority}`);
-
+        const priority = 100 - node.btn.position;
+        log(
+          `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`
+        );
         const btn = vscode.window.createStatusBarItem(
           vscode.StatusBarAlignment.Left,
-          node.btn.priority
+          priority
         );
 
         btn.command = node.id;
@@ -152,7 +152,7 @@ class ApioTreeProvider {
 
   getChildren(element) {
     if (!element) {
-      return traverseHierarchy(this.tree);
+      return traverseAndConvertTree(this.tree);
     }
 
     // Inside a group: return children
@@ -229,31 +229,6 @@ function execAction(commands, url) {
   };
 }
 
-function registerTreeCommands(context, apio_folder, tree) {
-  // Determine platform dependent command to change to the apio project dir.
-  const cd_cmd = isWindows
-    ? `chdir /d "${apio_folder}"`
-    : `cd "${apio_folder}"`;
-  log(`cd_cmd: ${cd_cmd}`);
-
-  // Determine platform dependent command to clear the terminal.
-  const clear_cmd = isWindows ? "cls" : "clear";
-  log(`clear_cmd: ${clear_cmd}`);
-
-  const pre_cmds = [clear_cmd, cd_cmd];
-
-  // Register all commands from all trees
-  traverseCommands(context, pre_cmds, tree);
-}
-
-function registerTreeView(context, container_id, tree) {
-  // Side view Apio command tree.
-  const viewContainer = vscode.window.registerTreeDataProvider(
-    container_id,
-    new ApioTreeProvider(tree)
-  );
-  context.subscriptions.push(viewContainer);
-}
 
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(filePath) {
@@ -285,8 +260,12 @@ function extractApioIniEnvs(filePath) {
   }
 }
 
+// Update the displaed of the env selector.
 function updateEnvSelector() {
-  statusBarEnv.text = `$(selection) Env: ${currentEnv || ENV_DEFAULT}`;
+  statusBarEnv.text =
+    currentEnv && currentEnv != ENV_DEFAULT
+      ? `[env:${currentEnv}]`
+      : ENV_DEFAULT;
   statusBarEnv.tooltip = "APIO: Select apio.ini env";
 }
 
@@ -328,14 +307,31 @@ function activate(context) {
   isWindows = platform == "win32";
   log(`is windows: ${isWindows}`);
 
+  // Determines the commands that we prefix each apio command.
+  const cd_cmd = isWindows
+    ? `chdir /d "${apio_folder}"`
+    : `cd "${apio_folder}"`;
+  log(`cd_cmd: ${cd_cmd}`);
+
+  // Determine platform dependent command to clear the terminal.
+  const clear_cmd = isWindows ? "cls" : "clear";
+  log(`clear_cmd: ${clear_cmd}`);
+
+  const pre_cmds = [clear_cmd, cd_cmd];
+
   // Traverse the definition trees and register the commands.
   for (const tree of Object.values(defs.TREE_VIEWS)) {
-    registerTreeCommands(context, apio_folder, tree);
+    traverseAndRegisterCommands(context, pre_cmds, tree);
   }
 
-  // Traverse the definition trees and register the sidebar view entries.
+  // Register the trees with their respective views.
   for (const [view_id, tree] of Object.entries(defs.TREE_VIEWS)) {
-    registerTreeView(context, view_id, tree);
+    // registerTreeView(context, view_id, tree);
+    const viewContainer = vscode.window.registerTreeDataProvider(
+      view_id,
+      new ApioTreeProvider(tree)
+    );
+    context.subscriptions.push(viewContainer);
   }
 
   // Construct the status bar 'Apio:' label
@@ -350,7 +346,7 @@ function activate(context) {
 
   // Traverse the definition trees and register the status bar buttons.
   for (const tree of Object.values(defs.TREE_VIEWS)) {
-    registerTreeButtons(context, tree);
+    traverseAndRegisterTreeButtons(context, tree);
   }
 
   // Load saved env or use default ""

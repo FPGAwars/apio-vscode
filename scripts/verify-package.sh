@@ -10,7 +10,7 @@ npm install -g @vscode/vsce@latest
 #!/bin/bash
 #set -e
 
-#echo "=== VS Code Marketplace Readiness Check ==="
+#echo "=== VSCode Marketplace Readiness Check ==="
 
 # 1. Package with dry-run (validates everything the Marketplace checks)
 # vsce package --dry-run

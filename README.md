@@ -1,9 +1,9 @@
-# Apio FPGA for VS Code
+# Apio FPGA for VSCode
 
 > **Note (November 2025):** This extension is not yet available on the Visual Studio Code Marketplace.
-> To install it, download the latest `.vsix` package from the [Releases page](https://github.com/FPGAwars/apio-vscode/releases) and use **Extensions → … → Install from VSIX…** in VS Code.
+> To install it, download the latest `.vsix` package from the [Releases page](https://github.com/FPGAwars/apio-vscode/releases) and use **Extensions → … → Install from VSIX…** in VSCode.
 
-This official extension by the Apio team brings Apio’s power directly into VS Code with **one-click buttons** and a **dedicated sidebar panel**. Common commands (`lint`, `build`, `upload`) appear on the status bar, while the full command set is organized in a collapsible tree under the **Apio** tab.
+This official extension by the Apio team brings Apio’s power directly into VSCode with **one-click buttons** and a **dedicated sidebar panel**. Common commands (`lint`, `build`, `upload`) appear on the status bar, while the full command set is organized in a collapsible tree under the **Apio** tab.
 
 ![VSCode screenshot](media/screenshot1.png)
 
@@ -35,7 +35,7 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
    Follow the official guide:
    [https://fpgawars.github.io/apio/docs/quick-start/](https://fpgawars.github.io/apio/docs/quick-start/)
 
-2. **Open the project in VS Code**  
+2. **Open the project in VSCode**  
    `File → Open Folder…` → select the folder containing `apio.ini`.
 
 3. **Run commands**  

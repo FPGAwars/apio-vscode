@@ -11,21 +11,21 @@ const COMMANDS_TREE = [
         tooltip: "Build the apio project",
         id: "apio.build",
         action: { cmds: ["apio build {env-flag}"] },
-        btn: { icon: "$(chip)", priority: 98 },
+        btn: { icon: "$(check)", position: 1 },
       },
       {
         title: "Upload",
         tooltip: "Build and upload to the FPGA board",
         id: "apio.upload",
         action: { cmds: ["apio upload {env-flag}"] },
-        btn: { icon: "$(play)", priority: 96 },
+        btn: { icon: "$(play)", position: 3 },
       },
       {
         title: "Clean",
         tooltip: "Clean the build artifacts",
         id: "apio.clean",
         action: { cmds: ["apio clean"] },
-        btn: { icon: "$(trash)", priority: 95 },
+        btn: { icon: "$(trash)", position: 7 },
       },
     ],
   },
@@ -37,7 +37,7 @@ const COMMANDS_TREE = [
         tooltip: "Lint the source code",
         id: "apio.lint",
         action: { cmds: ["apio lint {env-flag}"] },
-        btn: { icon: "$(check-all)", priority: 99 },
+        btn: { icon: "$(check-all)", position: 2 },
       },
       {
         title: "Format",
@@ -47,22 +47,24 @@ const COMMANDS_TREE = [
       },
       {
         title: "Sim",
-        tooltip: "Run simulator on the default testbench",
+        tooltip: "Run the testbench simulator",
         id: "apio.sim",
         action: { cmds: ["apio sim {env-flag}"] },
+        btn: { icon: "$(debug-alt)", position: 5 },
       },
       {
         title: "Test",
-        tooltip: "Run the testbenchs",
+        tooltip: "Run automatic tests",
         id: "apio.test",
         action: { cmds: ["apio test"] },
+        btn: { icon: "$(beaker)", position: 4 },
       },
       {
         title: "Report",
         tooltip: "Report design utilization and speed",
         id: "apio.report",
         action: { cmds: ["apio report {env-flag}"] },
-        btn: { icon: "$(report)", priority: 97 },
+        btn: { icon: "$(report)", position: 6 },
       },
       {
         title: "Graph",
@@ -200,7 +202,6 @@ const COMMANDS_TREE = [
   },
 ];
 
-
 const TOOLS_TREE = [
   {
     title: "Terminal",
@@ -209,7 +210,6 @@ const TOOLS_TREE = [
     action: { cmds: [] },
   },
 ];
-
 
 const HELP_TREE = [
   {
@@ -225,16 +225,22 @@ const HELP_TREE = [
     action: { cmds: ["apio raw --verbose"] },
   },
   {
-    title: "Documentation",
-    tooltip: "Open Apio documentation",
+    title: "Overview",
+    tooltip: "Show Apio documentation",
     id: "apio.docs",
     action: { url: "https://fpgawars.github.io/apio/docs" },
   },
   {
-    title: "Apio commands",
-    tooltip: "Open Apio commands documentation",
-    id: "apio.commands.docs",
+    title: "Commands",
+    tooltip: "Show Apio commands documentation",
+    id: "apio.docs.commands",
     action: { url: "https://fpgawars.github.io/apio/docs/cmd-apio-build" },
+  },
+    {
+    title: "Project file apio.ini",
+    tooltip: "Show Apio project file documentation",
+    id: "apio.docs.project.file",
+    action: { url: "https://fpgawars.github.io/apio/docs/project-file" },
   },
   {
     title: "Ask questions",
