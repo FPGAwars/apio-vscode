@@ -17,7 +17,7 @@ const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
 const process = require("process");
-const defs = require("./defs.js");
+const commands = require("./commands.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -90,7 +90,7 @@ function traverseAndRegisterCommands(context, pre_cmds, nodes) {
       // Note that we don't expand the -e env flag placeholder since the
       // user can select a different env by the time the action will be
       // selected.
-      const commands =
+      const cmds =
         node.action?.cmds != null ? pre_cmds.concat(node.action.cmds) : null;
 
       // Extract optional url. Null of doesn't exist.
@@ -98,7 +98,7 @@ function traverseAndRegisterCommands(context, pre_cmds, nodes) {
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(node.id, execAction(commands, url))
+        vscode.commands.registerCommand(node.id, execAction(cmds, url))
       );
     }
   }
@@ -171,7 +171,7 @@ function log(msg = "") {
 }
 
 // A function to execute an action. Action can have commands anr/or url.
-function execAction(commands, url) {
+function execAction(cmds, url) {
   return () => {
     // If url is specified open it in the default browser.
     if (url != null) {
@@ -179,7 +179,7 @@ function execAction(commands, url) {
     }
 
     // If no commands in this action we are done.
-    if (commands == null) {
+    if (cmds == null) {
       return;
     }
 
@@ -222,7 +222,7 @@ function execAction(commands, url) {
 
     // Send the command lines to the terminal, resolving --env flag
     // placeholder if exists.
-    for (const cmd of commands) {
+    for (const cmd of cmds) {
       const expanded_cmd = cmd.replace("{env-flag}", env_flag);
       apioTerminal.sendText(expanded_cmd);
     }
@@ -320,12 +320,12 @@ function activate(context) {
   const pre_cmds = [clear_cmd, cd_cmd];
 
   // Traverse the definition trees and register the commands.
-  for (const tree of Object.values(defs.TREE_VIEWS)) {
+  for (const tree of Object.values(commands.TREE_VIEWS)) {
     traverseAndRegisterCommands(context, pre_cmds, tree);
   }
 
   // Register the trees with their respective views.
-  for (const [view_id, tree] of Object.entries(defs.TREE_VIEWS)) {
+  for (const [view_id, tree] of Object.entries(commands.TREE_VIEWS)) {
     // registerTreeView(context, view_id, tree);
     const viewContainer = vscode.window.registerTreeDataProvider(
       view_id,
@@ -345,7 +345,7 @@ function activate(context) {
   apioLabel.show();
 
   // Traverse the definition trees and register the status bar buttons.
-  for (const tree of Object.values(defs.TREE_VIEWS)) {
+  for (const tree of Object.values(commands.TREE_VIEWS)) {
     traverseAndRegisterTreeButtons(context, tree);
   }
 
