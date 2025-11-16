@@ -81,21 +81,35 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   const baseUrl =
     "https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/";
 
-  const urls = {
-    "darwin-arm64": baseUrl + "apio-darwin-arm64-1.0.1-20251115-bundle.tgz",
+  const archiveNames = {
+    "darwin-arm64": "apio-darwin-arm64-1.0.1-20251115-bundle.tgz",
   };
 
   // const key = platform === "darwin" ? `${platform}_${arch}` : platform;
-  const url = urls[platforms.getPlatformId()];
-  if (!url) {
+  const archiveName = archiveNames[platforms.getPlatformId()];
+  if (!archiveName) {
     throw new Error(`Unsupported platform id: ${platforms.getPlatformId()}`);
   }
+  // const url = urls[platforms.getPlatformId()];
+  const url = baseUrl + archiveName;
 
-  const archiveName = path.basename(url); // original filename
+  // const archiveName = path.basename(url); // original filename
   const archivePath = path.join(tmpDir, archiveName);
 
   console.log(`[Apio] Downloading: ${url}`);
   await downloadFile(url, archivePath);
+
+  // Remove quarantine (macOS) from the archive.
+  // TODO: Do we really need it?
+  if (platforms.isDarwin()) {
+    await new Promise((res) => {
+      exec(`xattr -d com.apple.quarantine "${archivePath}"`, (err) => {
+        if (err) console.warn("[Apio] Quarantine removal failed:", err.message);
+        else console.log("[Apio] Quarantine removed");
+        res();
+      });
+    });
+  }
 
   // Extract
   if (archiveName.endsWith(".zip")) {
@@ -104,7 +118,7 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
     await tar.x({ file: archivePath, cwd: tmpDir });
   }
 
-  // Clean up archive
+  // Clean up archive. We don't need it any more.
   await fs.promises.unlink(archivePath).catch(() => {});
 
   // Expected: tmpDir/apio/
@@ -113,7 +127,7 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
     throw new Error('Archive did not contain "apio/" directory');
   }
 
-  // Ensure binDir exists
+  // Ensure binDir exists, make an empty one if not.
   await fs.promises.mkdir(binDir, { recursive: true });
 
   // Remove old binDir (overwrite)
@@ -124,28 +138,17 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   // Move apio/ → binDir
   await fs.promises.rename(extractedApioDir, binDir);
 
-  const binaryPath = path.join(binDir, binaryName);
-  if (!(await fileExists(binaryPath))) {
+  const apioBinaryPath = path.join(binDir, binaryName);
+  if (!(await fileExists(apioBinaryPath))) {
     throw new Error("Apio binary not found after extraction");
   }
 
-  // Make executable
+  // Make the apio binary executable
   if (!platforms.isWindows()) {
-    await fs.promises.chmod(binaryPath, 0o755);
+    await fs.promises.chmod(apioBinaryPath, 0o755);
   }
 
-  // Remove quarantine (macOS)
-  if (platforms.isDarwin()) {
-    await new Promise((res) => {
-      exec(`xattr -d com.apple.quarantine "${binaryPath}"`, (err) => {
-        if (err) console.warn("[Apio] Quarantine removal failed:", err.message);
-        else console.log("[Apio] Quarantine removed");
-        res();
-      });
-    });
-  }
-
-  return binaryPath;
+  return apioBinaryPath;
 }
 
 /* ------------------------------------------------------------------ */
