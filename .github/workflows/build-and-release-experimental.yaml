@@ -1,4 +1,4 @@
-name: build-and-release
+name: build-and-release-experimental
 
 on:
   # Run on each commit to main branch of this repo. Ignores
