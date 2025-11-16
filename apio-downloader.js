@@ -1,31 +1,31 @@
 // apio-downloader.js
-// Updated: November 15, 2025
-// Workflow:
-//   1. ~/.apio/tmp/<original-archive-name>
-//   2. extract → ~/.apio/tmp/apio/
-//   3. move apio/ → ~/.apio/bin/ (overwrite)
-//   4. binary: ~/.apio/bin/apio
+// Ensures that the apio pyinstaller bundle is installed and that
+// the apio binary is available at ~/.apio/bin/apio[.exe]. If not,
+// It's downloaded and installed on the fly.
 
 "use strict";
 
+// Standard imports
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const https = require("https");
-const extract = require("extract-zip");
-const tar = require("tar");
-const { exec } = require("child_process");
+const child_process = require("child_process");
 
+// Dependency imports
+const zip_extract = require("extract-zip");
+const tar = require("tar");
+
+// Local imports
 const platforms = require("./apio-platforms.js");
 
+// Static state.
 let _apioBinaryPath = null;
 let _apioInstallPromise = null;
 
-/**
- * Ensures Apio binary is ready.
- * Re-validates file on every call.
- * @returns {Promise<string>} path to apio / apio.exe
- */
+// Ensures Apio binary is ready.
+// Re-validates file on every call.
+// @returns {Promise<string>} path to apio / apio.exe
 function ensureApioBinary() {
   if (_apioBinaryPath) {
     return fs.promises
@@ -39,72 +39,76 @@ function ensureApioBinary() {
   return startDownload();
 }
 
+// Start downloading and installing the apio binary.
+// Returns a promise that returns the path to the apio binary
+// once it's installed successfully.
 function startDownload() {
+  // If already in progress, reuse the promise.
   if (_apioInstallPromise) return _apioInstallPromise;
 
+  // Get an absolute path to the user's home dir.
   const homeDir = os.homedir();
+
+  // Determine the absolute path of ~/.apio/tmp. We will
+  // use it as a temporary storage of the downloaded package.
   const tmpDir = path.join(homeDir, ".apio", "tmp");
+
+  // Determine the absolute path of ~/.apio/bin, this is
+  // where we will store the apio binary and supporting files.
   const binDir = path.join(homeDir, ".apio", "bin");
-  // const isWin = os.platform() === "win32";
+
+  // Determine the name and the absolute path the apio binary.
   const binaryName = platforms.isWindows() ? "apio.exe" : "apio";
   const binaryPath = path.join(binDir, binaryName);
 
+  // Create a promise that control the downloading and installation.
   _apioInstallPromise = fs.promises
+    // Create the tmp dir if doesn't exist.
     .mkdir(tmpDir, { recursive: true })
+    // Try to access the apio binary to see if it's already there.
     .then(() =>
       fs.promises.access(binaryPath, fs.constants.X_OK | fs.constants.R_OK)
     )
     .then(() => {
+      // Apio binary found, we are done.
       _apioBinaryPath = binaryPath;
       console.log("[Apio] Using cached binary:", binaryPath);
       return binaryPath;
     })
-    .catch(() => downloadAndInstall(tmpDir, binDir, binaryName))
+    .catch(() => {
+      // Apio binary not found, do the full download and installation.
+      return downloadAndInstall(tmpDir, binDir, binaryName);
+    })
     .then((p) => {
+      // Here after successful installation, save and return the path.
       _apioBinaryPath = p;
       _apioInstallPromise = null;
       return p;
     })
     .catch((err) => {
+      // Here when installation failed.
       _apioInstallPromise = null;
       throw err;
     });
 
+  // Return the promise that govern the download and installation.
   return _apioInstallPromise;
 }
 
-/* ------------------------------------------------------------------ */
+// Download the apio bundle and extract and install it.
+// This async function returns a promise that govern the process
+// and it's value on successful completion is the absolute path
+// of the install apio executable.
 async function downloadAndInstall(tmpDir, binDir, binaryName) {
-  // const platform = os.platform();
-  // const arch = os.arch();
-
   const tag = "2025-11-15";
   const version = "1.0.1";
 
-  const yyyymmdd = tag.replaceAll("-", "")
+  const yyyymmdd = tag.replaceAll("-", "");
   const platform_id = platforms.getPlatformId();
 
-  // const url = 'https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/apio-darwin-arm64-1.0.1-20251115-bundle.tgz';
-  
   const baseUrl = `https://github.com/FPGAwars/apio-dev-builds/releases/download/${tag}/`;
   const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.tgz`;
-
-  // const baseUrl =
-  //   "https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/";
-
-  // const archiveNames = {
-  //   "darwin-arm64": "apio-darwin-arm64-1.0.1-20251115-bundle.tgz",
-  // };
-
-  // const key = platform === "darwin" ? `${platform}_${arch}` : platform;
-  // const archiveName = archiveNames[platforms.getPlatformId()];
-  // if (!archiveName) {
-    // throw new Error(`Unsupported platform id: ${platforms.getPlatformId()}`);
-  // }
-  // const url = urls[platforms.getPlatformId()];
   const url = baseUrl + archiveName;
-
-  // const archiveName = path.basename(url); // original filename
   const archivePath = path.join(tmpDir, archiveName);
 
   console.log(`[Apio] Downloading: ${url}`);
@@ -114,17 +118,21 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   // TODO: Do we really need it?
   if (platforms.isDarwin()) {
     await new Promise((res) => {
-      exec(`xattr -d com.apple.quarantine "${archivePath}"`, (err) => {
-        if (err) console.warn("[Apio] Quarantine removal failed:", err.message);
-        else console.log("[Apio] Quarantine removed");
-        res();
-      });
+      child_process.exec(
+        `xattr -d com.apple.quarantine "${archivePath}"`,
+        (err) => {
+          if (err)
+            console.warn("[Apio] Quarantine removal failed:", err.message);
+          else console.log("[Apio] Quarantine removed");
+          res();
+        }
+      );
     });
   }
 
   // Extract
   if (archiveName.endsWith(".zip")) {
-    await extract(archivePath, { dir: tmpDir });
+    await zip_extract(archivePath, { dir: tmpDir });
   } else if (archiveName.endsWith(".tgz")) {
     await tar.x({ file: archivePath, cwd: tmpDir });
   }
@@ -162,7 +170,9 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   return apioBinaryPath;
 }
 
-/* ------------------------------------------------------------------ */
+// A primitivee function to download the apio bundle from 'url'.
+// to the file path 'dest'. Returns a promise that govevern the
+// process
 function downloadFile(url, dest, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
     function download(redirectUrl, redirectsLeft) {
@@ -215,9 +225,11 @@ function downloadFile(url, dest, maxRedirects = 5) {
   });
 }
 
-async function fileExists(p) {
+// Checks if the given file exists.
+// Returns a promise with a boolean value.
+async function fileExists(path) {
   try {
-    await fs.promises.access(p);
+    await fs.promises.access(path);
     return true;
   } catch {
     return false;
