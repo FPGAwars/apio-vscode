@@ -55,6 +55,9 @@ jobs:
       - name: Verify npx
         run: npx --version
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build extension package
         run: |
           ls -al
