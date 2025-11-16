@@ -18,6 +18,7 @@ const path = require("path");
 const fs = require("fs");
 const process = require("process");
 const commands = require("./commands.js");
+const downloader = require("./apio-downloader");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -98,7 +99,10 @@ function traverseAndRegisterCommands(context, pre_cmds, nodes) {
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(node.id, execAction(cmds, url))
+        vscode.commands.registerCommand(
+          node.id,
+          getExecActionCallback(cmds, url)
+        )
       );
     }
   }
@@ -171,64 +175,89 @@ function log(msg = "") {
 }
 
 // A function to execute an action. Action can have commands anr/or url.
-function execAction(cmds, url) {
-  return () => {
-    // If url is specified open it in the default browser.
-    if (url != null) {
-      vscode.env.openExternal(vscode.Uri.parse(url));
+function execAction(cmds, url, apioBinaryPath) {
+  // return () => {
+  // If url is specified open it in the default browser.
+  if (url != null) {
+    vscode.env.openExternal(vscode.Uri.parse(url));
+  }
+
+  // If no commands in this action we are done.
+  if (cmds == null) {
+    return;
+  }
+
+  const ws = vscode.workspace.workspaceFolders?.[0];
+  if (!ws) {
+    vscode.window.showErrorMessage("No workspace open");
+    return;
+  }
+
+  if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
+    apioTerminal?.dispose();
+
+    // For windows we force cmd.exe shell. This is because we don't know yet how
+    // to determine if vscode terminal uses cmd, bash, or powershell (configurable
+    // by the user).
+    let extraTerminalArgs = {};
+    if (isWindows) {
+      extraTerminalArgs = {
+        shellPath: "cmd.exe",
+        shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
+      };
     }
 
-    // If no commands in this action we are done.
-    if (cmds == null) {
-      return;
-    }
+    // Create the terminal, with optional args.
+    apioTerminal = vscode.window.createTerminal({
+      name: "Apio",
+      cwd: ws.uri.fsPath,
+      ...extraTerminalArgs,
+    });
+  }
 
-    const ws = vscode.workspace.workspaceFolders?.[0];
-    if (!ws) {
-      vscode.window.showErrorMessage("No workspace open");
-      return;
-    }
+  // Make the terminal visible, regardless if new or reused.
+  apioTerminal.show();
 
-    if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
-      apioTerminal?.dispose();
+  // Determine the optional --env value, based on selected env.
+  let env_flag = "";
+  if (currentEnv && currentEnv != ENV_DEFAULT) {
+    env_flag = `-e ${currentEnv}`;
+  }
 
-      // For windows we force cmd.exe shell. This is because we don't know yet how
-      // to determine if vscode terminal uses cmd, bash, or powershell (configurable
-      // by the user).
-      let extraTerminalArgs = {};
-      if (isWindows) {
-        extraTerminalArgs = {
-          shellPath: "cmd.exe",
-          shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
-        };
-      }
-
-      // Create the terminal, with optional args.
-      apioTerminal = vscode.window.createTerminal({
-        name: "Apio",
-        cwd: ws.uri.fsPath,
-        ...extraTerminalArgs,
-      });
-    }
-
-    // Make the terminal visible, regardless if new or reused.
-    apioTerminal.show();
-
-    // Determine the optional --env value, based on selected env.
-    let env_flag = "";
-    if (currentEnv && currentEnv != ENV_DEFAULT) {
-      env_flag = `-e ${currentEnv}`;
-    }
-
-    // Send the command lines to the terminal, resolving --env flag
-    // placeholder if exists.
-    for (const cmd of cmds) {
-      const expanded_cmd = cmd.replace("{env-flag}", env_flag);
-      apioTerminal.sendText(expanded_cmd);
-    }
-  };
+  // Send the command lines to the terminal, resolving --env flag
+  // placeholder if exists.
+  for (let cmd of cmds) {
+    cmd = cmd.replace("{apio-bin}", apioBinaryPath);
+    cmd = cmd.replace("{env-flag}", env_flag);
+    apioTerminal.sendText(cmd);
+  }
+  // };
 }
 
+// ---------------------------------------------------------------
+// 2. WRAPPER: creates action *inside* after binary is ready
+// ---------------------------------------------------------------
+function getExecActionCallback(cmds, url) {
+  return () => {
+    downloader
+      .ensureApioBinary()
+      .then((apioBinaryPath) => {
+        console.log(`[Apio] Binary ready: ${apioBinaryPath}`);
+
+        // ← Action is created *here*, inside the wrapper
+        // const run = execActionPrimitive(cmds, url)();
+        // `run` is the actual function that opens terminal + sends commands
+        // console.log("Calling execActionPrimitive");
+        // run();
+        execAction(cmds, url, apioBinaryPath);
+        // console.log("Calling execActionPrimitive");
+      })
+      .catch((err) => {
+        console.error("[Apio] Binary setup failed:", err);
+        vscode.window.showErrorMessage("Apio binary failed to load.");
+      });
+  };
+}
 
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(filePath) {

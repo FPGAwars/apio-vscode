@@ -75,6 +75,10 @@
     "url": "https://github.com/fpgawars/apio/issues"
   },
   "homepage": "https://github.com/fpgawars/apio-vscode",
+  "dependencies": {
+    "extract-zip": "^2.0.1",
+    "tar": "^6.2.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "eslint": "^9.39.1",
