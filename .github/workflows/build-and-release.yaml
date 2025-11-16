@@ -1,8 +1,11 @@
 name: build-and-release
 
 on:
-  # Run on each commit to this repo.
+  # Run on each commit to main branch of this repo. Ignores
+  # commits to other branches.
   push:
+    branches:
+      - main
 
   # Run monthly on the 1st, 10AM UTC
   schedule:
