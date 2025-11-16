@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   # ----- Parameters collection job
-  build-and-release:
+  build-and-release-experimental:
     runs-on: ubuntu-latest
 
     steps:
