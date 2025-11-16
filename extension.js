@@ -12,20 +12,23 @@
 // To debug under VCS, have this file open and type F5 to open the test
 // window. To restart the test window, type CMD-R in the test window.
 
+"use strict";
+
 // Imports
 const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
-const process = require("process");
+
+// Local imports.
 const commands = require("./commands.js");
-const downloader = require("./apio-downloader");
+const downloader = require("./apio-downloader.js");
+const platforms = require("./apio-platforms");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
 
 // Extension global context.
 let outputChannel = null;
-let isWindows = null;
 let apioTerminal = null;
 
 // For apio env selector.
@@ -200,7 +203,7 @@ function execAction(cmds, url, apioBinaryPath) {
     // to determine if vscode terminal uses cmd, bash, or powershell (configurable
     // by the user).
     let extraTerminalArgs = {};
-    if (isWindows) {
+    if (platforms.isWindows()) {
       extraTerminalArgs = {
         shellPath: "cmd.exe",
         shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
@@ -330,20 +333,27 @@ function activate(context) {
 
   // Here we are committed to activate the extension.
 
+  // log(`Platform id: ${platforms.getPlatformId()}`)
+
+  log(`Platform id: ${platforms.getPlatformId()}`);
+  log(`isWindows: ${platforms.isWindows()}`);
+  log(`isLinux: ${platforms.isLinux()}`);
+  log(`isDarwin: ${platforms.isDarwin()}`);
+
   // Process platform type.
-  const platform = process.platform;
-  log(`platform: ${platform}`);
-  isWindows = platform == "win32";
-  log(`is windows: ${isWindows}`);
+  // const platform = process.platform;
+  // log(`platform: ${platform}`);
+  // isWindows = platform == "win32";
+  // log(`is windows: ${isWindows}`);
 
   // Determines the commands that we prefix each apio command.
-  const cd_cmd = isWindows
+  const cd_cmd = platforms.isWindows()
     ? `chdir /d "${apio_folder}"`
     : `cd "${apio_folder}"`;
   log(`cd_cmd: ${cd_cmd}`);
 
   // Determine platform dependent command to clear the terminal.
-  const clear_cmd = isWindows ? "cls" : "clear";
+  const clear_cmd = platforms.isWindows() ? "cls" : "clear";
   log(`clear_cmd: ${clear_cmd}`);
 
   const pre_cmds = [clear_cmd, cd_cmd];
