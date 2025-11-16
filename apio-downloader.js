@@ -78,18 +78,29 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   // const platform = os.platform();
   // const arch = os.arch();
 
-  const baseUrl =
-    "https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/";
+  const tag = "2025-11-15";
+  const version = "1.0.1";
 
-  const archiveNames = {
-    "darwin-arm64": "apio-darwin-arm64-1.0.1-20251115-bundle.tgz",
-  };
+  const yyyymmdd = tag.replaceAll("-", "")
+  const platform_id = platforms.getPlatformId();
+
+  // const url = 'https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/apio-darwin-arm64-1.0.1-20251115-bundle.tgz';
+  
+  const baseUrl = `https://github.com/FPGAwars/apio-dev-builds/releases/download/${tag}/`;
+  const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.tgz`;
+
+  // const baseUrl =
+  //   "https://github.com/FPGAwars/apio-dev-builds/releases/download/2025-11-15/";
+
+  // const archiveNames = {
+  //   "darwin-arm64": "apio-darwin-arm64-1.0.1-20251115-bundle.tgz",
+  // };
 
   // const key = platform === "darwin" ? `${platform}_${arch}` : platform;
-  const archiveName = archiveNames[platforms.getPlatformId()];
-  if (!archiveName) {
-    throw new Error(`Unsupported platform id: ${platforms.getPlatformId()}`);
-  }
+  // const archiveName = archiveNames[platforms.getPlatformId()];
+  // if (!archiveName) {
+    // throw new Error(`Unsupported platform id: ${platforms.getPlatformId()}`);
+  // }
   // const url = urls[platforms.getPlatformId()];
   const url = baseUrl + archiveName;
 
