@@ -26,17 +26,18 @@ let _apioInstallPromise = null;
 // Ensures Apio binary is ready.
 // Re-validates file on every call.
 // @returns {Promise<string>} path to apio / apio.exe
-function ensureApioBinary() {
+async function ensureApioBinary() {
   if (_apioBinaryPath) {
-    return fs.promises
-      .access(_apioBinaryPath, fs.constants.X_OK | fs.constants.R_OK)
-      .then(() => _apioBinaryPath)
-      .catch(() => {
-        _apioBinaryPath = null;
-        return startDownload();
-      });
+    try {
+      await fs.promises.access(_apioBinaryPath, fs.constants.X_OK | fs.constants.R_OK);
+      return _apioBinaryPath; // Binary exists and is executable/readable
+    } catch {
+      _apioBinaryPath = null; // Invalidate cache
+    }
   }
-  return startDownload();
+
+  // If no path or access failed → trigger download
+  return await startDownload();
 }
 
 // Start downloading and installing the apio binary.
