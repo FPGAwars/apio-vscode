@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const stream = require("node:stream");
-// const child_process = require("child_process");
+const childProcess = require("child_process");
 const assert = require("node:assert");
 
 // Dependency imports
@@ -31,7 +31,10 @@ let _apioBinaryPath = null;
 // function of this module.
 function init() {
   // Should be called only once.
-  assert(_apioBinDirPath == null, "apio-downloader.init() should be called at most once.");
+  assert(
+    _apioBinDirPath == null,
+    "apio-downloader.init() should be called at most once."
+  );
 
   // Get the absolute path to the user home dir.
   const homeDir = os.homedir();
@@ -104,19 +107,23 @@ async function _downloadAndInstall() {
   //
   // TODO: Do we really need this or is the bundle ok because we download
   // from VSCode?
-  // if (platforms.isDarwin()) {
-  //   await new Promise((res) => {
-  //     child_process.exec(
-  //       `xattr -d com.apple.quarantine "${archivePath}"`,
-  //       (err) => {
-  //         if (err)
-  //           console.warn("[Apio] Quarantine removal failed:", err.message);
-  //         else console.log("[Apio] Quarantine removed");
-  //         res();
-  //       }
-  //     );
-  //   });
-  // }
+  if (platforms.isDarwin()) {
+    await new Promise((res) => {
+      childProcess.exec(
+        `xattr -d com.apple.quarantine "${archivePath}"`,
+        (err) => {
+          if (err) {
+            console.warn("[Apio] Quarantine removal failed:", err.message);
+            apioLog.msg("MacOS quarantine removal was not performed");
+          } else {
+            console.log("[Apio] Quarantine removed");
+            apioLog.msg("MaxOS quarantine removal was performed");
+          }
+          res();
+        }
+      );
+    });
+  }
 
   // Extract
   if (archiveName.endsWith(".zip")) {
@@ -173,7 +180,6 @@ async function _downloadFile(url, dest, maxRedirects = 5) {
     });
 
     apioLog.msg(`HTTP ${res.status}`);
-
 
     if (
       [301, 302, 303, 307, 308].includes(res.status) &&
