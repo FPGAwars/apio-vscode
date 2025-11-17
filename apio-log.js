@@ -15,7 +15,7 @@ function init(context) {
     return; // already initialized
   }
 
-  outputChannel = vscode.window.createOutputChannel("Apio");
+  outputChannel = vscode.window.createOutputChannel("Apio Extension");
   context.subscriptions.push(outputChannel);
 }
 

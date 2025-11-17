@@ -18,6 +18,15 @@
 
 const process = require("process");
 
+// The set of platforms ids that are supported by this extension.
+// Generally speaking we support platforms for which we build an
+// (pyinstaller) Apio release bundle.
+const SUPPORTED_PLATFORMS_IDS = [
+  "darwin-arm64",
+  "linux-x86-64",
+  "windows-amd64",
+];
+
 /**
  * Cached platform identifier.
  * Set on first successful call to getPlatformId().
@@ -84,6 +93,7 @@ function isLinux() {
 /* Module exports                                                     */
 /* ------------------------------------------------------------------ */
 module.exports = {
+  SUPPORTED_PLATFORMS_IDS,
   getPlatformId,
   isWindows,
   isDarwin,
