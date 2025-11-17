@@ -105,7 +105,7 @@ function startDownload() {
 // and it's value on successful completion is the absolute path
 // of the install apio executable.
 async function downloadAndInstall(tmpDir, binDir, binaryName) {
-  const tag = "2025-11-15";
+  const tag = "2025-11-17";
   const version = "1.0.1";
 
   // const org = "FPGAwars";
