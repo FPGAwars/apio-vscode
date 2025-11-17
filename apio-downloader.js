@@ -18,6 +18,7 @@ const tar = require("tar");
 
 // Local imports
 const platforms = require("./apio-platforms.js");
+const apioLog = require("./apio-log.js");
 
 // Static state.
 let _apioBinaryPath = null;
@@ -116,7 +117,7 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   const url = baseUrl + archiveName;
   const archivePath = path.join(tmpDir, archiveName);
 
-  console.log(`[Apio] Downloading: ${url}`);
+  apioLog.msg(`[Apio] Downloading: ${url}`);
   await downloadFile(url, archivePath);
 
   // Remove quarantine (macOS) from the archive.

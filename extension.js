@@ -22,13 +22,14 @@ const fs = require("fs");
 // Local imports.
 const commands = require("./commands.js");
 const downloader = require("./apio-downloader.js");
-const platforms = require("./apio-platforms");
+const platforms = require("./apio-platforms.js");
+const apioLog = require("./apio-log.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
 
 // Extension global context.
-let outputChannel = null;
+// let outputChannel = null;
 let apioTerminal = null;
 
 // For apio env selector.
@@ -121,7 +122,7 @@ function traverseAndRegisterTreeButtons(context, nodes_list) {
       // definitions.
       if ("btn" in node) {
         const priority = 100 - node.btn.position;
-        log(
+        apioLog.msg(
           `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`
         );
         const btn = vscode.window.createStatusBarItem(
@@ -173,9 +174,9 @@ class ApioTreeProvider {
 
 // Function to write a message to the output channel 'Apio'. In the
 // output tab, select 'Apio' to see it.
-function log(msg = "") {
-  outputChannel.appendLine(msg);
-}
+// function apioLog.msg(msg = "") {
+//   outputChannel.appendLine(msg);
+// }
 
 // A function to execute an action. Action can have commands anr/or url.
 function execAction(cmds, url, apioBinaryPath) {
@@ -304,57 +305,59 @@ function updateEnvSelector() {
 // Standard VSC extension activate() function.
 function activate(context) {
   // Init Apio log output channel.
-  outputChannel = vscode.window.createOutputChannel("Apio");
-  context.subscriptions.push(outputChannel);
+  apioLog.initLog(context);
 
-  log("activate() started.");
+  // outputChannel = vscode.window.createOutputChannel("Apio");
+  // context.subscriptions.push(outputChannel);
+
+  apioLog.msg("activate() started.");
 
   // Determine the workspace folder, do nothing if none.
   const ws = vscode.workspace.workspaceFolders?.[0];
   if (!ws) {
-    log("No workspace open");
+    apioLog.msg("No workspace open");
     return;
   }
 
   // Determine the path of the expected apio project dir.
   const apio_folder = ws.uri.fsPath;
-  log(`apio_folder: ${apio_folder}`);
+  apioLog.msg(`apio_folder: ${apio_folder}`);
 
   // Determine the path of the expected apio.ini file.
   const apio_ini_path = path.join(apio_folder, "apio.ini");
-  log(`apio_ini_path: ${apio_ini_path}`);
+  apioLog.msg(`apio_ini_path: ${apio_ini_path}`);
 
   // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
   if (!fs.existsSync(apio_ini_path)) {
-    log(`apio.ini file not found at ${apio_ini_path}`);
+    apioLog.msg(`apio.ini file not found at ${apio_ini_path}`);
     return;
   }
-  log("apio.ini found");
+  apioLog.msg("apio.ini found");
 
   // Here we are committed to activate the extension.
 
-  // log(`Platform id: ${platforms.getPlatformId()}`)
+  // apioLog.msg(`Platform id: ${platforms.getPlatformId()}`)
 
-  log(`Platform id: ${platforms.getPlatformId()}`);
-  log(`isWindows: ${platforms.isWindows()}`);
-  log(`isLinux: ${platforms.isLinux()}`);
-  log(`isDarwin: ${platforms.isDarwin()}`);
+  apioLog.msg(`Platform id: ${platforms.getPlatformId()}`);
+  apioLog.msg(`isWindows: ${platforms.isWindows()}`);
+  apioLog.msg(`isLinux: ${platforms.isLinux()}`);
+  apioLog.msg(`isDarwin: ${platforms.isDarwin()}`);
 
   // Process platform type.
   // const platform = process.platform;
-  // log(`platform: ${platform}`);
+  // apioLog.msg(`platform: ${platform}`);
   // isWindows = platform == "win32";
-  // log(`is windows: ${isWindows}`);
+  // apioLog.msg(`is windows: ${isWindows}`);
 
   // Determines the commands that we prefix each apio command.
   const cd_cmd = platforms.isWindows()
     ? `chdir /d "${apio_folder}"`
     : `cd "${apio_folder}"`;
-  log(`cd_cmd: ${cd_cmd}`);
+  apioLog.msg(`cd_cmd: ${cd_cmd}`);
 
   // Determine platform dependent command to clear the terminal.
   const clear_cmd = platforms.isWindows() ? "cls" : "clear";
-  log(`clear_cmd: ${clear_cmd}`);
+  apioLog.msg(`clear_cmd: ${clear_cmd}`);
 
   const pre_cmds = [clear_cmd, cd_cmd];
 
@@ -421,7 +424,7 @@ function activate(context) {
   );
 
   // All done.
-  log("activate() completed.");
+  apioLog.msg("activate() completed.");
 }
 
 // deactivate() - required for cleanup
