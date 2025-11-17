@@ -13,6 +13,7 @@
         "testbench",
         "testbenchs",
         "verilog",
+        "xattr",
         "yosys",
         "Yoyodyne",
         "zapta"

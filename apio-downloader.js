@@ -9,235 +9,201 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const https = require("https");
-const child_process = require("child_process");
+const stream = require("node:stream");
+// const child_process = require("child_process");
+const assert = require("node:assert");
 
 // Dependency imports
-const zip_extract = require("extract-zip");
+const zipExtract = require("extract-zip");
 const tar = require("tar");
 
 // Local imports
 const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
 
-// Static state.
+// Environment. Initialized on first call to ensureApioBinary
+let _apioBinDirPath = null;
+let _apioTmpDirPath = null;
+let _apioBinaryName = null;
 let _apioBinaryPath = null;
-let _apioInstallPromise = null;
 
-// Ensures Apio binary is ready.
-// Re-validates file on every call.
-// @returns {Promise<string>} path to apio / apio.exe
-async function ensureApioBinary() {
-  if (_apioBinaryPath) {
-    try {
-      await fs.promises.access(
-        _apioBinaryPath,
-        fs.constants.X_OK | fs.constants.R_OK
-      );
-      return _apioBinaryPath; // Binary exists and is executable/readable
-    } catch {
-      _apioBinaryPath = null; // Invalidate cache
-    }
-  }
+// Initializes this module. Should be called once before any other
+// function of this module.
+function init() {
+  // Should be called only once.
+  assert(_apioBinDirPath == null, "apio-downloader.init() should be called at most once.");
 
-  // If no path or access failed → trigger download
-  return await startDownload();
-}
-
-// Start downloading and installing the apio binary.
-// Returns a promise that returns the path to the apio binary
-// once it's installed successfully.
-function startDownload() {
-  // If already in progress, reuse the promise.
-  if (_apioInstallPromise) return _apioInstallPromise;
-
-  // Get an absolute path to the user's home dir.
+  // Get the absolute path to the user home dir.
   const homeDir = os.homedir();
+  apioLog.msg(`User home dir: ${homeDir}`);
 
   // Determine the absolute path of ~/.apio/tmp. We will
   // use it as a temporary storage of the downloaded package.
-  const tmpDir = path.join(homeDir, ".apio", "tmp");
+  _apioTmpDirPath = path.join(homeDir, ".apio", "tmp");
+  apioLog.msg(`Apio tmp dir: ${_apioTmpDirPath}`);
 
   // Determine the absolute path of ~/.apio/bin, this is
   // where we will store the apio binary and supporting files.
-  const binDir = path.join(homeDir, ".apio", "bin");
+  _apioBinDirPath = path.join(homeDir, ".apio", "bin");
+  apioLog.msg(`Apio bin dir: ${_apioBinDirPath}`);
 
-  // Determine the name and the absolute path the apio binary.
-  const binaryName = platforms.isWindows() ? "apio.exe" : "apio";
-  const binaryPath = path.join(binDir, binaryName);
+  // Determine apio binary name
+  _apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
 
-  // Create a promise that control the downloading and installation.
-  _apioInstallPromise = fs.promises
-    // Create the tmp dir if doesn't exist.
-    .mkdir(tmpDir, { recursive: true })
-    // Try to access the apio binary to see if it's already there.
-    .then(() =>
-      fs.promises.access(binaryPath, fs.constants.X_OK | fs.constants.R_OK)
-    )
-    .then(() => {
-      // Apio binary found, we are done.
-      _apioBinaryPath = binaryPath;
-      console.log("[Apio] Using cached binary:", binaryPath);
-      return binaryPath;
-    })
-    .catch(() => {
-      // Apio binary not found, do the full download and installation.
-      return downloadAndInstall(tmpDir, binDir, binaryName);
-    })
-    .then((p) => {
-      // Here after successful installation, save and return the path.
-      _apioBinaryPath = p;
-      _apioInstallPromise = null;
-      return p;
-    })
-    .catch((err) => {
-      // Here when installation failed.
-      _apioInstallPromise = null;
-      throw err;
-    });
-
-  // Return the promise that govern the download and installation.
-  return _apioInstallPromise;
+  // Determine the absolute path of the apio binary name.
+  _apioBinaryPath = path.join(_apioBinDirPath, _apioBinaryName);
+  apioLog.msg(`Apio binary path: ${_apioBinaryPath}`);
 }
 
-// Download the apio bundle and extract and install it.
-// This async function returns a promise that govern the process
-// and it's value on successful completion is the absolute path
-// of the install apio executable.
-async function downloadAndInstall(tmpDir, binDir, binaryName) {
-  const tag = "2025-11-17";
-  const version = "1.0.1";
+// Ensures the Apio binary is ready and if not download and installs it.
+// @returns {Promise<string>} with the path to apio / apio.exe
+async function ensureApioBinary() {
+  // Check if the binary exists.
+  const binaryOk = await _testFsItem(
+    _apioBinaryPath,
+    fs.constants.X_OK | fs.constants.R_OK
+  );
 
-  // const org = "FPGAwars";
-  const org = "zapta";
+  if (binaryOk) {
+    // Binary is good, will use it.
+    apioLog.msg("Apio binary found: ", _apioBinDirPath);
+  } else {
+    // Binary is missing or not good, will download and install it.
+    apioLog.msg("Apio binary not found, will install.");
+    await _downloadAndInstall();
+  }
+
+  return _apioBinaryPath;
+}
+
+// Download the apio bundle and install it.
+// This async function returns a promise that govern the process.
+async function _downloadAndInstall() {
+  const tag = "2025-11-17";
+
+  // const org = "zapta";
+  const org = "FPGAwars";
   const yyyymmdd = tag.replaceAll("-", "");
-  const platform_id = platforms.getPlatformId();
+  const platformId = platforms.getPlatformId();
   const extension = platforms.isWindows() ? "zip" : "tgz";
 
   const baseUrl = `https://github.com/${org}/apio-dev-builds/releases/download/${tag}/`;
-  const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.${extension}`;
+  const archiveName = `apio-${platformId}-${yyyymmdd}-bundle.${extension}`;
   const url = baseUrl + archiveName;
-  const archivePath = path.join(tmpDir, archiveName);
+  const archivePath = path.join(_apioTmpDirPath, archiveName);
 
   apioLog.msg(`[Apio] Downloading: ${url}`);
-  await downloadFile(url, archivePath);
+
+  // Make the tmp dir if doesn't exist.
+  await fs.promises.mkdir(_apioTmpDirPath, { recursive: true });
+
+  // Download the file to the tmp dir.
+  await _downloadFile(url, archivePath);
 
   // Remove quarantine (macOS) from the archive.
-  // TODO: Do we really need it?
-  if (platforms.isDarwin()) {
-    await new Promise((res) => {
-      child_process.exec(
-        `xattr -d com.apple.quarantine "${archivePath}"`,
-        (err) => {
-          if (err)
-            console.warn("[Apio] Quarantine removal failed:", err.message);
-          else console.log("[Apio] Quarantine removed");
-          res();
-        }
-      );
-    });
-  }
+  //
+  // TODO: Do we really need this or is the bundle ok because we download
+  // from VSCode?
+  // if (platforms.isDarwin()) {
+  //   await new Promise((res) => {
+  //     child_process.exec(
+  //       `xattr -d com.apple.quarantine "${archivePath}"`,
+  //       (err) => {
+  //         if (err)
+  //           console.warn("[Apio] Quarantine removal failed:", err.message);
+  //         else console.log("[Apio] Quarantine removed");
+  //         res();
+  //       }
+  //     );
+  //   });
+  // }
 
   // Extract
   if (archiveName.endsWith(".zip")) {
-    await zip_extract(archivePath, { dir: tmpDir });
+    await zipExtract(archivePath, { dir: _apioTmpDirPath });
   } else if (archiveName.endsWith(".tgz")) {
-    await tar.x({ file: archivePath, cwd: tmpDir });
+    await tar.x({ file: archivePath, cwd: _apioTmpDirPath });
   }
 
   // Clean up archive. We don't need it any more.
   await fs.promises.unlink(archivePath).catch(() => {});
 
   // Expected: tmpDir/apio/
-  const extractedApioDir = path.join(tmpDir, "apio");
-  if (!(await fileExists(extractedApioDir))) {
+  const extractedApioDir = path.join(_apioTmpDirPath, "apio");
+  // if (!(await fileExists(extractedApioDir))) {
+  if (!(await _testFsItem(extractedApioDir))) {
     throw new Error('Archive did not contain "apio/" directory');
   }
 
   // Ensure binDir exists, make an empty one if not.
-  await fs.promises.mkdir(binDir, { recursive: true });
+  await fs.promises.mkdir(_apioBinDirPath, { recursive: true });
 
   // Remove old binDir (overwrite)
   await fs.promises
-    .rm(binDir, { recursive: true, force: true })
+    .rm(_apioBinDirPath, { recursive: true, force: true })
     .catch(() => {});
 
   // Move apio/ → binDir
-  await fs.promises.rename(extractedApioDir, binDir);
+  await fs.promises.rename(extractedApioDir, _apioBinDirPath);
 
-  const apioBinaryPath = path.join(binDir, binaryName);
-  if (!(await fileExists(apioBinaryPath))) {
+  // const apioBinaryPath = path.join(_apioBinDirPath, ap);
+  // if (!(await fileExists(_apioBinaryPath))) {
+  if (!(await _testFsItem(_apioBinaryPath))) {
     throw new Error("Apio binary not found after extraction");
   }
 
   // Make the apio binary executable
   if (!platforms.isWindows()) {
-    await fs.promises.chmod(apioBinaryPath, 0o755);
+    await fs.promises.chmod(_apioBinaryPath, 0o755);
   }
-
-  return apioBinaryPath;
 }
 
-// A primitivee function to download the apio bundle from 'url'.
-// to the file path 'dest'. Returns a promise that govevern the
-// process
-function downloadFile(url, dest, maxRedirects = 5) {
-  return new Promise((resolve, reject) => {
-    function download(redirectUrl, redirectsLeft) {
-      const file = fs.createWriteStream(dest);
+// fetch is global in Node.js 18+ (no require needed at all!)
+async function _downloadFile(url, dest, maxRedirects = 5) {
+  let currentUrl = url;
+  let redirectsLeft = maxRedirects;
 
-      https
-        .get(
-          redirectUrl,
-          {
-            headers: {
-              "User-Agent": "vscode-apio-extension",
-              Accept: "application/octet-stream",
-              // Force the OS stack to ignore any local HTTP cache
-              // "Cache-Control": "no-cache, no-store, must-revalidate",
-              // Pragma: "no-cache",
-              // Expires: "0",
-            },
-          },
-          (res) => {
-            if (res.statusCode === 302 && redirectsLeft > 0) {
-              const location = res.headers.location;
-              if (!location) {
-                file.destroy();
-                return reject(new Error("302 without Location"));
-              }
-              console.log(`[Apio] Redirect → ${location}`);
-              file.destroy();
-              return download(location, redirectsLeft - 1);
-            }
+  while (redirectsLeft >= 0) {
+    const res = await fetch(currentUrl, {
+      headers: {
+        "User-Agent": "vscode-apio-extension",
+        Accept: "application/octet-stream",
+      },
+      redirect: "manual",
+    });
 
-            if (res.statusCode !== 200) {
-              file.destroy();
-              return reject(new Error(`HTTP ${res.statusCode}`));
-            }
+    apioLog.msg(`HTTP ${res.status}`);
 
-            res.pipe(file);
-            file.on("finish", () => {
-              file.close();
-              resolve();
-            });
-          }
-        )
-        .on("error", (err) => {
-          fs.unlink(dest, () => {});
-          reject(err);
-        });
+
+    if (
+      [301, 302, 303, 307, 308].includes(res.status) &&
+      res.headers.get("location")
+    ) {
+      currentUrl = new URL(res.headers.get("location"), currentUrl).href;
+      apioLog.msg("URL redirect.");
+      redirectsLeft--;
+      continue;
     }
 
-    download(url, maxRedirects);
-  });
+    if (res.status !== 200 || !res.body) {
+      throw new Error(`HTTP error ${res.status}`);
+    }
+
+    // TODO: Move the require to the import and use here stream.promises.pipeline()
+    // await require("node:stream/promises").pipeline(res.body, fs.createWriteStream(dest));
+    await stream.promises.pipeline(res.body, fs.createWriteStream(dest));
+    apioLog.msg(`Downloaded ${dest}`);
+    return;
+  }
+
+  throw new Error("Too many redirects");
 }
 
-// Checks if the given file exists.
-// Returns a promise with a boolean value.
-async function fileExists(path) {
+// Similar to fs.promises.access but return true/false instead
+// of success/exception.
+async function _testFsItem(path, mode = fs.constants.F_OK) {
   try {
-    await fs.promises.access(path);
+    await fs.promises.access(path, mode);
     return true;
   } catch {
     return false;
@@ -245,4 +211,4 @@ async function fileExists(path) {
 }
 
 /* ------------------------------------------------------------------ */
-module.exports = { ensureApioBinary };
+module.exports = { init, ensureApioBinary };

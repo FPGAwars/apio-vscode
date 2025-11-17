@@ -83,12 +83,12 @@ function traverseAndConvertTree(nodes) {
 }
 
 // Tree is a list of nodes.
-function traverseAndRegisterCommands(context, pre_cmds, nodes) {
+function traverseAndRegisterCommands(context, preCmds, nodes) {
   // const result = [];
   for (const node of nodes) {
     if ("children" in node) {
       // Handle a group
-      traverseAndRegisterCommands(context, pre_cmds, node.children);
+      traverseAndRegisterCommands(context, preCmds, node.children);
     } else {
       // Handle a leaf, it must have an action. If there are commands,
       // we prefix the pre_cmds, e.g. to cd to the project dir.
@@ -96,7 +96,7 @@ function traverseAndRegisterCommands(context, pre_cmds, nodes) {
       // user can select a different env by the time the action will be
       // selected.
       const cmds =
-        node.action?.cmds != null ? pre_cmds.concat(node.action.cmds) : null;
+        node.action?.cmds != null ? preCmds.concat(node.action.cmds) : null;
 
       // Extract optional url. Null of doesn't exist.
       const url = node.action?.url;
@@ -112,8 +112,8 @@ function traverseAndRegisterCommands(context, pre_cmds, nodes) {
   }
 }
 
-function traverseAndRegisterTreeButtons(context, nodes_list) {
-  for (const node of nodes_list) {
+function traverseAndRegisterTreeButtons(context, nodesList) {
+  for (const node of nodesList) {
     if ("children" in node) {
       // Handle a group
       traverseAndRegisterTreeButtons(context, node.children);
@@ -223,16 +223,16 @@ function execAction(cmds, url, apioBinaryPath) {
   apioTerminal.show();
 
   // Determine the optional --env value, based on selected env.
-  let env_flag = "";
+  let envFlag = "";
   if (currentEnv && currentEnv != ENV_DEFAULT) {
-    env_flag = `-e ${currentEnv}`;
+    envFlag = `-e ${currentEnv}`;
   }
 
   // Send the command lines to the terminal, resolving --env flag
   // placeholder if exists.
   for (let cmd of cmds) {
     cmd = cmd.replace("{apio-bin}", apioBinaryPath);
-    cmd = cmd.replace("{env-flag}", env_flag);
+    cmd = cmd.replace("{env-flag}", envFlag);
     apioTerminal.sendText(cmd);
   }
   // };
@@ -293,7 +293,7 @@ function extractApioIniEnvs(filePath) {
   }
 }
 
-// Update the displaed of the env selector.
+// Update the display of the env selector.
 function updateEnvSelector() {
   statusBarEnv.text =
     currentEnv && currentEnv != ENV_DEFAULT
@@ -320,11 +320,11 @@ function activate(context) {
   }
 
   // Determine the path of the expected apio project dir.
-  const apio_folder = ws.uri.fsPath;
-  apioLog.msg(`apio_folder: ${apio_folder}`);
+  const apioFolder = ws.uri.fsPath;
+  apioLog.msg(`apio_folder: ${apioFolder}`);
 
   // Determine the path of the expected apio.ini file.
-  const apio_ini_path = path.join(apio_folder, "apio.ini");
+  const apio_ini_path = path.join(apioFolder, "apio.ini");
   apioLog.msg(`apio_ini_path: ${apio_ini_path}`);
 
   // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
@@ -343,6 +343,9 @@ function activate(context) {
   apioLog.msg(`isLinux: ${platforms.isLinux()}`);
   apioLog.msg(`isDarwin: ${platforms.isDarwin()}`);
 
+  // Init the downloader.
+  downloader.init();
+
   // Process platform type.
   // const platform = process.platform;
   // apioLog.msg(`platform: ${platform}`);
@@ -351,8 +354,8 @@ function activate(context) {
 
   // Determines the commands that we prefix each apio command.
   const cd_cmd = platforms.isWindows()
-    ? `chdir /d "${apio_folder}"`
-    : `cd "${apio_folder}"`;
+    ? `chdir /d "${apioFolder}"`
+    : `cd "${apioFolder}"`;
   apioLog.msg(`cd_cmd: ${cd_cmd}`);
 
   // Determine platform dependent command to clear the terminal.
