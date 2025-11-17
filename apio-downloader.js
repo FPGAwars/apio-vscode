@@ -29,7 +29,10 @@ let _apioInstallPromise = null;
 async function ensureApioBinary() {
   if (_apioBinaryPath) {
     try {
-      await fs.promises.access(_apioBinaryPath, fs.constants.X_OK | fs.constants.R_OK);
+      await fs.promises.access(
+        _apioBinaryPath,
+        fs.constants.X_OK | fs.constants.R_OK
+      );
       return _apioBinaryPath; // Binary exists and is executable/readable
     } catch {
       _apioBinaryPath = null; // Invalidate cache
@@ -106,9 +109,10 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
 
   const yyyymmdd = tag.replaceAll("-", "");
   const platform_id = platforms.getPlatformId();
+  const extension = platforms.isWindows() ? "zip" : "tgz";
 
   const baseUrl = `https://github.com/FPGAwars/apio-dev-builds/releases/download/${tag}/`;
-  const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.tgz`;
+  const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.${extension}`;
   const url = baseUrl + archiveName;
   const archivePath = path.join(tmpDir, archiveName);
 
