@@ -8,10 +8,12 @@
         "gowin",
         "icestorm",
         "makefiles",
+        "pyinstaller",
         "systemverilog",
         "testbench",
         "testbenchs",
         "verilog",
+        "xattr",
         "yosys",
         "Yoyodyne",
         "zapta"

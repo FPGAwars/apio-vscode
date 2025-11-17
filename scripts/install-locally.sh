@@ -15,14 +15,20 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 
 rm -f *.vsix
 
+# Make sure all the dependencies are in node_modules
+npm install
+
 # Build
 npx vsce package 
+
+# List the output file.
+ls -al apio-*.vsix
 
 # Uninstall
 #code --uninstall-extension FPGAwars.apio
 
 # List the files included in the package
-unzip -l apio-*.vsix
+#unzip -l apio-*.vsix
 
 # Install 
 # Add --verbose for terse output.
