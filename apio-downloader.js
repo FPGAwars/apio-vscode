@@ -73,7 +73,7 @@ async function ensureApioBinary() {
 
   if (binaryOk) {
     // Binary is good, will use it.
-    apioLog.msg("Apio binary found: ", _apioBinDirPath);
+    apioLog.msg(`Apio binary found: ${_apioBinDirPath}`);
   } else {
     // Binary is missing or not good, will download and install it.
     apioLog.msg("Apio binary not found, will install.");
