@@ -82,7 +82,8 @@ function traverseAndConvertTree(nodes) {
   return result;
 }
 
-// Tree is a list of nodes.
+// Recursively Traverse the tree nodes and register the commands with
+// VSCode.
 function traverseAndRegisterCommands(context, preCmds, nodes) {
   // const result = [];
   for (const node of nodes) {
@@ -103,15 +104,14 @@ function traverseAndRegisterCommands(context, preCmds, nodes) {
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(
-          node.id,
-          getExecActionCallback(cmds, url)
-        )
+        vscode.commands.registerCommand(node.id, actionLaunchWrapper(cmds, url))
       );
     }
   }
 }
 
+// Recursively traverse the tree nodes and register the Apio 
+// buttons.
 function traverseAndRegisterTreeButtons(context, nodesList) {
   for (const node of nodesList) {
     if ("children" in node) {
@@ -141,6 +141,8 @@ function traverseAndRegisterTreeButtons(context, nodesList) {
   }
 }
 
+// An adapter between our tree format in commands.js and the
+// one expected by VSCode.
 class ApioTreeProvider {
   constructor(tree) {
     this.tree = tree;
@@ -172,14 +174,10 @@ class ApioTreeProvider {
   }
 }
 
-// Function to write a message to the output channel 'Apio'. In the
-// output tab, select 'Apio' to see it.
-// function apioLog.msg(msg = "") {
-//   outputChannel.appendLine(msg);
-// }
+
 
 // A function to execute an action. Action can have commands anr/or url.
-function execAction(cmds, url, apioBinaryPath) {
+function launchAction(cmds, url, apioBinaryPath) {
   // return () => {
   // If url is specified open it in the default browser.
   if (url != null) {
@@ -238,29 +236,37 @@ function execAction(cmds, url, apioBinaryPath) {
   // };
 }
 
-// ---------------------------------------------------------------
-// 2. WRAPPER: creates action *inside* after binary is ready
-// ---------------------------------------------------------------
-function getExecActionCallback(cmds, url) {
-  return () => {
-    downloader
-      .ensureApioBinary()
-      .then((apioBinaryPath) => {
-        console.log(`[Apio] Binary ready: ${apioBinaryPath}`);
+// A wrapper that first download the apio binary if needed and
+// only then invoked execAction
+function actionLaunchWrapper(cmds, url) {
+  // This wrapper is called when the user invokes the command. It
+  // downloads and installs apio if needed and then executes
+  // the command.
+  async function _launchWrapper() {
+    // The path to the apio binary.
+    let apioBinaryPath = null;
 
-        // ← Action is created *here*, inside the wrapper
-        // const run = execActionPrimitive(cmds, url)();
-        // `run` is the actual function that opens terminal + sends commands
-        // console.log("Calling execActionPrimitive");
-        // run();
-        execAction(cmds, url, apioBinaryPath);
-        // console.log("Calling execActionPrimitive");
-      })
-      .catch((err) => {
-        console.error("[Apio] Binary setup failed:", err);
-        vscode.window.showErrorMessage("Apio binary failed to load.");
-      });
-  };
+    // Make sure the apio binary exists. If not, download and install it.
+    try {
+      apioBinaryPath = await downloader.ensureApioBinary();
+      console.log(`[Apio] Binary ready: ${apioBinaryPath}`);
+    } catch (err) {
+      console.error("[Apio] Binary setup failed:", err);
+      vscode.window.showErrorMessage("Failed to install Apio.");
+      return;
+    }
+
+    // Execute the command. Note that this is asynchronous such that
+    // the execution of the commands may continues after this returns.
+    try {
+      launchAction(cmds, url, apioBinaryPath);
+    } catch (err) {
+      console.error("[APIO] Failed to start the command:", err);
+      vscode.window.showErrorMessage("Apio failed to launch the command.");
+    }
+  }
+
+  return _launchWrapper;
 }
 
 // Scans apio.ini and return list of env names.
@@ -305,7 +311,7 @@ function updateEnvSelector() {
 // Standard VSC extension activate() function.
 function activate(context) {
   // Init Apio log output channel.
-  apioLog.initLog(context);
+  apioLog.init(context);
 
   // outputChannel = vscode.window.createOutputChannel("Apio");
   // context.subscriptions.push(outputChannel);
@@ -324,12 +330,12 @@ function activate(context) {
   apioLog.msg(`apio_folder: ${apioFolder}`);
 
   // Determine the path of the expected apio.ini file.
-  const apio_ini_path = path.join(apioFolder, "apio.ini");
-  apioLog.msg(`apio_ini_path: ${apio_ini_path}`);
+  const apioIniPath = path.join(apioFolder, "apio.ini");
+  apioLog.msg(`apio_ini_path: ${apioIniPath}`);
 
   // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
-  if (!fs.existsSync(apio_ini_path)) {
-    apioLog.msg(`apio.ini file not found at ${apio_ini_path}`);
+  if (!fs.existsSync(apioIniPath)) {
+    apioLog.msg(`apio.ini file not found at ${apioIniPath}`);
     return;
   }
   apioLog.msg("apio.ini found");
@@ -346,34 +352,28 @@ function activate(context) {
   // Init the downloader.
   downloader.init();
 
-  // Process platform type.
-  // const platform = process.platform;
-  // apioLog.msg(`platform: ${platform}`);
-  // isWindows = platform == "win32";
-  // apioLog.msg(`is windows: ${isWindows}`);
-
   // Determines the commands that we prefix each apio command.
-  const cd_cmd = platforms.isWindows()
+  const changeDirCmd = platforms.isWindows()
     ? `chdir /d "${apioFolder}"`
     : `cd "${apioFolder}"`;
-  apioLog.msg(`cd_cmd: ${cd_cmd}`);
+  apioLog.msg(`cd_cmd: ${changeDirCmd}`);
 
   // Determine platform dependent command to clear the terminal.
-  const clear_cmd = platforms.isWindows() ? "cls" : "clear";
-  apioLog.msg(`clear_cmd: ${clear_cmd}`);
+  const clearCommand = platforms.isWindows() ? "cls" : "clear";
+  apioLog.msg(`clear_cmd: ${clearCommand}`);
 
-  const pre_cmds = [clear_cmd, cd_cmd];
+  const preCmds = [clearCommand, changeDirCmd];
 
   // Traverse the definition trees and register the commands.
   for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterCommands(context, pre_cmds, tree);
+    traverseAndRegisterCommands(context, preCmds, tree);
   }
 
   // Register the trees with their respective views.
-  for (const [view_id, tree] of Object.entries(commands.TREE_VIEWS)) {
+  for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
     // registerTreeView(context, view_id, tree);
     const viewContainer = vscode.window.registerTreeDataProvider(
-      view_id,
+      viewId,
       new ApioTreeProvider(tree)
     );
     context.subscriptions.push(viewContainer);
@@ -412,7 +412,7 @@ function activate(context) {
   // Register command: click → show QuickPick
   context.subscriptions.push(
     vscode.commands.registerCommand("apio.selectEnv", async () => {
-      const envs = extractApioIniEnvs(apio_ini_path);
+      const envs = extractApioIniEnvs(apioIniPath);
       envs.unshift(ENV_DEFAULT);
       const selected = await vscode.window.showQuickPick(envs, {
         placeHolder: "Select Apio environment",

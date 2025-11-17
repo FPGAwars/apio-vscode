@@ -10,9 +10,9 @@ let outputChannel = null;
 // Initializes the Apio output channel and push it to the extension context.
 // Must be called **once** from `activate(context)`.
 // @param {vscode.ExtensionContext} context
-function initLog(context) {
+function init(context) {
   if (outputChannel) {
-    return; // already initialised
+    return; // already initialized
   }
 
   outputChannel = vscode.window.createOutputChannel("Apio");
@@ -44,7 +44,7 @@ function showChannel() {
 }
 
 module.exports = {
-  initLog,
+  init,
   msg,
   showChannel,
 };
