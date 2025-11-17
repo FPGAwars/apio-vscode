@@ -21,6 +21,10 @@ const tar = require("tar");
 const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
 
+// The release to download
+  const apioReleaseTag = "2025-11-17";
+  const githubRepo = "FPGAwars/apio-dev-builds";
+
 // Environment. Initialized on first call to ensureApioBinary
 let _apioBinDirPath = null;
 let _apioTmpDirPath = null;
@@ -82,15 +86,12 @@ async function ensureApioBinary() {
 // Download the apio bundle and install it.
 // This async function returns a promise that govern the process.
 async function _downloadAndInstall() {
-  const tag = "2025-11-17";
 
-  // const org = "zapta";
-  const org = "FPGAwars";
-  const yyyymmdd = tag.replaceAll("-", "");
+  const yyyymmdd = apioReleaseTag.replaceAll("-", "");
   const platformId = platforms.getPlatformId();
   const extension = platforms.isWindows() ? "zip" : "tgz";
 
-  const baseUrl = `https://github.com/${org}/apio-dev-builds/releases/download/${tag}/`;
+  const baseUrl = `https://github.com/${githubRepo}/releases/download/${apioReleaseTag}/`;
   const archiveName = `apio-${platformId}-${yyyymmdd}-bundle.${extension}`;
   const url = baseUrl + archiveName;
   const archivePath = path.join(_apioTmpDirPath, archiveName);
