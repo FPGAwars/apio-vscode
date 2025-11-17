@@ -108,11 +108,13 @@ async function downloadAndInstall(tmpDir, binDir, binaryName) {
   const tag = "2025-11-15";
   const version = "1.0.1";
 
+  // const org = "FPGAwars";
+  const org = "zapta";
   const yyyymmdd = tag.replaceAll("-", "");
   const platform_id = platforms.getPlatformId();
   const extension = platforms.isWindows() ? "zip" : "tgz";
 
-  const baseUrl = `https://github.com/FPGAwars/apio-dev-builds/releases/download/${tag}/`;
+  const baseUrl = `https://github.com/${org}/apio-dev-builds/releases/download/${tag}/`;
   const archiveName = `apio-${platform_id}-${version}-${yyyymmdd}-bundle.${extension}`;
   const url = baseUrl + archiveName;
   const archivePath = path.join(tmpDir, archiveName);
