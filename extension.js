@@ -110,7 +110,7 @@ function traverseAndRegisterCommands(context, preCmds, nodes) {
   }
 }
 
-// Recursively traverse the tree nodes and register the Apio 
+// Recursively traverse the tree nodes and register the Apio
 // buttons.
 function traverseAndRegisterTreeButtons(context, nodesList) {
   for (const node of nodesList) {
@@ -173,8 +173,6 @@ class ApioTreeProvider {
     return [];
   }
 }
-
-
 
 // A function to execute an action. Action can have commands anr/or url.
 function launchAction(cmds, url, apioBinaryPath) {
@@ -313,10 +311,16 @@ function activate(context) {
   // Init Apio log output channel.
   apioLog.init(context);
 
-  // outputChannel = vscode.window.createOutputChannel("Apio");
-  // context.subscriptions.push(outputChannel);
-
   apioLog.msg("activate() started.");
+
+  // Check that we are on a supported platforms.
+  const platformId = platforms.getPlatformId();
+  if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
+    apioLog.msg(
+      `Platform id ${platformId} is not supported by this extension.`
+    );
+    return;
+  }
 
   // Determine the workspace folder, do nothing if none.
   const ws = vscode.workspace.workspaceFolders?.[0];
@@ -338,11 +342,9 @@ function activate(context) {
     apioLog.msg(`apio.ini file not found at ${apioIniPath}`);
     return;
   }
-  apioLog.msg("apio.ini found");
+  apioLog.msg("apio.ini found, activating the extension");
 
   // Here we are committed to activate the extension.
-
-  // apioLog.msg(`Platform id: ${platforms.getPlatformId()}`)
 
   apioLog.msg(`Platform id: ${platforms.getPlatformId()}`);
   apioLog.msg(`isWindows: ${platforms.isWindows()}`);
