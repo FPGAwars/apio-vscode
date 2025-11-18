@@ -33,6 +33,7 @@ let _apioBinaryName = null;
 let _apioBinaryPath = null;
 
 // Download url and local package name
+const downloadMetadataFileName = "download-metadata.json";
 let _downloadSrcUrl = null;
 let _downloadDstFilePath = null;
 
@@ -80,18 +81,30 @@ function init() {
 // Ensures the Apio binary is ready and if not download and installs it.
 // @returns {Promise<string>} with the path to apio / apio.exe
 async function ensureApioBinary() {
-  // Check if the binary exists.
+  // Check if the apio binary exists.
   const binaryExists = await _testFsItem(
     _apioBinaryPath,
     fs.constants.X_OK | fs.constants.R_OK
   );
+  apioLog.msg(`Apio binary ${_apioBinaryPath} exists = ${binaryExists}`);
 
-  if (binaryExists) {
+  // Check if the download metadata has a matching download url
+  const metadataFilePath = path.join(
+    _apioBinDirPath,
+    downloadMetadataFileName
+  );
+  //  'metadata' is {} if file doesn't exist or any error.
+  const metadataDict = await jsonUtils.readJson(metadataFilePath);
+  const lastUrl = metadataDict.url ?? null;
+  const urlMatches = lastUrl == _downloadSrcUrl;
+  apioLog.msg(`Download url match =  ${urlMatches}`);
+
+  if (binaryExists && urlMatches) {
     // Binary is good, will use it.
-    apioLog.msg(`Apio binary found: ${_apioBinDirPath}`);
+    apioLog.msg(`Existing binary ok: ${_apioBinDirPath}`);
   } else {
     // Binary is missing or not good, will download and install it.
-    apioLog.msg("Apio binary not found, will install.");
+    apioLog.msg("Need to download and install a new binary.");
     await _downloadAndInstall();
   }
 
@@ -110,7 +123,7 @@ async function _downloadAndInstall() {
   // const url = baseUrl + archiveName;
   // const archivePath = path.join(_apioTmpDirPath, archiveName);
 
-  apioLog.msg(`[Apio] Downloading: ${_downloadSrcUrl}`);
+  apioLog.msg(`Downloading: ${_downloadSrcUrl}`);
 
   // Make the tmp dir if doesn't exist.
   await fs.promises.mkdir(_apioTmpDirPath, { recursive: true });
@@ -164,8 +177,9 @@ async function _downloadAndInstall() {
   }
 
   // Write the download metadata file to the tmpDir/apio dir, sibling
-  // to the binary.
-  const metadataPath = path.join(extractedApioDir, "download-metadata.json");
+  // to the binary. We write it before we move the extracted apio
+  // dir to 'bin' so the path is slightly different.
+  const metadataPath = path.join(extractedApioDir, downloadMetadataFileName);
   let writeOk = await jsonUtils.writeJson(metadataPath, {
     url: _downloadSrcUrl,
     time: new Date().toISOString(),
