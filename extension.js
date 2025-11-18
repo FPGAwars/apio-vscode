@@ -267,6 +267,46 @@ function actionLaunchWrapper(cmds, url) {
   return _launchWrapper;
 }
 
+// Update the display of the env selector.
+function updateEnvSelector() {
+  statusBarEnv.text =
+    currentEnv && currentEnv != ENV_DEFAULT
+      ? `[env:${currentEnv}]`
+      : ENV_DEFAULT;
+  statusBarEnv.tooltip = "APIO: Select apio.ini env";
+}
+
+// Handle that is triggered when the user clicks on the env
+// selection field in the status bar.
+function envSelectionClickHandler(context, apioIniPath) {
+  // The actual handler.
+  async function _handler() {
+    // Scan the apio.ini file and get a list of all of its envs.
+    const envs = extractApioIniEnvs(apioIniPath);
+
+    // Prepend to the list the (default) menu entry.
+    envs.unshift(ENV_DEFAULT);
+
+    // Ask the user to select from the list.
+    let selected = await vscode.window.showQuickPick(envs, {
+      placeHolder: "Select apio.ini environment",
+    });
+
+    if (selected !== undefined) {
+      // Update the current env var with the selection.
+      currentEnv = selected || ENV_DEFAULT;
+
+      // Update the env field in the status bar.
+      updateEnvSelector();
+
+      // Persist the default for future invocations vscode and this project.
+      await context.workspaceState.update("apio.activeEnv", currentEnv);
+    }
+  }
+
+  return _handler;
+}
+
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(filePath) {
   // const fs = require("fs");
@@ -295,15 +335,6 @@ function extractApioIniEnvs(filePath) {
     console.error("Failed to read apio.ini:", err);
     return [];
   }
-}
-
-// Update the display of the env selector.
-function updateEnvSelector() {
-  statusBarEnv.text =
-    currentEnv && currentEnv != ENV_DEFAULT
-      ? `[env:${currentEnv}]`
-      : ENV_DEFAULT;
-  statusBarEnv.tooltip = "APIO: Select apio.ini env";
 }
 
 // Standard VSC extension activate() function.
@@ -413,19 +444,10 @@ function activate(context) {
 
   // Register command: click → show QuickPick
   context.subscriptions.push(
-    vscode.commands.registerCommand("apio.selectEnv", async () => {
-      const envs = extractApioIniEnvs(apioIniPath);
-      envs.unshift(ENV_DEFAULT);
-      const selected = await vscode.window.showQuickPick(envs, {
-        placeHolder: "Select Apio environment",
-      });
-
-      if (selected !== undefined) {
-        currentEnv = selected || ENV_DEFAULT;
-        updateEnvSelector();
-        await context.workspaceState.update("apio.activeEnv", currentEnv);
-      }
-    })
+    vscode.commands.registerCommand(
+      "apio.selectEnv",
+      envSelectionClickHandler(context, apioIniPath)
+    )
   );
 
   // All done.
