@@ -25,13 +25,13 @@ npx vsce package
 ls -al apio-*.vsix
 
 # Uninstall
-#code --uninstall-extension FPGAwars.apio
+code --uninstall-extension FPGAwars.apio
 
 # List the files included in the package
 #unzip -l apio-*.vsix
 
 # Install 
-# Add --verbose for terse output.
+#code --verbose --install-extension apio-*.vsix 
 code --install-extension apio-*.vsix 
 
 
