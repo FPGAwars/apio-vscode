@@ -241,6 +241,8 @@ function actionLaunchWrapper(cmds, url) {
   // downloads and installs apio if needed and then executes
   // the command.
   async function _launchWrapper() {
+    apioLog.msg("-----");
+    
     // The path to the apio binary.
     let apioBinaryPath = null;
 

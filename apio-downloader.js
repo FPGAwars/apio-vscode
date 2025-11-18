@@ -32,6 +32,11 @@ let _apioTmpDirPath = null;
 let _apioBinaryName = null;
 let _apioBinaryPath = null;
 
+// Download url and local package name
+const downloadMetadataFileName = "download-metadata.json";
+let _downloadSrcUrl = null;
+let _downloadDstFilePath = null;
+
 // Initializes this module. Should be called once before any other
 // function of this module.
 function init() {
@@ -61,23 +66,45 @@ function init() {
   // Determine the absolute path of the apio binary name.
   _apioBinaryPath = path.join(_apioBinDirPath, _apioBinaryName);
   apioLog.msg(`Apio binary path: ${_apioBinaryPath}`);
+
+  // Determine download information.
+  const yyyymmdd = apioReleaseTag.replaceAll("-", "");
+  const platformId = platforms.getPlatformId();
+  const extension = platforms.isWindows() ? "zip" : "tgz";
+
+  const baseUrl = `https://github.com/${githubRepo}/releases/download/${apioReleaseTag}/`;
+  const packageFileName = `apio-${platformId}-${yyyymmdd}-bundle.${extension}`;
+  _downloadSrcUrl = baseUrl + packageFileName;
+  _downloadDstFilePath = path.join(_apioTmpDirPath, packageFileName);
 }
 
 // Ensures the Apio binary is ready and if not download and installs it.
 // @returns {Promise<string>} with the path to apio / apio.exe
 async function ensureApioBinary() {
-  // Check if the binary exists.
-  const binaryOk = await _testFsItem(
+  // Check if the apio binary exists.
+  const binaryExists = await _testFsItem(
     _apioBinaryPath,
     fs.constants.X_OK | fs.constants.R_OK
   );
+  apioLog.msg(`Apio binary ${_apioBinaryPath} exists = ${binaryExists}`);
 
-  if (binaryOk) {
+  // Check if the download metadata has a matching download url
+  const metadataFilePath = path.join(
+    _apioBinDirPath,
+    downloadMetadataFileName
+  );
+  //  'metadata' is {} if file doesn't exist or any error.
+  const metadataDict = await jsonUtils.readJson(metadataFilePath);
+  const lastUrl = metadataDict.url ?? null;
+  const urlMatches = lastUrl == _downloadSrcUrl;
+  apioLog.msg(`Download url match =  ${urlMatches}`);
+
+  if (binaryExists && urlMatches) {
     // Binary is good, will use it.
-    apioLog.msg(`Apio binary found: ${_apioBinDirPath}`);
+    apioLog.msg(`Existing binary ok: ${_apioBinDirPath}`);
   } else {
     // Binary is missing or not good, will download and install it.
-    apioLog.msg("Apio binary not found, will install.");
+    apioLog.msg("Need to download and install a new binary.");
     await _downloadAndInstall();
   }
 
@@ -87,22 +114,23 @@ async function ensureApioBinary() {
 // Download the apio bundle and install it.
 // This async function returns a promise that govern the process.
 async function _downloadAndInstall() {
-  const yyyymmdd = apioReleaseTag.replaceAll("-", "");
-  const platformId = platforms.getPlatformId();
-  const extension = platforms.isWindows() ? "zip" : "tgz";
+  // const yyyymmdd = apioReleaseTag.replaceAll("-", "");
+  // const platformId = platforms.getPlatformId();
+  // const extension = platforms.isWindows() ? "zip" : "tgz";
 
-  const baseUrl = `https://github.com/${githubRepo}/releases/download/${apioReleaseTag}/`;
-  const archiveName = `apio-${platformId}-${yyyymmdd}-bundle.${extension}`;
-  const url = baseUrl + archiveName;
-  const archivePath = path.join(_apioTmpDirPath, archiveName);
+  // const baseUrl = `https://github.com/${githubRepo}/releases/download/${apioReleaseTag}/`;
+  // const archiveName = `apio-${platformId}-${yyyymmdd}-bundle.${extension}`;
+  // const url = baseUrl + archiveName;
+  // const archivePath = path.join(_apioTmpDirPath, archiveName);
 
-  apioLog.msg(`[Apio] Downloading: ${url}`);
+  apioLog.msg(`Downloading: ${_downloadSrcUrl}`);
 
   // Make the tmp dir if doesn't exist.
   await fs.promises.mkdir(_apioTmpDirPath, { recursive: true });
 
   // Download the file to the tmp dir.
-  await _downloadFile(url, archivePath);
+  // await _downloadFile(url, archivePath);
+  await _downloadFile(_downloadSrcUrl, _downloadDstFilePath);
 
   // Remove quarantine (macOS) from the archive.
   //
@@ -111,7 +139,7 @@ async function _downloadAndInstall() {
   if (platforms.isDarwin()) {
     await new Promise((res) => {
       childProcess.exec(
-        `xattr -d com.apple.quarantine "${archivePath}"`,
+        `xattr -d com.apple.quarantine "${_downloadDstFilePath}"`,
         (err) => {
           if (err) {
             console.warn("[Apio] Quarantine removal failed:", err.message);
@@ -127,14 +155,16 @@ async function _downloadAndInstall() {
   }
 
   // Extract
-  if (archiveName.endsWith(".zip")) {
-    await zipExtract(archivePath, { dir: _apioTmpDirPath });
-  } else if (archiveName.endsWith(".tgz")) {
-    await tar.x({ file: archivePath, cwd: _apioTmpDirPath });
+  if (_downloadDstFilePath.endsWith(".zip")) {
+    await zipExtract(_downloadDstFilePath, { dir: _apioTmpDirPath });
+  } else if (_downloadDstFilePath.endsWith(".tgz")) {
+    await tar.x({ file: _downloadDstFilePath, cwd: _apioTmpDirPath });
+  } else {
+    throw new Error(`Unexpected package extension: ${_downloadDstFilePath}`);
   }
 
   // Clean up archive. We don't need it any more.
-  await fs.promises.unlink(archivePath).catch(() => {});
+  await fs.promises.unlink(_downloadDstFilePath).catch(() => {});
 
   // Uncompressing the downloaded packages is supposed to create
   // a directory 'apio', sibling to the archive file, which
@@ -147,10 +177,11 @@ async function _downloadAndInstall() {
   }
 
   // Write the download metadata file to the tmpDir/apio dir, sibling
-  // to the binary.
-  const metadataPath = path.join(extractedApioDir, "download-metadata.json");
+  // to the binary. We write it before we move the extracted apio
+  // dir to 'bin' so the path is slightly different.
+  const metadataPath = path.join(extractedApioDir, downloadMetadataFileName);
   let writeOk = await jsonUtils.writeJson(metadataPath, {
-    url: url,
+    url: _downloadSrcUrl,
     time: new Date().toISOString(),
   });
   if (!writeOk) {
