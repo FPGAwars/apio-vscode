@@ -20,10 +20,11 @@ const tar = require("tar");
 // Local imports
 const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
+const jsonUtils = require("./json-utils.js");
 
 // The release to download
-  const apioReleaseTag = "2025-11-17";
-  const githubRepo = "FPGAwars/apio-dev-builds";
+const apioReleaseTag = "2025-11-17";
+const githubRepo = "FPGAwars/apio-dev-builds";
 
 // Environment. Initialized on first call to ensureApioBinary
 let _apioBinDirPath = null;
@@ -86,7 +87,6 @@ async function ensureApioBinary() {
 // Download the apio bundle and install it.
 // This async function returns a promise that govern the process.
 async function _downloadAndInstall() {
-
   const yyyymmdd = apioReleaseTag.replaceAll("-", "");
   const platformId = platforms.getPlatformId();
   const extension = platforms.isWindows() ? "zip" : "tgz";
@@ -136,11 +136,26 @@ async function _downloadAndInstall() {
   // Clean up archive. We don't need it any more.
   await fs.promises.unlink(archivePath).catch(() => {});
 
-  // Expected: tmpDir/apio/
+  // Uncompressing the downloaded packages is supposed to create
+  // a directory 'apio', sibling to the archive file, which
+  // contain the apio binary and support files.
   const extractedApioDir = path.join(_apioTmpDirPath, "apio");
-  // if (!(await fileExists(extractedApioDir))) {
+
+  // Check that the unarchive indeed created an 'apio' dir.
   if (!(await _testFsItem(extractedApioDir))) {
     throw new Error('Archive did not contain "apio/" directory');
+  }
+
+  // Write the download metadata file to the tmpDir/apio dir, sibling
+  // to the binary.
+  const metadataPath = path.join(extractedApioDir, "download-metadata.json");
+  let writeOk = await jsonUtils.writeJson(metadataPath, {
+    url: url,
+    time: new Date().toISOString(),
+  });
+  if (!writeOk) {
+    apioLog.msg(`Failed to write metadata to ${metadataPath}`);
+    throw new Error(`Download failed, failed to write download metadata.`);
   }
 
   // Ensure binDir exists, make an empty one if not.
