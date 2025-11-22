@@ -466,15 +466,15 @@ function activate(context) {
     viewNotice.showHtmlBody(info.msg);
   }
 
-  // --- Conditionally enable the COMMANDS view.
+  // --- Conditionally enable the PROJECT view.
   if (isOneOf(mode, [Mode.PROJECT])) {
     //  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterCommands(context, preCmds, commands.COMMANDS_TREE);
+    traverseAndRegisterCommands(context, preCmds, commands.PROJECT_TREE);
     // }
 
     vscode.commands.executeCommand(
       "setContext",
-      "apio.sidebar.commands.enabled",
+      "apio.sidebar.project.enabled",
       true
     );
 
@@ -482,8 +482,8 @@ function activate(context) {
     // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
     // registerTreeView(context, view_id, tree);
     const viewContainer = vscode.window.registerTreeDataProvider(
-      "apio.sidebar.commands",
-      new ApioTreeProvider(commands.COMMANDS_TREE)
+      "apio.sidebar.project",
+      new ApioTreeProvider(commands.PROJECT_TREE)
     );
     context.subscriptions.push(viewContainer);
 
@@ -541,7 +541,7 @@ function activate(context) {
     apioLabel.show();
 
     // Traverse the definition trees and register the status bar buttons.
-    for (const tree of [commands.COMMANDS_TREE, commands.TOOLS_TREE, commands.HELP_TREE]) {
+    for (const tree of [commands.PROJECT_TREE, commands.TOOLS_TREE, commands.HELP_TREE]) {
       traverseAndRegisterTreeButtons(context, tree);
     }
 

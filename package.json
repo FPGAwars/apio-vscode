@@ -54,11 +54,11 @@
           "when": "apio.sidebar.notice.enabled"
         },
         {
-          "name": "COMMANDS",
-          "id": "apio.sidebar.commands",
+          "name": "PROJECT",
+          "id": "apio.sidebar.project",
           "icon": "media/sidebar-icon.svg",
           "type": "tree",
-          "when": "apio.sidebar.commands.enabled"
+          "when": "apio.sidebar.project.enabled"
         },
         {
           "name": "TOOLS",

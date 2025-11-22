@@ -2,9 +2,9 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
-const COMMANDS_TREE = [
+const PROJECT_TREE = [
   {
-    title: "Build project",
+    title: "Build",
     children: [
       {
         title: "Build",
@@ -30,7 +30,7 @@ const COMMANDS_TREE = [
     ],
   },
   {
-    title: "Verify project",
+    title: "Verify",
     children: [
       {
         title: "Lint",
@@ -74,7 +74,9 @@ const COMMANDS_TREE = [
       },
     ],
   },
+];
 
+const TOOLS_TREE = [
   {
     title: "Preferences",
     children: [
@@ -117,7 +119,7 @@ const COMMANDS_TREE = [
   },
 
   {
-    title: "FPGA Boards",
+    title: "Boards",
     children: [
       {
         title: "List boards",
@@ -137,8 +139,13 @@ const COMMANDS_TREE = [
         id: "apio.examples.list",
         action: { cmds: ["{apio-bin} examples list"] },
       },
+    ],
+  },
+  {
+    title: "Drivers",
+    children: [
       {
-        title: "FTDI Drivers",
+        title: "FTDI",
         children: [
           {
             title: "List devices",
@@ -161,7 +168,7 @@ const COMMANDS_TREE = [
         ],
       },
       {
-        title: "Serial Drivers",
+        title: "Serial",
         children: [
           {
             title: "List devices",
@@ -189,7 +196,7 @@ const COMMANDS_TREE = [
 
 
   {
-    title: "Apio Packages",
+    title: "Packages",
     children: [
       {
         title: "List",
@@ -211,14 +218,17 @@ const COMMANDS_TREE = [
       },
     ],
   },
-];
-
-const TOOLS_TREE = [
   {
-    title: "Terminal",
-    tooltip: "Open terminal at project folder",
-    id: "apio.terminal",
-    action: { cmds: [] },
+    title: "Misc",
+    children: [
+      {
+        title: "Terminal",
+        tooltip: "Open a terminal",
+        id: "apio.terminal",
+        action: { cmds: [] },
+      },
+
+    ],
   },
 ];
 
@@ -275,5 +285,5 @@ const HELP_TREE = [
 
 
 // Exported symbols
-module.exports = { COMMANDS_TREE, TOOLS_TREE, HELP_TREE };
+module.exports = { PROJECT_TREE, TOOLS_TREE, HELP_TREE };
 
