@@ -30,7 +30,7 @@
     "url": "https://github.com/fpgawars/apio-vscode.git"
   },
   "activationEvents": [
-    "*",
+    "onStartupFinished",
     "workspaceContains:apio.ini"
   ],
   "main": "./extension.js",

@@ -4,7 +4,7 @@
 
 const PROJECT_TREE = [
   {
-    title: "Build",
+    title: "Building",
     children: [
       {
         title: "Build",
@@ -30,7 +30,7 @@ const PROJECT_TREE = [
     ],
   },
   {
-    title: "Verify",
+    title: "Verifying",
     children: [
       {
         title: "Lint",
@@ -78,42 +78,32 @@ const PROJECT_TREE = [
 
 const TOOLS_TREE = [
   {
-    title: "Preferences",
+    title: "Themes",
     children: [
+
       {
-        title: "List preferences",
-        tooltip: "List user preferences",
-        id: "apio.preferences",
-        action: { cmds: ["{apio-bin} preferences --list"] },
+        title: "Show themes",
+        tooltip: "List themes and their colors",
+        id: "apio.info.themes",
+        action: { cmds: ["{apio-bin} info themes"] },
       },
       {
-        title: "Themes",
-        children: [
-          {
-            title: "Set for light background",
-            tooltip: "Select colors for a light background",
-            id: "apio.preferences.light",
-            action: { cmds: ["{apio-bin} preferences --theme light"] },
-          },
-          {
-            title: "Set for dark background",
-            tooltip: "Select colors for a dark background",
-            id: "apio.preferences.dark",
-            action: { cmds: ["{apio-bin} preferences --theme dark"] },
-          },
-          {
-            title: "Set no colors",
-            tooltip: "Disable Apio output colors",
-            id: "apio.preferences.no-colors",
-            action: { cmds: ["{apio-bin} preferences --theme no-colors"] },
-          },
-          {
-            title: "Show themes",
-            tooltip: "List themes and their colors",
-            id: "apio.info.themes",
-            action: { cmds: ["{apio-bin} info themes"] },
-          },
-        ],
+        title: "Set for light background",
+        tooltip: "Select colors for a light background",
+        id: "apio.preferences.light",
+        action: { cmds: ["{apio-bin} preferences --theme light"] },
+      },
+      {
+        title: "Set for dark background",
+        tooltip: "Select colors for a dark background",
+        id: "apio.preferences.dark",
+        action: { cmds: ["{apio-bin} preferences --theme dark"] },
+      },
+      {
+        title: "Set no colors",
+        tooltip: "Disable Apio output colors",
+        id: "apio.preferences.no-colors",
+        action: { cmds: ["{apio-bin} preferences --theme no-colors"] },
       },
     ],
   },
@@ -222,6 +212,18 @@ const TOOLS_TREE = [
     title: "Misc",
     children: [
       {
+        title: "System info",
+        tooltip: "Show Apio installation info",
+        id: "apio.info.system",
+        action: { cmds: ["{apio-bin} info system"] },
+      },
+      {
+        title: "Apio env",
+        tooltip: "Show Apio env settings",
+        id: "apio.raw.env",
+        action: { cmds: ["{apio-bin} raw --verbose"] },
+      },
+      {
         title: "Terminal",
         tooltip: "Open a terminal",
         id: "apio.terminal",
@@ -233,18 +235,7 @@ const TOOLS_TREE = [
 ];
 
 const HELP_TREE = [
-  {
-    title: "System info",
-    tooltip: "Show Apio installation info",
-    id: "apio.info.system",
-    action: { cmds: ["{apio-bin} info system"] },
-  },
-  {
-    title: "Apio env",
-    tooltip: "Show Apio env settings",
-    id: "apio.raw.env",
-    action: { cmds: ["{apio-bin} raw --verbose"] },
-  },
+
   {
     title: "Overview",
     tooltip: "Show Apio documentation",

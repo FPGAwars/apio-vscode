@@ -19,7 +19,7 @@ rm -f *.vsix
 npm install
 
 # Build
-npx vsce package --allow-star-activation
+npx vsce package 
 
 # List the output file.
 ls -al apio-*.vsix
