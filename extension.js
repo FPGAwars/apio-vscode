@@ -25,11 +25,10 @@ const downloader = require("./apio-downloader.js");
 const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
 const viewNotice = require("./view-notice.js");
+const utils = require("./utils.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
-
-
 
 // Test if 'value' is in the list 'allowed'
 function isOneOf(value, allowed) {
@@ -41,11 +40,9 @@ function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
-
-
 // Extension activation is one in one of these levels.
 const Mode = Object.freeze({
-  // Full project support, workspace is opened, apio.ini 
+  // Full project support, workspace is opened, apio.ini
   // is found.
   PROJECT: "project-mode",
   // No apio.ini found, project specific functionality is disabled.
@@ -59,8 +56,6 @@ const Mode = Object.freeze({
 // An immutable data object with activation info.
 const ActivationInfo = ({ mode, msg, wsDirPath, apioIniPath }) =>
   Object.freeze({ mode, msg, wsDirPath, apioIniPath });
-
-
 
 // Extension global context.
 // let outputChannel = null;
@@ -318,7 +313,7 @@ function envSelectionClickHandler(context, apioIniPath) {
   // The actual handler.
   async function _handler() {
     // Scan the apio.ini file and get a list of all of its envs.
-    const envs = extractApioIniEnvs(apioIniPath);
+    const envs = utils.extractApioIniEnvs(apioIniPath);
 
     // Prepend to the list the (default) menu entry.
     envs.unshift(ENV_DEFAULT);
@@ -343,40 +338,9 @@ function envSelectionClickHandler(context, apioIniPath) {
   return _handler;
 }
 
-// Scans apio.ini and return list of env names.
-function extractApioIniEnvs(filePath) {
-  // const fs = require("fs");
-  try {
-    const content = fs.readFileSync(filePath, "utf8");
-    const lines = content.split(/\r?\n/);
-    const envs = [];
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      // Skip empty lines and comments (both ; and #)
-      if (!trimmed || trimmed.startsWith(";") || trimmed.startsWith("#")) {
-        continue;
-      }
-
-      // Match [env:name]
-      const match = trimmed.match(/^\[env:([^\]]+)\]$/);
-      if (match) {
-        envs.push(match[1].trim());
-      }
-    }
-
-    return envs;
-  } catch (err) {
-    console.error("Failed to read apio.ini:", err);
-    return [];
-  }
-}
-
 // Called from activate() to determine the activation mode to perform.
 // Returns an ActivationInfo object with the activation params.
 function _determineActivationInfo() {
-
   // Check that we are on a supported platforms.
   const platformId = platforms.getPlatformId();
   if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
@@ -426,6 +390,24 @@ function _determineActivationInfo() {
   });
 }
 
+// Register a tree view.
+function _registerTreeView(context, preCmds, tree, viewId, viewEnableFlag) {
+  traverseAndRegisterCommands(context, preCmds, tree);
+
+  if (viewEnableFlag) {
+    vscode.commands.executeCommand("setContext", viewEnableFlag, true);
+  }
+
+  // Register the trees with their respective views.
+  // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
+  // registerTreeView(context, view_id, tree);
+  const viewContainer = vscode.window.registerTreeDataProvider(
+    viewId,
+    new ApioTreeProvider(tree)
+  );
+  context.subscriptions.push(viewContainer);
+}
+
 // Standard VSC extension activate() function.
 function activate(context) {
   // Init Apio log output channel.
@@ -468,68 +450,40 @@ function activate(context) {
 
   // --- Conditionally enable the PROJECT view.
   if (isOneOf(mode, [Mode.PROJECT])) {
-    //  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterCommands(context, preCmds, commands.PROJECT_TREE);
-    // }
-
-    vscode.commands.executeCommand(
-      "setContext",
-      "apio.sidebar.project.enabled",
-      true
-    );
-
-    // Register the trees with their respective views.
-    // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
-    // registerTreeView(context, view_id, tree);
-    const viewContainer = vscode.window.registerTreeDataProvider(
+    _registerTreeView(
+      context,
+      preCmds,
+      commands.PROJECT_TREE,
       "apio.sidebar.project",
-      new ApioTreeProvider(commands.PROJECT_TREE)
+      "apio.sidebar.project.enabled"
     );
-    context.subscriptions.push(viewContainer);
-
-
   }
-
 
   // --- Conditionally enable the TOOLS view.
 
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    traverseAndRegisterCommands(context, preCmds, commands.TOOLS_TREE);
-
-    vscode.commands.executeCommand(
-      "setContext",
-      "apio.sidebar.tools.enabled",
-      true
-    );
-
-    // Register the trees with their respective views.
-    // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
-    // registerTreeView(context, view_id, tree);
-    const viewContainer = vscode.window.registerTreeDataProvider(
+    _registerTreeView(
+      context,
+      preCmds,
+      commands.TOOLS_TREE,
       "apio.sidebar.tools",
-      new ApioTreeProvider(commands.TOOLS_TREE)
+      "apio.sidebar.tools.enabled"
     );
-    context.subscriptions.push(viewContainer);
   }
 
   // --- Unconditionally enable the HELP view.
 
-  traverseAndRegisterCommands(context, preCmds, commands.HELP_TREE);
-
-  // Register the trees with their respective views.
-  // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
-  // registerTreeView(context, view_id, tree);
-  const viewContainer = vscode.window.registerTreeDataProvider(
+  _registerTreeView(
+    context,
+    preCmds,
+    commands.HELP_TREE,
     "apio.sidebar.help",
-    new ApioTreeProvider(commands.HELP_TREE)
+    null
   );
-  context.subscriptions.push(viewContainer);
- 
 
   // --- Conditionally enable the status bar icons
 
   if (isOneOf(mode, [Mode.PROJECT])) {
-
     // Construct the status bar 'Apio:' label
     const apioLabel = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
@@ -541,7 +495,11 @@ function activate(context) {
     apioLabel.show();
 
     // Traverse the definition trees and register the status bar buttons.
-    for (const tree of [commands.PROJECT_TREE, commands.TOOLS_TREE, commands.HELP_TREE]) {
+    for (const tree of [
+      commands.PROJECT_TREE,
+      commands.TOOLS_TREE,
+      commands.HELP_TREE,
+    ]) {
       traverseAndRegisterTreeButtons(context, tree);
     }
 
