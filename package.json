@@ -30,6 +30,7 @@
     "url": "https://github.com/fpgawars/apio-vscode.git"
   },
   "activationEvents": [
+    "*",
     "workspaceContains:apio.ini"
   ],
   "main": "./extension.js",
@@ -46,16 +47,25 @@
     "views": {
       "apioContainer": [
         {
+          "name": "NOTICE",
+          "id": "apio.sidebar.notice",
+          "icon": "media/sidebar-icon.svg",
+          "type": "webview",
+          "when": "apio.sidebar.notice.enabled"
+        },
+        {
           "name": "COMMANDS",
           "id": "apio.sidebar.commands",
           "icon": "media/sidebar-icon.svg",
-          "type": "tree"
+          "type": "tree",
+          "when": "apio.sidebar.commands.enabled"
         },
         {
           "name": "TOOLS",
           "id": "apio.sidebar.tools",
           "icon": "media/sidebar-icon.svg",
-          "type": "tree"
+          "type": "tree",
+          "when": "apio.sidebar.tools.enabled"
         },
         {
           "name": "HELP",

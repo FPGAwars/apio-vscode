@@ -24,9 +24,43 @@ const commands = require("./commands.js");
 const downloader = require("./apio-downloader.js");
 const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
+const viewNotice = require("./view-notice.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
+
+
+
+// Test if 'value' is in the list 'allowed'
+function isOneOf(value, allowed) {
+  return allowed.includes(value);
+}
+
+// Convert an object to a dump string.
+function pretty(obj) {
+  return JSON.stringify(obj, null, 2);
+}
+
+
+
+// Extension activation is one in one of these levels.
+const Mode = Object.freeze({
+  // Full project support, workspace is opened, apio.ini 
+  // is found.
+  PROJECT: "project-mode",
+  // No apio.ini found, project specific functionality is disabled.
+  // May or may not have an open workspace dir.
+  NON_PROJECT: "non-project-mode",
+  // Incompatible platform. All functionality but help links
+  // is disabled. Not allowing even to create a project.
+  DISABLED: "disabled-mode",
+});
+
+// An immutable data object with activation info.
+const ActivationInfo = ({ mode, msg, wsDirPath, apioIniPath }) =>
+  Object.freeze({ mode, msg, wsDirPath, apioIniPath });
+
+
 
 // Extension global context.
 // let outputChannel = null;
@@ -242,7 +276,7 @@ function actionLaunchWrapper(cmds, url) {
   // the command.
   async function _launchWrapper() {
     apioLog.msg("-----");
-    
+
     // The path to the apio binary.
     let apioBinaryPath = null;
 
@@ -339,118 +373,201 @@ function extractApioIniEnvs(filePath) {
   }
 }
 
-// Standard VSC extension activate() function.
-function activate(context) {
-  // Init Apio log output channel.
-  apioLog.init(context);
-
-  apioLog.msg("activate() started.");
+// Called from activate() to determine the activation mode to perform.
+// Returns an ActivationInfo object with the activation params.
+function _determineActivationInfo() {
 
   // Check that we are on a supported platforms.
   const platformId = platforms.getPlatformId();
   if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
-    apioLog.msg(
-      `Platform id ${platformId} is not supported by this extension.`
-    );
-    return;
+    return ActivationInfo({
+      mode: Mode.DISABLED,
+      msg: `Platform id ${platformId} is not supported by this extension.`,
+      wsDirPath: null,
+      apioIniPath: null,
+    });
   }
 
   // Determine the workspace folder, do nothing if none.
   const ws = vscode.workspace.workspaceFolders?.[0];
   if (!ws) {
-    apioLog.msg("No workspace open");
-    return;
+    return ActivationInfo({
+      mode: Mode.NON_PROJECT,
+      msg: "Workspace not opened, no apio.ini project file.",
+      wsDirPath: null,
+      apioIniPath: null,
+    });
   }
 
   // Determine the path of the expected apio project dir.
-  const apioFolder = ws.uri.fsPath;
-  apioLog.msg(`apio_folder: ${apioFolder}`);
+  const wsDirPath = ws.uri.fsPath;
+  apioLog.msg(`wsFolderPath: ${wsDirPath}`);
 
   // Determine the path of the expected apio.ini file.
-  const apioIniPath = path.join(apioFolder, "apio.ini");
+  const apioIniPath = path.join(wsDirPath, "apio.ini");
   apioLog.msg(`apio_ini_path: ${apioIniPath}`);
 
   // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
   if (!fs.existsSync(apioIniPath)) {
-    apioLog.msg(`apio.ini file not found at ${apioIniPath}`);
-    return;
-  }
-  apioLog.msg("apio.ini found, activating the extension");
-
-  // Here we are committed to activate the extension.
-
-  apioLog.msg(`Platform id: ${platforms.getPlatformId()}`);
-  apioLog.msg(`isWindows: ${platforms.isWindows()}`);
-  apioLog.msg(`isLinux: ${platforms.isLinux()}`);
-  apioLog.msg(`isDarwin: ${platforms.isDarwin()}`);
-
-  // Init the downloader.
-  downloader.init();
-
-  // Determines the commands that we prefix each apio command.
-  const changeDirCmd = platforms.isWindows()
-    ? `chdir /d "${apioFolder}"`
-    : `cd "${apioFolder}"`;
-  apioLog.msg(`cd_cmd: ${changeDirCmd}`);
-
-  // Determine platform dependent command to clear the terminal.
-  const clearCommand = platforms.isWindows() ? "cls" : "clear";
-  apioLog.msg(`clear_cmd: ${clearCommand}`);
-
-  const preCmds = [clearCommand, changeDirCmd];
-
-  // Traverse the definition trees and register the commands.
-  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterCommands(context, preCmds, tree);
+    return ActivationInfo({
+      mode: Mode.NON_PROJECT,
+      msg: "Workspace opened with no apio.ini project file.",
+      wsDirPath: wsDirPath,
+      apioIniPath: null,
+    });
   }
 
-  // Register the trees with their respective views.
-  for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
+  // Here when apio.ini found, use full project mode.
+  return ActivationInfo({
+    mode: Mode.PROJECT,
+    msg: "Project file apio.ini found.",
+    wsDirPath: wsDirPath,
+    apioIniPath: apioIniPath,
+  });
+}
+
+// Standard VSC extension activate() function.
+function activate(context) {
+  // Init Apio log output channel.
+  apioLog.init(context);
+  apioLog.msg("activate() started.");
+
+  // Determine activation info.
+  const info = _determineActivationInfo();
+  apioLog.msg(`Activation Info: ${pretty(info)}`);
+  const mode = info.mode;
+
+  // Conditionally initialize the apio downloader
+
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    downloader.init();
+  }
+
+  // -- Determine the pre commands
+
+  let preCmds = null;
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    // Determines the commands that we prefix each apio command.
+    const changeDirCmd = platforms.isWindows()
+      ? `chdir /d "${info.wsDirPath}"`
+      : `cd "${info.wsDirPath}"`;
+    apioLog.msg(`cd_cmd: ${changeDirCmd}`);
+
+    // Determine platform dependent command to clear the terminal.
+    const clearCommand = platforms.isWindows() ? "cls" : "clear";
+    apioLog.msg(`clear_cmd: ${clearCommand}`);
+
+    preCmds = [clearCommand, changeDirCmd];
+  }
+
+  // --- Conditionally enable the NOTICE view
+
+  if (isOneOf(mode, [Mode.DISABLED, Mode.NON_PROJECT])) {
+    viewNotice.showHtmlBody(info.msg);
+  }
+
+  // --- Conditionally enable the COMMANDS view.
+  if (isOneOf(mode, [Mode.PROJECT])) {
+    //  for (const tree of Object.values(commands.TREE_VIEWS)) {
+    traverseAndRegisterCommands(context, preCmds, commands.COMMANDS_TREE);
+    // }
+
+    vscode.commands.executeCommand(
+      "setContext",
+      "apio.sidebar.commands.enabled",
+      true
+    );
+
+    // Register the trees with their respective views.
+    // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
     // registerTreeView(context, view_id, tree);
     const viewContainer = vscode.window.registerTreeDataProvider(
-      viewId,
-      new ApioTreeProvider(tree)
+      "apio.sidebar.commands",
+      new ApioTreeProvider(commands.COMMANDS_TREE)
+    );
+    context.subscriptions.push(viewContainer);
+
+
+  }
+
+
+  // --- Conditionally enable the TOOLS view.
+
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    traverseAndRegisterCommands(context, preCmds, commands.TOOLS_TREE);
+
+    vscode.commands.executeCommand(
+      "setContext",
+      "apio.sidebar.tools.enabled",
+      true
+    );
+
+    // Register the trees with their respective views.
+    // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
+    // registerTreeView(context, view_id, tree);
+    const viewContainer = vscode.window.registerTreeDataProvider(
+      "apio.sidebar.tools",
+      new ApioTreeProvider(commands.TOOLS_TREE)
     );
     context.subscriptions.push(viewContainer);
   }
 
-  // Construct the status bar 'Apio:' label
-  const apioLabel = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    100
-  );
-  apioLabel.text = "Apio:";
-  apioLabel.tooltip = "Apio quick tools";
-  context.subscriptions.push(apioLabel);
-  apioLabel.show();
+  // --- Unconditionally enable the HELP view.
 
-  // Traverse the definition trees and register the status bar buttons.
-  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterTreeButtons(context, tree);
+  traverseAndRegisterCommands(context, preCmds, commands.HELP_TREE);
+
+  // Register the trees with their respective views.
+  // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
+  // registerTreeView(context, view_id, tree);
+  const viewContainer = vscode.window.registerTreeDataProvider(
+    "apio.sidebar.help",
+    new ApioTreeProvider(commands.HELP_TREE)
+  );
+  context.subscriptions.push(viewContainer);
+ 
+
+  // --- Conditionally enable the status bar icons
+
+  if (isOneOf(mode, [Mode.PROJECT])) {
+
+    // Construct the status bar 'Apio:' label
+    const apioLabel = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      100
+    );
+    apioLabel.text = "Apio:";
+    apioLabel.tooltip = "Apio quick tools";
+    context.subscriptions.push(apioLabel);
+    apioLabel.show();
+
+    // Traverse the definition trees and register the status bar buttons.
+    for (const tree of [commands.COMMANDS_TREE, commands.TOOLS_TREE, commands.HELP_TREE]) {
+      traverseAndRegisterTreeButtons(context, tree);
+    }
+
+    // Load saved env or use default ""
+    currentEnv = context.workspaceState.get("apio.activeEnv") || "";
+
+    // Create status bar item
+    statusBarEnv = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      90
+    );
+
+    updateEnvSelector();
+
+    statusBarEnv.command = "apio.selectEnv";
+    statusBarEnv.show();
+    context.subscriptions.push(statusBarEnv);
+
+    // Register command: click → show QuickPick
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "apio.selectEnv",
+        envSelectionClickHandler(context, info.apioIniPath)
+      )
+    );
   }
-
-  // Load saved env or use default ""
-  currentEnv = context.workspaceState.get("apio.activeEnv") || "";
-
-  // Create status bar item
-  statusBarEnv = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    90
-  );
-
-  updateEnvSelector();
-
-  statusBarEnv.command = "apio.selectEnv";
-  statusBarEnv.show();
-  context.subscriptions.push(statusBarEnv);
-
-  // Register command: click → show QuickPick
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "apio.selectEnv",
-      envSelectionClickHandler(context, apioIniPath)
-    )
-  );
 
   // All done.
   apioLog.msg("activate() completed.");
@@ -458,12 +575,7 @@ function activate(context) {
 
 // deactivate() - required for cleanup
 function deactivate() {
-  if (apioTerminal) {
-    apioTerminal.dispose();
-    apioTerminal = null;
-  }
-
-  // TODO: Should we clear other global vars?
+  // Nothing to do here.
 }
 
 // Exported functions.

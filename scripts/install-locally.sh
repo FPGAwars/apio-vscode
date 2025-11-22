@@ -19,13 +19,13 @@ rm -f *.vsix
 npm install
 
 # Build
-npx vsce package 
+npx vsce package --allow-star-activation
 
 # List the output file.
 ls -al apio-*.vsix
 
 # Uninstall
-code --uninstall-extension FPGAwars.apio
+code --uninstall-extension fpgawars.apio
 
 # List the files included in the package
 #unzip -l apio-*.vsix

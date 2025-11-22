@@ -137,7 +137,7 @@ const COMMANDS_TREE = [
         id: "apio.examples.list",
         action: { cmds: ["{apio-bin} examples list"] },
       },
-        {
+      {
         title: "FTDI Drivers",
         children: [
           {
@@ -273,13 +273,7 @@ const HELP_TREE = [
   },
 ];
 
-// A mapping of sidebar sections to command trees.
-// Order doesn't matter, the view order is defined by package.json.
-const TREE_VIEWS = {
-  "apio.sidebar.commands": COMMANDS_TREE,
-  "apio.sidebar.tools": TOOLS_TREE,
-  "apio.sidebar.help": HELP_TREE,
-};
 
-// Exported functions.
-module.exports = { TREE_VIEWS };
+// Exported symbols
+module.exports = { COMMANDS_TREE, TOOLS_TREE, HELP_TREE };
+
