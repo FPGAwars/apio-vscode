@@ -24,8 +24,10 @@ npx vsce package
 # List the output file.
 ls -al apio-*.vsix
 
-# Uninstall
-code --uninstall-extension fpgawars.apio
+# Uninstall. Ignore 'not installed' error.
+if code --list-extensions | grep -q '^fpgawars.apio$'; then
+  code --uninstall-extension fpgawars.apio
+fi
 
 # List the files included in the package
 #unzip -l apio-*.vsix
