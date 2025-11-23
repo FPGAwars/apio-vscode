@@ -216,11 +216,11 @@ function launchAction(cmds, url) {
     return;
   }
 
-  const ws = vscode.workspace.workspaceFolders?.[0];
-  if (!ws) {
-    vscode.window.showErrorMessage("No workspace open");
-    return;
-  }
+  // const ws = vscode.workspace.workspaceFolders?.[0];
+  // if (!ws) {
+  //   vscode.window.showErrorMessage("No workspace open");
+  //   return;
+  // }
 
   if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
     apioTerminal?.dispose();
@@ -239,7 +239,7 @@ function launchAction(cmds, url) {
     // Create the terminal, with optional args.
     apioTerminal = vscode.window.createTerminal({
       name: "Apio",
-      cwd: ws.uri.fsPath,
+      // cwd: ws.uri.fsPath,
       ...extraTerminalArgs,
     });
   }
@@ -375,9 +375,9 @@ function _determineActivationInfo() {
         "Apio project file apio.ini not detected.\n" +
         "<br><br>\n" +
         "To create an Apio project, click " +
-        '<i>TOOLS | misc | apio terminal</i> below ' +
+        "<i>TOOLS | misc | apio terminal</i> below " +
         "to open an apio terminal, change to an empty folder, type the command " +
-        '<i>apio examples fetch alhambra-ii/blinky</i>, ' +
+        "<i>apio examples fetch alhambra-ii/blinky</i>, " +
         "and open that folder with VSCode." +
         "functionality. ",
       wsDirPath: wsDirPath,
@@ -433,20 +433,25 @@ function activate(context) {
 
   let preCmds = null;
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    // Determine platform dependent command to clear the terminal.
-    const clearCommand = platforms.isWindows() ? "cls" : "clear";
+    // Add a command to clear the terminal.
+    // On mac and linux we also have to force clearing the scroll buffer.
+    let command = platforms.isWindows() ? "cls" : 'clear && printf "\\033[3J"';
+    preCmds = [command];
 
-    // Determine the platform dependent command to set apio path.
-    const pathCommand = platforms.isWindows()
+    // Add a command to add apio ot the path.
+    command = platforms.isWindows()
       ? `set "PATH=${utils.apioBinDir()};%PATH%"`
       : `export PATH="${utils.apioBinDir()}:$PATH"`;
+    preCmds.push(command);
 
-    // Determines the commands that we prefix each apio command.
-    const changeDirCmd = platforms.isWindows()
-      ? `chdir /d "${info.wsDirPath}"`
-      : `cd "${info.wsDirPath}"`;
+    // If a workspace is open, add a command to change directory to the workspace dir.
+    if (info.wsDirPath) {
+      command = platforms.isWindows()
+        ? `chdir /d "${info.wsDirPath}"`
+        : `cd "${info.wsDirPath}"`;
+      preCmds.push(command);
+    }
 
-    preCmds = [clearCommand, pathCommand, changeDirCmd];
     apioLog.msg(`preCmds: ${preCmds}`);
   }
 

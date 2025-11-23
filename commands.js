@@ -84,6 +84,12 @@ const PROJECT_TREE = [
 // is open or that the project file apio.ini exist.
 const TOOLS_TREE = [
   {
+    title: "apio terminal",
+    tooltip: "Open a terminal with 'apio' access",
+    id: "apio.terminal",
+    action: { cmds: [] },
+  },
+  {
     title: "themes",
     children: [
       {
@@ -187,10 +193,6 @@ const TOOLS_TREE = [
       },
     ],
   },
-
-  // Commands for the HELP view. Thee commands are used in all
-  // modes and can't assume that workspace is open, or the apio
-  // is even compatible with this platform and can be downloaded.
   {
     title: "packages",
     children: [
@@ -224,10 +226,10 @@ const TOOLS_TREE = [
         action: { cmds: ["apio info system"] },
       },
       {
-        title: "apio terminal",
-        tooltip: "Open a terminal with 'apio' access",
-        id: "apio.terminal",
-        action: { cmds: [] },
+        title: "user preferences",
+        tooltip: "List current user preferences",
+        id: "apio.preferences.list",
+        action: { cmds: ["apio preferences -l"] },
       },
     ],
   },
