@@ -204,7 +204,7 @@ class ApioTreeProvider {
 }
 
 // A function to execute an action. Action can have commands anr/or url.
-function launchAction(cmds, url, apioBinaryPath) {
+function launchAction(cmds, url) {
   // return () => {
   // If url is specified open it in the default browser.
   if (url != null) {
@@ -256,7 +256,6 @@ function launchAction(cmds, url, apioBinaryPath) {
   // Send the command lines to the terminal, resolving --env flag
   // placeholder if exists.
   for (let cmd of cmds) {
-    cmd = cmd.replace("{apio-bin}", apioBinaryPath);
     cmd = cmd.replace("{env-flag}", envFlag);
     apioTerminal.sendText(cmd);
   }
@@ -272,13 +271,10 @@ function actionLaunchWrapper(cmds, url) {
   async function _launchWrapper() {
     apioLog.msg("-----");
 
-    // The path to the apio binary.
-    let apioBinaryPath = null;
-
     // Make sure the apio binary exists. If not, download and install it.
     try {
-      apioBinaryPath = await downloader.ensureApioBinary();
-      console.log(`[Apio] Binary ready: ${apioBinaryPath}`);
+      await downloader.ensureApioBinary();
+      console.log(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
     } catch (err) {
       console.error("[Apio] Binary setup failed:", err);
       vscode.window.showErrorMessage("Failed to install Apio.");
@@ -288,7 +284,7 @@ function actionLaunchWrapper(cmds, url) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      launchAction(cmds, url, apioBinaryPath);
+      launchAction(cmds, url);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -375,7 +371,15 @@ function _determineActivationInfo() {
   if (!fs.existsSync(apioIniPath)) {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
-      msg: "Workspace opened with no apio.ini project file.",
+      msg:
+        "Apio project file apio.ini not detected.\n" +
+        "<br><br>\n" +
+        "To create an Apio project, click " +
+        '<i>TOOLS | misc | apio terminal</i> below ' +
+        "to open an apio terminal, change to an empty folder, type the command " +
+        '<i>apio examples fetch alhambra-ii/blinky</i>, ' +
+        "and open that folder with VSCode." +
+        "functionality. ",
       wsDirPath: wsDirPath,
       apioIniPath: null,
     });
@@ -429,17 +433,21 @@ function activate(context) {
 
   let preCmds = null;
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    // Determine platform dependent command to clear the terminal.
+    const clearCommand = platforms.isWindows() ? "cls" : "clear";
+
+    // Determine the platform dependent command to set apio path.
+    const pathCommand = platforms.isWindows()
+      ? `set "PATH=${utils.apioBinDir()};%PATH%"`
+      : `export PATH="${utils.apioBinDir()}:$PATH"`;
+
     // Determines the commands that we prefix each apio command.
     const changeDirCmd = platforms.isWindows()
       ? `chdir /d "${info.wsDirPath}"`
       : `cd "${info.wsDirPath}"`;
-    apioLog.msg(`cd_cmd: ${changeDirCmd}`);
 
-    // Determine platform dependent command to clear the terminal.
-    const clearCommand = platforms.isWindows() ? "cls" : "clear";
-    apioLog.msg(`clear_cmd: ${clearCommand}`);
-
-    preCmds = [clearCommand, changeDirCmd];
+    preCmds = [clearCommand, pathCommand, changeDirCmd];
+    apioLog.msg(`preCmds: ${preCmds}`);
   }
 
   // --- Conditionally enable the NOTICE view

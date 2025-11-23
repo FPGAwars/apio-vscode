@@ -2,7 +2,14 @@
 
 "use strict";
 
+// Standard imports.
 const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+// Local imports
+const platforms = require("./apio-platforms.js");
+
 
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(apioIniFilePath) {
@@ -34,5 +41,38 @@ function extractApioIniEnvs(apioIniFilePath) {
   }
 }
 
+// Get the user home dir
+function userHomeDir() {
+  return os.homedir();
+}
+
+// Get apio home dir, this is an apio managed directory.
+function apioHomeDir() {
+  return path.join(userHomeDir(), ".apio");
+}
+
+// Get apio bin dir, this where the apio binary resides.
+function apioBinDir() {
+  return path.join(apioHomeDir(), "bin");
+}
+
+// Get apio temp dir.
+function apioTmpDir() {
+  return path.join(apioHomeDir(), "tmp");
+}
+
+// Get apio executable path.
+function apioBinaryPath() {
+  const apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
+  return path.join(apioBinDir(), apioBinaryName);
+}
+
 // Exported functions.
-module.exports = { extractApioIniEnvs };
+module.exports = {
+  extractApioIniEnvs,
+  userHomeDir,
+  apioHomeDir,
+  apioBinDir,
+  apioTmpDir,
+  apioBinaryPath,
+};
