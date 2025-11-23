@@ -353,7 +353,7 @@ function _determineActivationInfo() {
   if (!ws) {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
-      msg: "Workspace not opened, no apio.ini project file.",
+      msg: "Workspace not opened.",
       wsDirPath: null,
       apioIniPath: null,
     });
@@ -372,7 +372,7 @@ function _determineActivationInfo() {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
       msg:
-        "Apio project file apio.ini not detected.\n" +
+        "Apio project file apio.ini not detected in workspace.\n" +
         "<br><br>\n" +
         "To create an Apio project, click " +
         "<i>TOOLS | misc | apio terminal</i> below " +
@@ -388,7 +388,7 @@ function _determineActivationInfo() {
   // Here when apio.ini found, use full project mode.
   return ActivationInfo({
     mode: Mode.PROJECT,
-    msg: "Project file apio.ini found.",
+    msg: "Apio project file apio.ini found in workspace.",
     wsDirPath: wsDirPath,
     apioIniPath: apioIniPath,
   });
