@@ -222,27 +222,28 @@ function launchAction(cmds, url) {
   //   return;
   // }
 
-  if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
-    apioTerminal?.dispose();
+  // if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
+  // Close old terminal, if exists.
+  apioTerminal?.dispose();
 
-    // For windows we force cmd.exe shell. This is because we don't know yet how
-    // to determine if vscode terminal uses cmd, bash, or powershell (configurable
-    // by the user).
-    let extraTerminalArgs = {};
-    if (platforms.isWindows()) {
-      extraTerminalArgs = {
-        shellPath: "cmd.exe",
-        shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
-      };
-    }
-
-    // Create the terminal, with optional args.
-    apioTerminal = vscode.window.createTerminal({
-      name: "Apio",
-      // cwd: ws.uri.fsPath,
-      ...extraTerminalArgs,
-    });
+  // For windows we force cmd.exe shell. This is because we don't know yet how
+  // to determine if vscode terminal uses cmd, bash, or powershell (configurable
+  // by the user).
+  let extraTerminalArgs = {};
+  if (platforms.isWindows()) {
+    extraTerminalArgs = {
+      shellPath: "cmd.exe",
+      shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
+    };
   }
+
+  // Create the terminal, with optional args.
+  apioTerminal = vscode.window.createTerminal({
+    name: "Apio",
+    // cwd: ws.uri.fsPath,
+    ...extraTerminalArgs,
+  });
+  // }
 
   // Make the terminal visible, regardless if new or reused.
   apioTerminal.show();
