@@ -59,7 +59,7 @@ const ActivationInfo = ({ mode, msg, wsDirPath, apioIniPath }) =>
 
 // Extension global context.
 // let outputChannel = null;
-let apioTerminal = null;
+// let apioTerminal = null;
 
 // For apio env selector.
 let statusBarEnv;
@@ -216,6 +216,8 @@ function launchAction(cmds, url) {
     return;
   }
 
+  const apioTerminalName = "Apio";
+
   // const ws = vscode.workspace.workspaceFolders?.[0];
   // if (!ws) {
   //   vscode.window.showErrorMessage("No workspace open");
@@ -224,7 +226,12 @@ function launchAction(cmds, url) {
 
   // if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
   // Close old terminal, if exists.
-  apioTerminal?.dispose();
+  // apioTerminal?.dispose();
+
+  // Kill every existing terminal named "Apio" (usually 0 or 1)
+    vscode.window.terminals
+        .filter(t => t.name === apioTerminalName)
+        .forEach(t => t.dispose());
 
   // For windows we force cmd.exe shell. This is because we don't know yet how
   // to determine if vscode terminal uses cmd, bash, or powershell (configurable
@@ -238,8 +245,8 @@ function launchAction(cmds, url) {
   }
 
   // Create the terminal, with optional args.
-  apioTerminal = vscode.window.createTerminal({
-    name: "Apio",
+  const apioTerminal = vscode.window.createTerminal({
+    name: apioTerminalName,
     // cwd: ws.uri.fsPath,
     ...extraTerminalArgs,
   });
