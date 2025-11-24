@@ -220,6 +220,12 @@ const TOOLS_TREE = [
     title: "misc",
     children: [
       {
+        title: "apio version",
+        tooltip: "Show Apio version",
+        id: "apio.info.version",
+        action: { cmds: ["apio --version"] },
+      },
+      {
         title: "system info",
         tooltip: "Show Apio installation info",
         id: "apio.info.system",
