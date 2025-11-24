@@ -38,12 +38,7 @@ const NO_APIO_INI_NOTICE = `
 
 Apio project file \`apio.ini\` not detected in the workspace.
 
-**To create an Apio project:**
-
-1. Click below on **TOOLS → apio terminal**
-2. In the terminal, change to an empty folder
-3. Run: \`apio examples fetch alhambra-ii/blinky\`
-4. Open that folder in VS Code
+To create an Apio project click below on **TOOLS → new project**
 `.trim();
 
 // Markdown notice to show when a VSCode workspace is not
@@ -51,12 +46,7 @@ Apio project file \`apio.ini\` not detected in the workspace.
 const NO_WORKSPACE_NOTICE = `
 #### No VS Code open workspace
 
-**To create an Apio project:**
-
-1. Click below on **TOOLS → apio terminal**
-2. In the terminal, change to an empty folder
-3. Run: \`apio examples fetch alhambra-ii/blinky\`
-4. Open that folder in VS Code
+To create an Apio project click below on **TOOLS → new project**
 `.trim();
 
 // Parametric notice to show when the platform is not supported.
@@ -170,9 +160,15 @@ function traverseAndRegisterCommands(context, preCmds, nodes) {
       // Extract optional url. Null of doesn't exist.
       const url = node.action?.url;
 
+      // Extract command id. Null if doesn't exit.
+      const cmdId = node.action?.cmdId;
+
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(node.id, actionLaunchWrapper(cmds, url))
+        vscode.commands.registerCommand(
+          node.id,
+          actionLaunchWrapper(cmds, url, cmdId)
+        )
       );
     }
   }
@@ -243,13 +239,17 @@ class ApioTreeProvider {
 }
 
 // A function to execute an action. Action can have commands anr/or url.
-function launchAction(cmds, url) {
+function launchAction(cmds, url, cmdId) {
   // Handle url aspect of the action. Launch in a browser if exists.
   if (url != null) {
     vscode.env.openExternal(vscode.Uri.parse(url));
   }
 
-  // TODO: Insert here handling of cmdId: action.
+  // Handle command id aspect of the action, if exists. This is
+  // for example how we launch the new project wizard.
+  if (cmdId) {
+    vscode.commands.executeCommand(cmdId);
+  }
 
   // If no commands in this action we are done.
   if (cmds == null) {
@@ -303,7 +303,7 @@ function launchAction(cmds, url) {
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(cmds, url) {
+function actionLaunchWrapper(cmds, url, cmdId) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
@@ -323,7 +323,7 @@ function actionLaunchWrapper(cmds, url) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      launchAction(cmds, url);
+      launchAction(cmds, url, cmdId);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -462,8 +462,7 @@ function activate(context) {
 
   // -- Register the new project wizard.
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    // wizard.registerApioProjectWizard(context);
-    wizard.activate(context);
+    wizard.registerNewProjectWizard(context);
   }
 
   // -- Determine the pre commands
@@ -583,9 +582,6 @@ function activate(context) {
 // deactivate() - required for cleanup
 function deactivate() {
   // Nothing to do here.
-
-  // TODO: Only if activated.
-  wizard.deactivate();
 }
 
 // Exported functions.

@@ -84,6 +84,12 @@ const PROJECT_TREE = [
 // is open or that the project file apio.ini exist.
 const TOOLS_TREE = [
   {
+    title: "new project",
+    tooltip: "Create a new Apio project",
+    id: "apio.new.project",
+    action: { cmdId: "apio.newProjectWizard" },
+  },
+  {
     title: "apio terminal",
     tooltip: "Open a terminal with 'apio' access",
     id: "apio.terminal",

@@ -1,5 +1,5 @@
-// src/new-project-wizard.js
-// Apio New Project Wizard – Webview version (100% working)
+// new-project-wizard.js
+// FINAL CLEAN VERSION – perfect when called once from activate()
 
 const vscode = require('vscode');
 const path = require('path');
@@ -7,10 +7,49 @@ const fs = require('fs');
 const cp = require('child_process');
 
 const examples = require('./examples-data.js');
-
 const BOARDS = Object.keys(examples.EXAMPLES_DATA.examples).sort();
 
-/* ---------- Webview HTML (pure string concatenation – no template literals) ---------- */
+function registerNewProjectWizard(context) {
+  const commandId = 'apio.newProjectWizard';
+
+  // ONE call: handler + title + category + icon
+  const disposable = vscode.commands.registerCommand(
+    commandId,
+    () => {
+      showWizard();
+    },
+    {
+      title: 'Apio: New Project (Wizard)',
+      category: 'Apio',
+      icon: {
+        light: path.join(context.extensionPath, 'resources', 'light', 'add.svg'),
+        dark: path.join(context.extensionPath, 'resources', 'dark', 'add.svg')
+      }
+    }
+  );
+
+  context.subscriptions.push(disposable);
+}
+
+// ... rest of the file (showWizard, getWebviewContent, createProject) unchanged ...
+
+function showWizard() {
+  const panel = vscode.window.createWebviewPanel(
+    'apioWizard',
+    'Apio – New Project',
+    vscode.ViewColumn.Active,
+    { enableScripts: true, retainContextWhenHidden: true }
+  );
+
+  panel.webview.html = getWebviewContent();
+
+  panel.webview.onDidReceiveMessage(msg => {
+    if (msg.command === 'createProject') {
+      createProject(msg, panel);
+    }
+  });
+}
+
 function getWebviewContent() {
   let boardOptions = '';
   for (let i = 0; i < BOARDS.length; i++) {
@@ -30,8 +69,7 @@ function getWebviewContent() {
     'select,input{width:100%;padding:.8rem;font-size:1rem;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);border-radius:4px;box-sizing:border-box}' +
     '.description{font-size:.9rem;color:var(--vscode-descriptionForeground);margin-top:.4rem;font-style:italic;min-height:1.2em}' +
     'button{margin-top:2.5rem;padding:.9rem 2rem;font-size:1.1rem;background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:none;border-radius:4px;cursor:pointer}' +
-    'button:hover{background:var(--vscode-button-hoverBackground)}' +
-    'button:disabled{opacity:.6;cursor:not-allowed}' +
+    'button:hover{background:var(--vscode-button-hoverBackground)}button:disabled{opacity:.6;cursor:not-allowed}' +
     '.status{margin-top:1.5rem;padding:1rem;border-radius:4px;font-weight:500}' +
     '.status.success{background:#28a745;color:white}' +
     '.status.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}' +
@@ -55,27 +93,6 @@ function getWebviewContent() {
     '</script></body></html>';
 }
 
-/* ---------- Activation ---------- */
-function activate(context) {
-  const cmd = vscode.commands.registerCommand('apio.newProjectWizard', function () {
-    const panel = vscode.window.createWebviewPanel(
-      'apioWizard',
-      'Apio – New Project',
-      vscode.ViewColumn.Active,
-      { enableScripts: true, retainContextWhenHidden: true }
-    );
-
-    panel.webview.html = getWebviewContent();
-
-    panel.webview.onDidReceiveMessage(msg => {
-      if (msg.command === 'createProject') createProject(msg, panel);
-    }, undefined, context.subscriptions);
-  });
-
-  context.subscriptions.push(cmd);
-}
-
-/* ---------- Project creation ---------- */
 async function createProject(data, panel) {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
@@ -98,13 +115,11 @@ async function createProject(data, panel) {
       });
     });
 
-    panel.webview.postMessage({ command: 'status', text: 'Success! Reopening folder…', error: false });
+    panel.webview.postMessage({ command: 'status200', text: 'Success! Reopening folder…', error: false });
     setTimeout(() => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(target), false), 1000);
   } catch (e) {
     panel.webview.postMessage({ command: 'status', text: 'Error: ' + e.message, error: true });
   }
 }
 
-function deactivate() {}
-
-module.exports = { activate, deactivate };
+module.exports = { registerNewProjectWizard };
