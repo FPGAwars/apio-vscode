@@ -1,5 +1,5 @@
 // new-project-wizard.js
-// FINAL CLEAN VERSION – perfect when called once from activate()
+// FINAL VERSION – requires absolute path, no workspace needed
 
 const vscode = require('vscode');
 const path = require('path');
@@ -12,26 +12,12 @@ const BOARDS = Object.keys(examples.EXAMPLES_DATA.examples).sort();
 function registerNewProjectWizard(context) {
   const commandId = 'apio.newProjectWizard';
 
-  // ONE call: handler + title + category + icon
-  const disposable = vscode.commands.registerCommand(
-    commandId,
-    () => {
-      showWizard();
-    },
-    {
-      title: 'Apio: New Project (Wizard)',
-      category: 'Apio',
-      icon: {
-        light: path.join(context.extensionPath, 'resources', 'light', 'add.svg'),
-        dark: path.join(context.extensionPath, 'resources', 'dark', 'add.svg')
-      }
-    }
-  );
+  const disposable = vscode.commands.registerCommand(commandId, () => {
+    showWizard();
+  });
 
   context.subscriptions.push(disposable);
 }
-
-// ... rest of the file (showWizard, getWebviewContent, createProject) unchanged ...
 
 function showWizard() {
   const panel = vscode.window.createWebviewPanel(
@@ -79,7 +65,8 @@ function getWebviewContent() {
     '<label for="board">Board</label><select id="board" required>' + boardOptions + '</select>' +
     '<label for="example">Example</label><select id="example" required><option value="">-- Select board first --</option></select>' +
     '<div id="desc" class="description"></div>' +
-    '<label for="folder">Project folder name</label><input id="folder" placeholder="my-blinky-project" required>' +
+    '<label for="folder">Project folder (absolute path)</label>' +
+    '<input id="folder" placeholder="/home/user/my-project   or   C:\\fpga\\my-project" required style="font-family:monospace;">' +
     '<button type="submit" id="btn">Create Project</button>' +
     '</form><div id="status"></div>' +
     '<script>' +
@@ -88,37 +75,59 @@ function getWebviewContent() {
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
     'b.onchange=function(){e.innerHTML="<option>-- Loading --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();let o="<option value=\\"\\" disabled selected>-- Choose example --</option>";for(let i=0;i<list.length;i++)o+="<option value=\\""+list[i]+"\\">"+list[i]+"</option>";e.innerHTML=o;}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
-    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating <strong>"+folder+"</strong> …</div>";vscode.postMessage({command:"createProject",board:board,example:ex,folder:folder});};' +
+    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProject",board:board,example:ex,folder:folder});};' +
     'window.addEventListener("message",function(m){if(m.data.command==="status"){s.innerHTML="<div class=\\"status "+(m.data.error?"error":"success")+"\\">"+m.data.text+"</div>";if(!m.data.error)setTimeout(()=>{vscode.postMessage({command:"done"});},2500);else document.getElementById("btn").disabled=false;}});' +
     '</script></body></html>';
 }
 
 async function createProject(data, panel) {
-  const folders = vscode.workspace.workspaceFolders;
-  if (!folders || folders.length === 0) {
-    panel.webview.postMessage({ command: 'status', text: 'No workspace folder open', error: true });
+  const folderPath = data.folder.trim();
+
+  // Require absolute path
+  if (!path.isAbsolute(folderPath)) {
+    panel.webview.postMessage({
+      command: 'status',
+      text: 'Error: Please enter an <strong>absolute path</strong><br>e.g. /home/user/my-project or C:\\fpga\\my-project',
+      error: true
+    });
     return;
   }
 
-  const root = folders[0].uri.fsPath;
-  const target = path.join(root, data.folder);
   const example = data.board + '/' + data.example;
 
   try {
-    if (fs.existsSync(target)) throw new Error('Folder already exists');
-    fs.mkdirSync(target, { recursive: true });
+    if (fs.existsSync(folderPath)) {
+      throw new Error('Directory already exists: ' + folderPath);
+    }
 
-    await new Promise((res, rej) => {
-      cp.exec('apio examples fetch ' + example, { cwd: target }, (err, _stdout, stderr) => {
-        if (err || stderr) rej(new Error(stderr.trim() || err.message));
-        else res();
+    fs.mkdirSync(folderPath, { recursive: true });
+
+    await new Promise((resolve, reject) => {
+      cp.exec('apio examples fetch ' + example, { cwd: folderPath }, (err, _stdout, stderr) => {
+        if (err || stderr) {
+          reject(new Error(stderr.trim() || err.message || 'Failed to fetch example'));
+        } else {
+          resolve();
+        }
       });
     });
 
-    panel.webview.postMessage({ command: 'status200', text: 'Success! Reopening folder…', error: false });
-    setTimeout(() => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(target), false), 1000);
-  } catch (e) {
-    panel.webview.postMessage({ command: 'status', text: 'Error: ' + e.message, error: true });
+    panel.webview.postMessage({
+      command: 'status',
+      text: 'Success! Opening project...<br><strong>' + folderPath + '</strong>',
+      error: false
+    });
+
+    setTimeout(() => {
+      vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(folderPath), false);
+    }, 1200);
+
+  } catch (err) {
+    panel.webview.postMessage({
+      command: 'status',
+      text: 'Error: ' + err.message,
+      error: true
+    });
   }
 }
 
