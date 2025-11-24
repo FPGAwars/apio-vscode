@@ -30,6 +30,42 @@ const utils = require("./utils.js");
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
 
+// Markdown notice to show when opening a folder that has no
+// apio.ini project file.
+const NO_APIO_INI_NOTICE = `
+#### No Apio Project Detected
+
+Apio project file \`apio.ini\` not detected in the workspace.
+
+**To create an Apio project:**
+
+1. Click below on **TOOLS → apio terminal**
+2. In the terminal, change to an empty folder
+3. Run: \`apio examples fetch alhambra-ii/blinky\`
+4. Open that folder in VS Code
+`.trim();
+
+// Markdown notice to show when a VSCode workspace is not 
+// open.
+const NO_WORKSPACE_NOTICE = `
+#### No VS Code open workspace
+
+**To create an Apio project:**
+
+1. Click below on **TOOLS → apio terminal**
+2. In the terminal, change to an empty folder
+3. Run: \`apio examples fetch alhambra-ii/blinky\`
+4. Open that folder in VS Code
+`.trim();
+
+// Parametric notice to show when the platform is not supported.
+// Define once
+const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) => `
+#### Unsupported platform
+
+This Apio extension does not support the platform *${platformId}*
+`.trim();
+
 // Test if 'value' is in the list 'allowed'
 function isOneOf(value, allowed) {
   return allowed.includes(value);
@@ -53,9 +89,10 @@ const Mode = Object.freeze({
   DISABLED: "disabled-mode",
 });
 
-// An immutable data object with activation info.
-const ActivationInfo = ({ mode, msg, wsDirPath, apioIniPath }) =>
-  Object.freeze({ mode, msg, wsDirPath, apioIniPath });
+// An immutable data object with activation info. If notice is not
+// null, it's shown as markdown text in the NOTICE sidebar section.
+const ActivationInfo = ({ mode, notice, wsDirPath, apioIniPath }) =>
+  Object.freeze({ mode, notice, wsDirPath, apioIniPath });
 
 // Extension global context.
 // let outputChannel = null;
@@ -350,7 +387,7 @@ function _determineActivationInfo() {
   if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
     return ActivationInfo({
       mode: Mode.DISABLED,
-      msg: `Platform id ${platformId} is not supported by this extension.`,
+      notice: PLATFORM_NOT_SUPPORTED_NOTICE(platformId),
       wsDirPath: null,
       apioIniPath: null,
     });
@@ -361,7 +398,7 @@ function _determineActivationInfo() {
   if (!ws) {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
-      msg: "Workspace not opened.",
+      notice: NO_WORKSPACE_NOTICE,
       wsDirPath: null,
       apioIniPath: null,
     });
@@ -379,15 +416,7 @@ function _determineActivationInfo() {
   if (!fs.existsSync(apioIniPath)) {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
-      msg:
-        "Apio project file apio.ini not detected in workspace.\n" +
-        "<br><br>\n" +
-        "To create an Apio project, click " +
-        "<i>TOOLS | misc | apio terminal</i> below " +
-        "to open an apio terminal, change to an empty folder, type the command " +
-        "<i>apio examples fetch alhambra-ii/blinky</i>, " +
-        "and open that folder with VSCode." +
-        "functionality. ",
+      notice:NO_APIO_INI_NOTICE,
       wsDirPath: wsDirPath,
       apioIniPath: null,
     });
@@ -396,7 +425,7 @@ function _determineActivationInfo() {
   // Here when apio.ini found, use full project mode.
   return ActivationInfo({
     mode: Mode.PROJECT,
-    msg: "Apio project file apio.ini found in workspace.",
+    notice: null,  // No notice
     wsDirPath: wsDirPath,
     apioIniPath: apioIniPath,
   });
@@ -464,9 +493,8 @@ function activate(context) {
   }
 
   // --- Conditionally enable the NOTICE view
-
-  if (isOneOf(mode, [Mode.DISABLED, Mode.NON_PROJECT])) {
-    viewNotice.showHtmlBody(info.msg);
+  if (info.notice) {
+    viewNotice.showMarkdown(info.notice);
   }
 
   // --- Conditionally enable the PROJECT view.
