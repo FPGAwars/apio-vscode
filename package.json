@@ -35,6 +35,17 @@
   ],
   "main": "./extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "apio.newProjectWizard",
+        "title": "Apio: New Project (Wizard)",
+        "category": "Apio",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {

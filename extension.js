@@ -26,6 +26,7 @@ const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
 const viewNotice = require("./view-notice.js");
 const utils = require("./utils.js");
+const wizard = require("./new-project-wizard.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -45,7 +46,7 @@ Apio project file \`apio.ini\` not detected in the workspace.
 4. Open that folder in VS Code
 `.trim();
 
-// Markdown notice to show when a VSCode workspace is not 
+// Markdown notice to show when a VSCode workspace is not
 // open.
 const NO_WORKSPACE_NOTICE = `
 #### No VS Code open workspace
@@ -60,7 +61,8 @@ const NO_WORKSPACE_NOTICE = `
 
 // Parametric notice to show when the platform is not supported.
 // Define once
-const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) => `
+const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) =>
+  `
 #### Unsupported platform
 
 This Apio extension does not support the platform *${platformId}*
@@ -242,33 +244,28 @@ class ApioTreeProvider {
 
 // A function to execute an action. Action can have commands anr/or url.
 function launchAction(cmds, url) {
-  // return () => {
-  // If url is specified open it in the default browser.
+  // Handle url aspect of the action. Launch in a browser if exists.
   if (url != null) {
     vscode.env.openExternal(vscode.Uri.parse(url));
   }
+
+  // TODO: Insert here handling of cmdId: action.
 
   // If no commands in this action we are done.
   if (cmds == null) {
     return;
   }
 
+  // Here when the action contains shell commands that should
+  // be handled.
+
+  // The name of the VSCode terminal we create.
   const apioTerminalName = "Apio";
 
-  // const ws = vscode.workspace.workspaceFolders?.[0];
-  // if (!ws) {
-  //   vscode.window.showErrorMessage("No workspace open");
-  //   return;
-  // }
-
-  // if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
-  // Close old terminal, if exists.
-  // apioTerminal?.dispose();
-
   // Kill every existing terminal named "Apio" (usually 0 or 1)
-    vscode.window.terminals
-        .filter(t => t.name === apioTerminalName)
-        .forEach(t => t.dispose());
+  vscode.window.terminals
+    .filter((t) => t.name === apioTerminalName)
+    .forEach((t) => t.dispose());
 
   // For windows we force cmd.exe shell. This is because we don't know yet how
   // to determine if vscode terminal uses cmd, bash, or powershell (configurable
@@ -284,10 +281,8 @@ function launchAction(cmds, url) {
   // Create the terminal, with optional args.
   const apioTerminal = vscode.window.createTerminal({
     name: apioTerminalName,
-    // cwd: ws.uri.fsPath,
     ...extraTerminalArgs,
   });
-  // }
 
   // Make the terminal visible, regardless if new or reused.
   apioTerminal.show();
@@ -304,7 +299,6 @@ function launchAction(cmds, url) {
     cmd = cmd.replace("{env-flag}", envFlag);
     apioTerminal.sendText(cmd);
   }
-  // };
 }
 
 // A wrapper that first download the apio binary if needed and
@@ -416,7 +410,7 @@ function _determineActivationInfo() {
   if (!fs.existsSync(apioIniPath)) {
     return ActivationInfo({
       mode: Mode.NON_PROJECT,
-      notice:NO_APIO_INI_NOTICE,
+      notice: NO_APIO_INI_NOTICE,
       wsDirPath: wsDirPath,
       apioIniPath: null,
     });
@@ -425,7 +419,7 @@ function _determineActivationInfo() {
   // Here when apio.ini found, use full project mode.
   return ActivationInfo({
     mode: Mode.PROJECT,
-    notice: null,  // No notice
+    notice: null, // No notice
     wsDirPath: wsDirPath,
     apioIniPath: apioIniPath,
   });
@@ -464,6 +458,12 @@ function activate(context) {
 
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
     downloader.init();
+  }
+
+  // -- Register the new project wizard.
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    // wizard.registerApioProjectWizard(context);
+    wizard.activate(context);
   }
 
   // -- Determine the pre commands
@@ -583,6 +583,9 @@ function activate(context) {
 // deactivate() - required for cleanup
 function deactivate() {
   // Nothing to do here.
+
+  // TODO: Only if activated.
+  wizard.deactivate();
 }
 
 // Exported functions.
