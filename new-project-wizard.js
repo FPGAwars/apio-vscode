@@ -1,5 +1,5 @@
 // new-project-wizard.js
-// FINAL VERSION – "-- Select board --" default + clean UX
+// FINAL VERSION – "-- Select board --" default + clean UX + numbered steps
 
 const vscode = require('vscode');
 const path = require('path');
@@ -64,24 +64,26 @@ function getWebviewContent() {
     '<h1>Apio – Create New Project</h1>' +
     '<div class="note">Note: Only boards with at least one example are shown.</div>' +
     '<form id="f">' +
-    '<label for="board">Board</label>' +
+
+    '<label for="board">1. Board</label>' +
     '<select id="board" required>' +
     '  <option value="" disabled selected>-- Select board --</option>' +
          boardOptions +
     '</select>' +
 
-    '<label for="example">Example</label>' +
+    '<label for="example">2. Example</label>' +
     '<select id="example" required>' +
     '  <option value="" disabled selected>-- Select example --</option>' +
     '</select>' +
 
     '<div id="desc" class="description"></div>' +
 
-    '<label for="folder">Project folder (absolute path)</label>' +
+    '<label for="folder">3. Project folder (absolute path)</label>' +
     '<input id="folder" placeholder="/home/user/my-project   or   C:\\fpga\\my-project" required style="font-family:monospace;">' +
 
     '<button type="submit" id="btn">Create Project</button>' +
-    '</form><div id="status"></div>' +
+    '<div id="status"></div>' +
+    '</form>' +
 
     '<script>' +
     'const vscode=acquireVsCodeApi();' +
