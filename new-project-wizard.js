@@ -1,5 +1,5 @@
 // new-project-wizard.js
-// FINAL VERSION – with clear note, no omitted count
+// FINAL VERSION – "-- Select board --" default + clean UX
 
 const vscode = require('vscode');
 const path = require('path');
@@ -64,20 +64,32 @@ function getWebviewContent() {
     '<h1>Apio – Create New Project</h1>' +
     '<div class="note">Note: Only boards with at least one example are shown.</div>' +
     '<form id="f">' +
-    '<label for="board">Board</label><select id="board" required>' + boardOptions + '</select>' +
-    '<label for="example">Example</label><select id="example" required><option value="">-- Select board first --</option></select>' +
+    '<label for="board">Board</label>' +
+    '<select id="board" required>' +
+    '  <option value="" disabled selected>-- Select board --</option>' +
+         boardOptions +
+    '</select>' +
+
+    '<label for="example">Example</label>' +
+    '<select id="example" required>' +
+    '  <option value="" disabled selected>-- Select example --</option>' +
+    '</select>' +
+
     '<div id="desc" class="description"></div>' +
+
     '<label for="folder">Project folder (absolute path)</label>' +
     '<input id="folder" placeholder="/home/user/my-project   or   C:\\fpga\\my-project" required style="font-family:monospace;">' +
+
     '<button type="submit" id="btn">Create Project</button>' +
     '</form><div id="status"></div>' +
+
     '<script>' +
     'const vscode=acquireVsCodeApi();' +
     'const data=' + JSON.stringify(examples.EXAMPLES_DATA.examples) + ';' +
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
-    'b.onchange=function(){e.innerHTML="<option>-- Loading --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();let o="<option value=\\"\\" disabled selected>-- Choose example --</option>";for(let i=0;i<list.length;i++)o+="<option value=\\""+list[i]+"\\">"+list[i]+"</option>";e.innerHTML=o;}};' +
+    'b.onchange=function(){e.innerHTML="<option value=\\"\\" disabled selected>-- Select example --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();list.forEach(ex=>e.innerHTML+="<option value=\\""+ex+"\\">"+ex+"</option>");}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
-    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProject",board:board,example:ex,folder:folder});};' +
+    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Please fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProject",board:board,example:ex,folder:folder});};' +
     'window.addEventListener("message",function(m){if(m.data.command==="status"){s.innerHTML="<div class=\\"status "+(m.data.error?"error":"success")+"\\">"+m.data.text+"</div>";if(!m.data.error)setTimeout(()=>{vscode.postMessage({command:"done"});},2500);else document.getElementById("btn").disabled=false;}});' +
     '</script></body></html>';
 }
