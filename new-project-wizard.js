@@ -1,5 +1,5 @@
 // new-project-wizard.js
-// FINAL VERSION – requires absolute path, no workspace needed
+// FINAL VERSION – with clear note, no omitted count
 
 const vscode = require('vscode');
 const path = require('path');
@@ -54,6 +54,7 @@ function getWebviewContent() {
     'label{display:block;margin:1.8rem 0 .6rem;font-weight:600}' +
     'select,input{width:100%;padding:.8rem;font-size:1rem;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);border-radius:4px;box-sizing:border-box}' +
     '.description{font-size:.9rem;color:var(--vscode-descriptionForeground);margin-top:.4rem;font-style:italic;min-height:1.2em}' +
+    '.note{font-size:.9rem;color:var(--vscode-descriptionForeground);background:var(--vscode-editorInfo-background);padding:.8rem 1rem;border-radius:4px;margin:1.5rem 0;line-height:1.5;border-left:4px solid var(--vscode-editorInfo-foreground)}' +
     'button{margin-top:2.5rem;padding:.9rem 2rem;font-size:1.1rem;background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:none;border-radius:4px;cursor:pointer}' +
     'button:hover{background:var(--vscode-button-hoverBackground)}button:disabled{opacity:.6;cursor:not-allowed}' +
     '.status{margin-top:1.5rem;padding:1rem;border-radius:4px;font-weight:500}' +
@@ -61,6 +62,7 @@ function getWebviewContent() {
     '.status.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}' +
     '</style></head><body>' +
     '<h1>Apio – Create New Project</h1>' +
+    '<div class="note">Note: Only boards with at least one example are shown.</div>' +
     '<form id="f">' +
     '<label for="board">Board</label><select id="board" required>' + boardOptions + '</select>' +
     '<label for="example">Example</label><select id="example" required><option value="">-- Select board first --</option></select>' +
@@ -83,7 +85,6 @@ function getWebviewContent() {
 async function createProject(data, panel) {
   const folderPath = data.folder.trim();
 
-  // Require absolute path
   if (!path.isAbsolute(folderPath)) {
     panel.webview.postMessage({
       command: 'status',
