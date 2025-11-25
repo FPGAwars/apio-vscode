@@ -84,16 +84,21 @@ const PROJECT_TREE = [
 // is open or that the project file apio.ini exist.
 const TOOLS_TREE = [
   {
-    title: "new project",
-    tooltip: "Create a new Apio project",
-    id: "apio.new.project",
-    action: { cmdId: "apio.newProjectWizard" },
-  },
-  {
-    title: "apio terminal",
-    tooltip: "Open a terminal with 'apio' access",
-    id: "apio.terminal",
-    action: { cmds: [] },
+    title: "examples",
+    children: [
+      {
+        title: "list examples",
+        tooltip: "List project examples",
+        id: "apio.examples.list",
+        action: { cmds: ["apio examples list"] },
+      },
+      {
+        title: "get example",
+        tooltip: "Create a project from an example",
+        id: "apio.new.project",
+        action: { cmdId: "apio.newProjectWizard" },
+      },
+    ],
   },
   {
     title: "themes",
@@ -140,14 +145,9 @@ const TOOLS_TREE = [
         id: "apio.fpgas",
         action: { cmds: ["apio fpgas"] },
       },
-      {
-        title: "list examples",
-        tooltip: "List project examples",
-        id: "apio.examples.list",
-        action: { cmds: ["apio examples list"] },
-      },
     ],
   },
+
   {
     title: "drivers",
     children: [
@@ -225,6 +225,12 @@ const TOOLS_TREE = [
   {
     title: "misc",
     children: [
+      {
+        title: "apio terminal",
+        tooltip: "Open a terminal with 'apio' access",
+        id: "apio.terminal",
+        action: { cmds: [] },
+      },
       {
         title: "apio version",
         tooltip: "Show Apio version",

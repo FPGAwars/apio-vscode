@@ -38,7 +38,7 @@ const NO_APIO_INI_NOTICE = `
 
 Apio project file \`apio.ini\` not detected in the workspace.
 
-To create an Apio project click below on **TOOLS → new project**
+To create an Apio project click below on **TOOLS → examples → get example**
 `.trim();
 
 // Markdown notice to show when a VSCode workspace is not
@@ -46,7 +46,7 @@ To create an Apio project click below on **TOOLS → new project**
 const NO_WORKSPACE_NOTICE = `
 #### No VS Code open workspace
 
-To create an Apio project click below on **TOOLS → new project**
+To create an Apio project click below on **TOOLS → examples → get example**
 `.trim();
 
 // Parametric notice to show when the platform is not supported.
