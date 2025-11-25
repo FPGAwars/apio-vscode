@@ -86,10 +86,6 @@ const Mode = Object.freeze({
 const ActivationInfo = ({ mode, notice, wsDirPath, apioIniPath }) =>
   Object.freeze({ mode, notice, wsDirPath, apioIniPath });
 
-// Extension global context.
-// let outputChannel = null;
-// let apioTerminal = null;
-
 // For apio env selector.
 let statusBarEnv;
 let currentEnv = ENV_DEFAULT;
@@ -238,27 +234,10 @@ class ApioTreeProvider {
   }
 }
 
-// A function to execute an action. Action can have commands anr/or url.
-function launchAction(cmds, url, cmdId) {
-  // Handle url aspect of the action. Launch in a browser if exists.
-  if (url != null) {
-    vscode.env.openExternal(vscode.Uri.parse(url));
-  }
-
-  // Handle command id aspect of the action, if exists. This is
-  // for example how we launch the new project wizard.
-  if (cmdId) {
-    vscode.commands.executeCommand(cmdId);
-  }
-
-  // If no commands in this action we are done.
-  if (cmds == null) {
-    return;
-  }
-
-  // Here when the action contains shell commands that should
-  // be handled.
-
+// Execute commands in the terminal and return after they were all
+// executed. The placeholders in the commands are already expanded
+// by the caller.
+async function execInTerminal(cmds) {
   // The name of the VSCode terminal we create.
   const apioTerminalName = "Apio";
 
@@ -287,17 +266,44 @@ function launchAction(cmds, url, cmdId) {
   // Make the terminal visible, regardless if new or reused.
   apioTerminal.show();
 
-  // Determine the optional --env value, based on selected env.
-  let envFlag = "";
-  if (currentEnv && currentEnv != ENV_DEFAULT) {
-    envFlag = `-e ${currentEnv}`;
-  }
-
   // Send the command lines to the terminal, resolving --env flag
   // placeholder if exists.
   for (let cmd of cmds) {
-    cmd = cmd.replace("{env-flag}", envFlag);
+    // cmd = cmd.replace("{env-flag}", envFlag);
     apioTerminal.sendText(cmd);
+  }
+}
+
+// A function to execute an action. Action can have commands anr/or url.
+// Cmds include the pre commands but may contain placeholders that need
+// to be expanded.
+async function launchAction(cmds, url, cmdId) {
+  // Handle the optional commands.
+  if (cmds != null) {
+    // Determine the value of the {env-flag} placeholder. It's derived
+    // from the user's env selection at the status bar.
+    let envFlag = "";
+    if (currentEnv && currentEnv != ENV_DEFAULT) {
+      envFlag = `-e ${currentEnv}`;
+    }
+
+    // Expand the placeholders.
+    cmds = cmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+
+    // Execute the commands and wait for completion.
+    execInTerminal(cmds);
+  }
+
+  // Handle url aspect of the action. Launch in a browser if exists.
+  if (url != null) {
+    vscode.env.openExternal(vscode.Uri.parse(url));
+  }
+
+  // Handle command id aspect of the action, if exists. This is
+  // for example how we launch the new project wizard.
+  if (cmdId) {
+    // await vscode.commands.executeCommand('workbench.action.toggleMaximizedPanel');
+    vscode.commands.executeCommand(cmdId);
   }
 }
 
@@ -323,7 +329,7 @@ function actionLaunchWrapper(cmds, url, cmdId) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      launchAction(cmds, url, cmdId);
+      await launchAction(cmds, url, cmdId);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
