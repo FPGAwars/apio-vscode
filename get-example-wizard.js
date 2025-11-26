@@ -47,8 +47,8 @@ function showWizard(context) {
   panel.webview.html = getWebviewContent();
 
   panel.webview.onDidReceiveMessage((msg) => {
-    if (msg.command === "createProject") {
-      createProject(context, msg, panel);
+    if (msg.command === "createProjectFromExample") {
+      createProjectFromExample(context, msg, panel);
     }
   });
 }
@@ -121,14 +121,15 @@ function getWebviewContent() {
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
     'b.onchange=function(){e.innerHTML="<option value=\\"\\" disabled selected>-- Select example --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();list.forEach(ex=>e.innerHTML+="<option value=\\""+ex+"\\">"+ex+"</option>");}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
-    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Please fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProject",board:board,example:ex,folder:folder});};' +
+    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Please fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProjectFromExample",board:board,example:ex,folder:folder});};' +
     'window.addEventListener("message",function(m){if(m.data.command==="status"){s.innerHTML="<div class=\\"status "+(m.data.error?"error":"success")+"\\">"+m.data.text+"</div>";if(!m.data.error)setTimeout(()=>{vscode.postMessage({command:"done"});},2500);else document.getElementById("btn").disabled=false;}});' +
     "</script></body></html>"
   );
 }
 
-async function createProject(context, data, panel) {
-  const folderPath = data.folder.trim();
+// Dispatched when the user submit the form to create the project.
+async function createProjectFromExample(context, msg, panel) {
+  const folderPath = msg.folder.trim();
 
   if (!path.isAbsolute(folderPath)) {
     panel.webview.postMessage({
@@ -139,7 +140,7 @@ async function createProject(context, data, panel) {
     return;
   }
 
-  const example = data.board + "/" + data.example;
+  const example = msg.board + "/" + msg.example;
 
   try {
     if (fs.existsSync(folderPath)) {
