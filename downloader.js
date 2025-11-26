@@ -158,9 +158,9 @@ async function _downloadAndInstall() {
   // TODO: Make it clearer, delete only if exists.
   //
   // Ensure apio bin dir exists, make an empty one if not.
-  await fs.promises.mkdir(utils.apioBinDir(), { recursive: true });
+  // await fs.promises.mkdir(utils.apioBinDir(), { recursive: true });
 
-  // Remove old binDir (overwrite)
+  // Remove old binDir, if exists.
   await fs.promises
     .rm(utils.apioBinDir(), { recursive: true, force: true })
     .catch(() => {});
