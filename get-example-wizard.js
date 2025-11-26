@@ -29,6 +29,7 @@ function loadApioExamplesData() {
 function registerGetExampleWizard(context) {
   const commandId = "apio.newProjectWizard";
 
+  apioLog.msg(`Registering command: ${commandId}`);
   const disposable = vscode.commands.registerCommand(commandId, () => {
     showWizard(context);
   });
@@ -37,6 +38,7 @@ function registerGetExampleWizard(context) {
 }
 
 function showWizard(context) {
+  apioLog.msg(`showWizard() called`);
   const panel = vscode.window.createWebviewPanel(
     "apioWizard",
     "Apio – New Project",

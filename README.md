@@ -27,7 +27,7 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
 1. **Install the Apio FPGA extension**  
    I the Extension tab of VSCode, search for the `Apio FPGA` extension and install it.
 
-2. **Create an example Apio projecte**  
+2. **Create an example Apio project**  
    Select `TOOLS → examples → get example` and follow the instructions.
 
 3. **Build the project**  
