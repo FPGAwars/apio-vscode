@@ -22,25 +22,17 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
 
 ---
 
-## Prerequisites
-
-- Apio is installed and working (run `apio --version` in a command line to verify).
-- The workspace root contains an `apio.ini` file (open the project folder via **File → Open Folder…**).
-
----
-
 ## Getting Started
 
-1. **Install Apio and create a project**  
-   Follow the official guide:
-   [https://fpgawars.github.io/apio/docs/quick-start/](https://fpgawars.github.io/apio/docs/quick-start/)
+1. **Install the Apio FPGA extension**  
+   I the Extension tab of VSCode, search for the `Apio FPGA` extension and install it.
 
-2. **Open the project in VSCode**  
-   `File → Open Folder…` → select the folder containing `apio.ini`.
+2. **Create an example Apio projecte**  
+   Select `TOOLS → examples → get example` and follow the instructions.
 
-3. **Run commands**  
+3. **Build the project**  
    Use **status bar buttons** for `lint`, `build`, `upload`, etc.  
-   Explore the full command list in the **Apio** sidebar tab.
+   Explore the full command list in the **APIO** sidebar tab.
 
 ---
 
