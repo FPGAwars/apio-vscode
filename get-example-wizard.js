@@ -8,6 +8,8 @@ const fs = require("fs");
 const cp = require("child_process");
 
 const utils = require("./utils.js");
+const apioLog = require("./apio-log.js");
+
 
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
@@ -27,8 +29,9 @@ function loadApioExamplesData() {
 }
 
 function registerGetExampleWizard(context) {
-  const commandId = "apio.newProjectWizard";
+  const commandId = "apio.projectFromExample";
 
+  apioLog.msg(`Registering command: ${commandId}`);
   const disposable = vscode.commands.registerCommand(commandId, () => {
     showWizard(context);
   });
@@ -37,6 +40,7 @@ function registerGetExampleWizard(context) {
 }
 
 function showWizard(context) {
+  apioLog.msg(`showWizard() called`);
   const panel = vscode.window.createWebviewPanel(
     "apioWizard",
     "Apio – New Project",

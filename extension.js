@@ -373,12 +373,14 @@ async function launchAction(cmds, url, cmdId) {
 
   // Handle url aspect of the action. Launch in a browser if exists.
   if (url != null) {
+    apioLog.msg(`Opening URL: ${url}`);
     vscode.env.openExternal(vscode.Uri.parse(url));
   }
 
   // Handle command id aspect of the action, if exists. This is
   // for example how we launch the get example wizard.
   if (cmdId) {
+    apioLog.msg(`Launching command: ${cmdId}`);
     vscode.commands.executeCommand(cmdId);
   }
 }
