@@ -92,7 +92,7 @@ function getWebviewContent() {
     ".status.success{background:#28a745;color:white}" +
     ".status.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}" +
     "</style></head><body>" +
-    "<h1>Apio – Create New Project</h1>" +
+    "<h1>Apio – Create Example Project</h1>" +
     '<div class="note">Note: Only boards with at least one example are shown.</div>' +
     '<form id="f">' +
     '<label for="board">1. Board</label>' +
