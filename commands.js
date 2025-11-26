@@ -2,6 +2,10 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
+"use strict";
+
+const utils = require("./utils.js");
+
 // Commands for the PROJECT view. Thee commands are used only
 // in the PROJECT mode and always have an open workspace and
 // an apio.ini file.
@@ -96,7 +100,12 @@ const TOOLS_TREE = [
         title: "get example",
         tooltip: "Create a project from an example",
         id: "apio.new.project",
-        action: { cmdId: "apio.newProjectWizard" },
+        action: {
+          cmds: [
+            `apio api get-examples -o ${utils.apioTmpFile("examples.json")}`,
+          ],
+          cmdId: "apio.newProjectWizard",
+        },
       },
     ],
   },

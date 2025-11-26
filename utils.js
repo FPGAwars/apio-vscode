@@ -61,6 +61,11 @@ function apioTmpDir() {
   return path.join(apioHomeDir(), "tmp");
 }
 
+// Get path of a file in apio temp dir.
+function apioTmpFile(fname) {
+    return path.join(apioTmpDir(), fname);
+}
+
 // Get apio executable path.
 function apioBinaryPath() {
   const apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
@@ -79,6 +84,7 @@ module.exports = {
   apioHomeDir,
   apioBinDir,
   apioTmpDir,
+  apioTmpFile,
   apioBinaryPath,
   asyncSleepMs,
 };
