@@ -60,7 +60,6 @@ function getWebviewContent() {
   let boardOptions = "";
   for (let i = 0; i < boards.length; i++) {
     const b = boards[i];
-    // const cnt = Object.keys(examples.EXAMPLES_DATA.examples[b]).length;
     const cnt = Object.keys(examplesData.examples[b]).length;
     const s = cnt === 1 ? "" : "s";
     boardOptions +=
@@ -82,10 +81,10 @@ function getWebviewContent() {
     "<style>" +
     "body{font-family:var(--vscode-font-family,sans-serif);font-size:var(--vscode-editor-font-size,14px);padding:2rem;background:var(--vscode-editor-background);color:var(--vscode-editor-foreground);line-height:1.6;margin:0}" +
     "h1{margin-bottom:1.5rem;border-bottom:1px solid var(--vscode-editorWidget-border);padding-bottom:.5rem}" +
-    "label{display:block;margin:2rem 0 .7rem;font-weight:650;font-size:1.08rem;color:var(--vscode-foreground)}" /* Perfect in-between size */ +
+    "label{display:block;margin:2rem 0 .7rem;font-weight:650;font-size:1.08rem;color:var(--vscode-foreground)}" +
     "select,input{width:100%;padding:.8rem;font-size:1rem;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border);border-radius:4px;box-sizing:border-box}" +
     ".description{font-size:.9rem;color:var(--vscode-descriptionForeground);margin-top:.4rem;font-style:italic;min-height:1.2em}" +
-    ".note{font-size:.9rem;color:var(--vscode-descriptionForeground);background:var(--vscode-editorInfo-background);padding:.8rem 1rem;border-radius:4px;margin:1.5rem 0 2rem;line-height:1.5;border-left:4px solid var(--vscode-editorInfo-foreground)}" +
+    ".instruction{font-size:.95rem;color:var(--vscode-descriptionForeground);margin:1.5rem 0 2rem;line-height:1.6}" +
     "button{margin-top:2.8rem;padding:.9rem 2rem;font-size:1.1rem;background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:none;border-radius:4px;cursor:pointer}" +
     "button:hover{background:var(--vscode-button-hoverBackground)}button:disabled{opacity:.6;cursor:not-allowed}" +
     ".status{margin-top:1.5rem;padding:1rem;border-radius:4px;font-weight:500}" +
@@ -93,7 +92,11 @@ function getWebviewContent() {
     ".status.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}" +
     "</style></head><body>" +
     "<h1>Apio – Create Example Project</h1>" +
-    '<div class="note">Note: Only boards with at least one example are shown.</div>' +
+    '<div class="instruction">' +
+    "Use this page to create a new Apio project from one of the officially provided examples.<br><br>" +
+    "Only boards that have at least one example are shown in the list below. " +
+    "For the complete list of supported boards, use the command <strong>Tools → Boards → List boards</strong>." +
+    "</div>" +
     '<form id="f">' +
     '<label for="board">1. Board</label>' +
     '<select id="board" required>' +
@@ -113,7 +116,6 @@ function getWebviewContent() {
     "<script>" +
     "const vscode=acquireVsCodeApi();" +
     "const data=" +
-    // JSON.stringify(examples.EXAMPLES_DATA.examples) +
     JSON.stringify(examplesData.examples) +
     ";" +
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
