@@ -26,7 +26,7 @@ const platforms = require("./apio-platforms.js");
 const apioLog = require("./apio-log.js");
 const viewNotice = require("./view-notice.js");
 const utils = require("./utils.js");
-const wizard = require("./new-project-wizard.js");
+const wizard = require("./get-example-wizard.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -377,9 +377,8 @@ async function launchAction(cmds, url, cmdId) {
   }
 
   // Handle command id aspect of the action, if exists. This is
-  // for example how we launch the new project wizard.
+  // for example how we launch the get example wizard.
   if (cmdId) {
-    // await vscode.commands.executeCommand('workbench.action.toggleMaximizedPanel');
     vscode.commands.executeCommand(cmdId);
   }
 }
@@ -544,7 +543,7 @@ function activate(context) {
   }
 
   // Conditionally open apio.ini. This happens only if we just
-  // created a new apio project from the wizard.
+  // created a new apio project from the get example wizard.
   if (
     isOneOf(mode, Mode.PROJECT) &&
     context.globalState.get("apio.justCreatedProject")
@@ -566,9 +565,11 @@ function activate(context) {
       );
   }
 
-  // -- Register the new project wizard.
+  // -- Register the get example wizard. We invoke it from
+  // -- the 'get example' command after running 'apio api get-examples ...'
+  // -- to generate a json file with the examples data.
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    wizard.registerNewProjectWizard(context);
+    wizard.registerGetExampleWizard(context);
   }
 
   // -- Determine the pre commands

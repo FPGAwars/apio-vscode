@@ -1,5 +1,4 @@
-// new-project-wizard.js
-// FINAL VERSION – numbered steps + moderately larger, prominent field titles
+// Implements the 'get example' command wizard.
 
 const vscode = require("vscode");
 const path = require("path");
@@ -25,7 +24,7 @@ function loadApioExamplesData() {
   return data; // ← now result is in scope and has value
 }
 
-function registerNewProjectWizard(context) {
+function registerGetExampleWizard(context) {
   const commandId = "apio.newProjectWizard";
 
   const disposable = vscode.commands.registerCommand(commandId, () => {
@@ -192,4 +191,4 @@ async function createProject(context, data, panel) {
   }
 }
 
-module.exports = { registerNewProjectWizard };
+module.exports = { registerGetExampleWizard };
