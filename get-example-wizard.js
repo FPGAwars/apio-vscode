@@ -87,9 +87,10 @@ function getWebviewContent() {
     ".instruction{font-size:.95rem;color:var(--vscode-descriptionForeground);margin:1.5rem 0 2rem;line-height:1.6}" +
     "button{margin-top:2.8rem;padding:.9rem 2rem;font-size:1.1rem;background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:none;border-radius:4px;cursor:pointer}" +
     "button:hover{background:var(--vscode-button-hoverBackground)}button:disabled{opacity:.6;cursor:not-allowed}" +
-    ".status{margin-top:1.5rem;padding:1rem;border-radius:4px;font-weight:500}" +
-    ".status.success{background:#28a745;color:white}" +
-    ".status.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}" +
+    "#status{min-height:70px;margin-top:2rem;padding:1rem;border-radius:4px;background:var(--vscode-editorWidget-background);border:1px solid var(--vscode-widget-border);text-align:center;font-weight:500;transition:all .3s ease}" +
+    ".status-message{padding:.8rem;border-radius:4px;font-weight:500}" +
+    ".status-message.success{background:#28a745;color:white}" +
+    ".status-message.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}" +
     "</style></head><body>" +
     "<h1>Apio – Create Example Project</h1>" +
     '<div class="instruction">' +
@@ -111,7 +112,7 @@ function getWebviewContent() {
     '<label for="folder">3. Project folder (absolute path)</label>' +
     '<input id="folder" placeholder="/home/user/my-project   or   C:\\fpga\\my-project" required style="font-family:monospace;">' +
     '<button type="submit" id="btn">Create Project</button>' +
-    '<div id="status"></div>' +
+    '<div id="status"><div id="placeholder" style="color:var(--vscode-disabledForeground);font-style:italic;">Status messages will appear here once you submit the form.</div></div>' +
     "</form>" +
     "<script>" +
     "const vscode=acquireVsCodeApi();" +
@@ -119,10 +120,12 @@ function getWebviewContent() {
     JSON.stringify(examplesData.examples) +
     ";" +
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
+    "function clearStatus(){s.innerHTML='<div id=\"placeholder\" style=\"color:var(--vscode-disabledForeground);font-style:italic;\">Status messages will appear here once you submit the form.</div>';}" +
+    "clearStatus();" +
     'b.onchange=function(){e.innerHTML="<option value=\\"\\" disabled selected>-- Select example --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();list.forEach(ex=>e.innerHTML+="<option value=\\""+ex+"\\">"+ex+"</option>");}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
-    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status error\\">Please fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProjectFromExample",board:board,example:ex,folder:folder});};' +
-    'window.addEventListener("message",function(m){if(m.data.command==="status"){s.innerHTML="<div class=\\"status "+(m.data.error?"error":"success")+"\\">"+m.data.text+"</div>";if(!m.data.error)setTimeout(()=>{vscode.postMessage({command:"done"});},2500);else document.getElementById("btn").disabled=false;}});' +
+    'document.getElementById("f").onsubmit=function(ev){ev.preventDefault();const board=b.value,ex=e.value,folder=document.getElementById("folder").value.trim();if(!board||!ex||!folder){s.innerHTML="<div class=\\"status-message error\\">Please fill all fields</div>";return;}document.getElementById("btn").disabled=true;s.innerHTML="<div class=\\"status-message\\">Creating project at <strong>"+folder+"</strong>...</div>";vscode.postMessage({command:"createProjectFromExample",board:board,example:ex,folder:folder});};' +
+    'window.addEventListener("message",function(m){if(m.data.command==="status"){const cls=m.data.error?"error":"success";s.innerHTML="<div class=\\"status-message "+cls+"\\">"+m.data.text+"</div>";if(!m.data.error)setTimeout(()=>{vscode.postMessage({command:"done"});},2500);else document.getElementById("btn").disabled=false;}});' +
     "</script></body></html>"
   );
 }
