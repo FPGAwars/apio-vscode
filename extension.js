@@ -21,16 +21,70 @@ const fs = require("fs");
 
 // Local imports.
 const commands = require("./commands.js");
-const downloader = require("./apio-downloader.js");
-const platforms = require("./apio-platforms.js");
+const downloader = require("./downloader.js");
+const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
+const notice = require("./notice-view.js");
+const utils = require("./utils.js");
+const wizard = require("./get-example-wizard.js");
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
 
-// Extension global context.
-// let outputChannel = null;
-let apioTerminal = null;
+// Markdown notice to show when opening a folder that has no
+// apio.ini project file.
+const NO_APIO_INI_NOTICE = `
+#### No Apio Project Detected
+
+Apio project file \`apio.ini\` not detected in the workspace.
+
+To create an Apio project click below on **TOOLS → examples → get example**
+`.trim();
+
+// Markdown notice to show when a VSCode workspace is not
+// open.
+const NO_WORKSPACE_NOTICE = `
+#### No VS Code open workspace
+
+To create an Apio project click below on **TOOLS → examples → get example**
+`.trim();
+
+// Parametric notice to show when the platform is not supported.
+// Define once
+const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) =>
+  `
+#### Unsupported platform
+
+This Apio extension does not support the platform *${platformId}*
+`.trim();
+
+// Test if 'value' is in the list 'allowed'
+function isOneOf(value, allowed) {
+  return allowed.includes(value);
+}
+
+// Convert an object to a dump string.
+function pretty(obj) {
+  return JSON.stringify(obj, null, 2);
+}
+
+// Extension activation is one in one of these levels.
+const Mode = Object.freeze({
+  // Full project support, workspace is opened, apio.ini
+  // is found.
+  PROJECT: "project-mode",
+  // No apio.ini found, project specific functionality is disabled.
+  // May or may not have an open workspace dir.
+  NON_PROJECT: "non-project-mode",
+  // Incompatible platform. All functionality but help links
+  // is disabled. Not allowing even to create a project.
+  DISABLED: "disabled-mode",
+});
+
+// An immutable data object with activation info. If notice is not
+// null, it's shown as markdown text in the NOTICE sidebar section.
+const ActivationInfo = ({ mode, notice, wsDirPath, apioIniPath }) =>
+  Object.freeze({ mode, notice, wsDirPath, apioIniPath });
 
 // For apio env selector.
 let statusBarEnv;
@@ -102,9 +156,15 @@ function traverseAndRegisterCommands(context, preCmds, nodes) {
       // Extract optional url. Null of doesn't exist.
       const url = node.action?.url;
 
+      // Extract command id. Null if doesn't exit.
+      const cmdId = node.action?.cmdId;
+
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
-        vscode.commands.registerCommand(node.id, actionLaunchWrapper(cmds, url))
+        vscode.commands.registerCommand(
+          node.id,
+          actionLaunchWrapper(cmds, url, cmdId)
+        )
       );
     }
   }
@@ -174,82 +234,168 @@ class ApioTreeProvider {
   }
 }
 
-// A function to execute an action. Action can have commands anr/or url.
-function launchAction(cmds, url, apioBinaryPath) {
-  // return () => {
-  // If url is specified open it in the default browser.
-  if (url != null) {
-    vscode.env.openExternal(vscode.Uri.parse(url));
-  }
+// For debugging.
+let terminalCounter = 0;
 
-  // If no commands in this action we are done.
-  if (cmds == null) {
-    return;
-  }
+// Execute commands in the terminal and return after they were all
+// executed. The placeholders in the commands are already expanded
+// by the caller. Returns true if the commands were aborted by
+// closing the terminal, false otherwise.
+async function execCommandInTerminal(cmds) {
+  // Increment terminal number.
+  ++terminalCounter;
+  const terminalId = `T${terminalCounter.toString().padStart(3, "0")}`;
 
-  const ws = vscode.workspace.workspaceFolders?.[0];
-  if (!ws) {
-    vscode.window.showErrorMessage("No workspace open");
-    return;
-  }
+  // The name of the VSCode terminal we create.
+  const apioTerminalName = "Apio";
 
-  if (!apioTerminal || apioTerminal.exitStatus !== undefined) {
-    apioTerminal?.dispose();
-
-    // For windows we force cmd.exe shell. This is because we don't know yet how
-    // to determine if vscode terminal uses cmd, bash, or powershell (configurable
-    // by the user).
-    let extraTerminalArgs = {};
-    if (platforms.isWindows()) {
-      extraTerminalArgs = {
-        shellPath: "cmd.exe",
-        shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
-      };
-    }
-
-    // Create the terminal, with optional args.
-    apioTerminal = vscode.window.createTerminal({
-      name: "Apio",
-      cwd: ws.uri.fsPath,
-      ...extraTerminalArgs,
+  // Kill every existing terminal named "Apio" (usually 0 or 1)
+  // By recreating the terminal for each command we make sure that it
+  // starts at the same state, without side affect by previous commands
+  // or by user typing in the terminal (e.g. setting env vars).
+  vscode.window.terminals
+    .filter((t) => t.name === apioTerminalName)
+    .forEach((t) => {
+      apioLog.msg(`[${terminalId}] disposing [${t.myTerminalId}]`);
+      t.dispose();
     });
+
+  // For windows we force cmd.exe shell. This is because we don't know yet how
+  // to determine if vscode terminal uses cmd, bash, or powershell (configurable
+  // by the user).
+  let extraTerminalArgs = {};
+  if (platforms.isWindows()) {
+    extraTerminalArgs = {
+      shellPath: "cmd.exe",
+      shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
+    };
   }
+
+  // Create the terminal, with optional args.
+  const apioTerminal = vscode.window.createTerminal({
+    name: apioTerminalName,
+    // shellIntegration: { enabled: true },  // ← THIS IS THE FIX
+    ...extraTerminalArgs,
+  });
+  apioTerminal.myTerminalId = terminalId;
+
+  apioLog.msg(`[${terminalId}] created new terminal`);
 
   // Make the terminal visible, regardless if new or reused.
   apioTerminal.show();
 
-  // Determine the optional --env value, based on selected env.
-  let envFlag = "";
-  if (currentEnv && currentEnv != ENV_DEFAULT) {
-    envFlag = `-e ${currentEnv}`;
+  // These vars are flipped by the listeners to indicate to the waiting
+  // loop that they occurred.
+  let commandDone = false;
+  let aborted = false;
+
+  const completionListener = vscode.window.onDidEndTerminalShellExecution(
+    (e) => {
+      apioLog.msg(
+        `[${terminalId}] cmd listener called for [${e.terminal.myTerminalId}]`
+      );
+      if (e.terminal === apioTerminal) {
+        // NOTE: We tried to access here e.execution.exitCode to abort the
+        // rest of the commands if one fails but couldn't make it to work
+        // because the value is always undefined. Nov 2025.
+        apioLog.msg(`[${terminalId}] cmd listener: command done.`);
+        commandDone = true;
+      }
+    }
+  );
+
+  const deathListener = vscode.window.onDidCloseTerminal((terminal) => {
+    apioLog.msg(
+      `[${terminalId}] terminal listener called for [${terminal.myTerminalId}]`
+    );
+    if (terminal === apioTerminal) {
+      apioLog.msg(`[${terminalId}] terminal listener: aborted.`);
+      aborted = true;
+    }
+  });
+
+  try {
+    for (const cmd of cmds) {
+      // This will be set by the command listener once it's completed.
+      commandDone = false;
+
+      // Send the next command to the terminal.
+      apioLog.msg(`[${terminalId}] Sending cmd: ${cmd}`);
+      apioTerminal.sendText(cmd);
+
+      // TODO: Do we need timeout here?
+      while (!commandDone && !aborted) {
+        await utils.asyncSleepMs(100);
+      }
+      apioLog.msg(`[${terminalId}] Done waiting for command.`);
+
+      // Exit is terminal closed.
+      if (aborted) {
+        apioLog.msg(`[${terminalId}] Terminal closed.`);
+        return true;
+      }
+    }
+
+    // All succeeded, not aborted.
+    apioLog.msg(`[${terminalId}] All commands done.`);
+    return false;
+  } finally {
+    // Cleanup.
+    apioLog.msg(`[${terminalId}] Disposing listeners.`);
+    completionListener.dispose();
+    deathListener.dispose();
+  }
+}
+
+// A function to execute an action. Action can have commands anr/or url.
+// Cmds include the pre commands but may contain placeholders that need
+// to be expanded.
+async function launchAction(cmds, url, cmdId) {
+  // Handle the optional commands.
+  if (cmds != null) {
+    // Determine the value of the {env-flag} placeholder. It's derived
+    // from the user's env selection at the status bar.
+    let envFlag = "";
+    if (currentEnv && currentEnv != ENV_DEFAULT) {
+      envFlag = `-e ${currentEnv}`;
+    }
+
+    // Expand the placeholders.
+    cmds = cmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+
+    // Execute the commands and wait for completion.
+    const aborted = await execCommandInTerminal(cmds);
+    if (aborted) {
+      apioLog.msg("Terminal commands aborted or timeout.");
+      return;
+    }
   }
 
-  // Send the command lines to the terminal, resolving --env flag
-  // placeholder if exists.
-  for (let cmd of cmds) {
-    cmd = cmd.replace("{apio-bin}", apioBinaryPath);
-    cmd = cmd.replace("{env-flag}", envFlag);
-    apioTerminal.sendText(cmd);
+  // Handle url aspect of the action. Launch in a browser if exists.
+  if (url != null) {
+    vscode.env.openExternal(vscode.Uri.parse(url));
   }
-  // };
+
+  // Handle command id aspect of the action, if exists. This is
+  // for example how we launch the get example wizard.
+  if (cmdId) {
+    vscode.commands.executeCommand(cmdId);
+  }
 }
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(cmds, url) {
+function actionLaunchWrapper(cmds, url, cmdId) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
   async function _launchWrapper() {
     apioLog.msg("-----");
-    
-    // The path to the apio binary.
-    let apioBinaryPath = null;
 
     // Make sure the apio binary exists. If not, download and install it.
     try {
-      apioBinaryPath = await downloader.ensureApioBinary();
-      console.log(`[Apio] Binary ready: ${apioBinaryPath}`);
+      await downloader.ensureApioBinary();
+      console.log(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
     } catch (err) {
       console.error("[Apio] Binary setup failed:", err);
       vscode.window.showErrorMessage("Failed to install Apio.");
@@ -259,7 +405,7 @@ function actionLaunchWrapper(cmds, url) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      launchAction(cmds, url, apioBinaryPath);
+      await launchAction(cmds, url, cmdId);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -284,7 +430,7 @@ function envSelectionClickHandler(context, apioIniPath) {
   // The actual handler.
   async function _handler() {
     // Scan the apio.ini file and get a list of all of its envs.
-    const envs = extractApioIniEnvs(apioIniPath);
+    const envs = utils.extractApioIniEnvs(apioIniPath);
 
     // Prepend to the list the (default) menu entry.
     envs.unshift(ENV_DEFAULT);
@@ -309,148 +455,231 @@ function envSelectionClickHandler(context, apioIniPath) {
   return _handler;
 }
 
-// Scans apio.ini and return list of env names.
-function extractApioIniEnvs(filePath) {
-  // const fs = require("fs");
-  try {
-    const content = fs.readFileSync(filePath, "utf8");
-    const lines = content.split(/\r?\n/);
-    const envs = [];
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      // Skip empty lines and comments (both ; and #)
-      if (!trimmed || trimmed.startsWith(";") || trimmed.startsWith("#")) {
-        continue;
-      }
-
-      // Match [env:name]
-      const match = trimmed.match(/^\[env:([^\]]+)\]$/);
-      if (match) {
-        envs.push(match[1].trim());
-      }
-    }
-
-    return envs;
-  } catch (err) {
-    console.error("Failed to read apio.ini:", err);
-    return [];
+// Called from activate() to determine the activation mode to perform.
+// Returns an ActivationInfo object with the activation params.
+function _determineActivationInfo() {
+  // Check that we are on a supported platforms.
+  const platformId = platforms.getPlatformId();
+  if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
+    return ActivationInfo({
+      mode: Mode.DISABLED,
+      notice: PLATFORM_NOT_SUPPORTED_NOTICE(platformId),
+      wsDirPath: null,
+      apioIniPath: null,
+    });
   }
+
+  // Determine the workspace folder, do nothing if none.
+  const ws = vscode.workspace.workspaceFolders?.[0];
+  if (!ws) {
+    return ActivationInfo({
+      mode: Mode.NON_PROJECT,
+      notice: NO_WORKSPACE_NOTICE,
+      wsDirPath: null,
+      apioIniPath: null,
+    });
+  }
+
+  // Determine the path of the expected apio project dir.
+  const wsDirPath = ws.uri.fsPath;
+  apioLog.msg(`wsFolderPath: ${wsDirPath}`);
+
+  // Determine the path of the expected apio.ini file.
+  const apioIniPath = path.join(wsDirPath, "apio.ini");
+  apioLog.msg(`apio_ini_path: ${apioIniPath}`);
+
+  // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
+  if (!fs.existsSync(apioIniPath)) {
+    return ActivationInfo({
+      mode: Mode.NON_PROJECT,
+      notice: NO_APIO_INI_NOTICE,
+      wsDirPath: wsDirPath,
+      apioIniPath: null,
+    });
+  }
+
+  // Here when apio.ini found, use full project mode.
+  return ActivationInfo({
+    mode: Mode.PROJECT,
+    notice: null, // No notice
+    wsDirPath: wsDirPath,
+    apioIniPath: apioIniPath,
+  });
+}
+
+// Register a tree view.
+function _registerTreeView(context, preCmds, tree, viewId, viewEnableFlag) {
+  traverseAndRegisterCommands(context, preCmds, tree);
+
+  if (viewEnableFlag) {
+    vscode.commands.executeCommand("setContext", viewEnableFlag, true);
+  }
+
+  // Register the trees with their respective views.
+  // for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
+  // registerTreeView(context, view_id, tree);
+  const viewContainer = vscode.window.registerTreeDataProvider(
+    viewId,
+    new ApioTreeProvider(tree)
+  );
+  context.subscriptions.push(viewContainer);
 }
 
 // Standard VSC extension activate() function.
 function activate(context) {
   // Init Apio log output channel.
   apioLog.init(context);
-
   apioLog.msg("activate() started.");
 
-  // Check that we are on a supported platforms.
-  const platformId = platforms.getPlatformId();
-  if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
-    apioLog.msg(
-      `Platform id ${platformId} is not supported by this extension.`
+  // Determine activation info.
+  const info = _determineActivationInfo();
+  apioLog.msg(`Activation Info: ${pretty(info)}`);
+  const mode = info.mode;
+
+  // Conditionally initialize the apio downloader
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    downloader.init();
+  }
+
+  // Conditionally open apio.ini. This happens only if we just
+  // created a new apio project from the get example wizard.
+  if (
+    isOneOf(mode, Mode.PROJECT) &&
+    context.globalState.get("apio.justCreatedProject")
+  ) {
+    // Clear the flag immediately
+    context.globalState.update("apio.justCreatedProject", undefined);
+
+    // Open apio.ini in the editor.
+    const apioIniUri = vscode.Uri.file(info.apioIniPath);
+    vscode.window
+      .showTextDocument(apioIniUri, {
+        viewColumn: vscode.ViewColumn.Active,
+        preview: false,
+        preserveFocus: false,
+      })
+      .then(
+        () => console.log("apio.ini opened automatically"),
+        (err) => console.log("Failed to open apio.ini:", err)
+      );
+  }
+
+  // -- Register the get example wizard. We invoke it from
+  // -- the 'get example' command after running 'apio api get-examples ...'
+  // -- to generate a json file with the examples data.
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    wizard.registerGetExampleWizard(context);
+  }
+
+  // -- Determine the pre commands
+
+  let preCmds = null;
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    // Add a command to clear the terminal.
+    // On mac and linux we also have to force clearing the scroll buffer.
+    let command = platforms.isWindows() ? "cls" : 'clear && printf "\\033[3J"';
+    preCmds = [command];
+
+    // Add a command to add apio ot the path.
+    command = platforms.isWindows()
+      ? `set "PATH=${utils.apioBinDir()};%PATH%"`
+      : `export PATH="${utils.apioBinDir()}:$PATH"`;
+    preCmds.push(command);
+
+    // If a workspace is open, add a command to change directory to the workspace dir.
+    if (info.wsDirPath) {
+      command = platforms.isWindows()
+        ? `chdir /d "${info.wsDirPath}"`
+        : `cd "${info.wsDirPath}"`;
+      preCmds.push(command);
+    }
+
+    apioLog.msg(`preCmds: ${preCmds}`);
+  }
+
+  // --- Conditionally enable the NOTICE view
+  if (info.notice) {
+    notice.showMarkdown(info.notice);
+  }
+
+  // --- Conditionally enable the PROJECT view.
+  if (isOneOf(mode, [Mode.PROJECT])) {
+    _registerTreeView(
+      context,
+      preCmds,
+      commands.PROJECT_TREE,
+      "apio.sidebar.project",
+      "apio.sidebar.project.enabled"
     );
-    return;
   }
 
-  // Determine the workspace folder, do nothing if none.
-  const ws = vscode.workspace.workspaceFolders?.[0];
-  if (!ws) {
-    apioLog.msg("No workspace open");
-    return;
-  }
+  // --- Conditionally enable the TOOLS view.
 
-  // Determine the path of the expected apio project dir.
-  const apioFolder = ws.uri.fsPath;
-  apioLog.msg(`apio_folder: ${apioFolder}`);
-
-  // Determine the path of the expected apio.ini file.
-  const apioIniPath = path.join(apioFolder, "apio.ini");
-  apioLog.msg(`apio_ini_path: ${apioIniPath}`);
-
-  // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
-  if (!fs.existsSync(apioIniPath)) {
-    apioLog.msg(`apio.ini file not found at ${apioIniPath}`);
-    return;
-  }
-  apioLog.msg("apio.ini found, activating the extension");
-
-  // Here we are committed to activate the extension.
-
-  apioLog.msg(`Platform id: ${platforms.getPlatformId()}`);
-  apioLog.msg(`isWindows: ${platforms.isWindows()}`);
-  apioLog.msg(`isLinux: ${platforms.isLinux()}`);
-  apioLog.msg(`isDarwin: ${platforms.isDarwin()}`);
-
-  // Init the downloader.
-  downloader.init();
-
-  // Determines the commands that we prefix each apio command.
-  const changeDirCmd = platforms.isWindows()
-    ? `chdir /d "${apioFolder}"`
-    : `cd "${apioFolder}"`;
-  apioLog.msg(`cd_cmd: ${changeDirCmd}`);
-
-  // Determine platform dependent command to clear the terminal.
-  const clearCommand = platforms.isWindows() ? "cls" : "clear";
-  apioLog.msg(`clear_cmd: ${clearCommand}`);
-
-  const preCmds = [clearCommand, changeDirCmd];
-
-  // Traverse the definition trees and register the commands.
-  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterCommands(context, preCmds, tree);
-  }
-
-  // Register the trees with their respective views.
-  for (const [viewId, tree] of Object.entries(commands.TREE_VIEWS)) {
-    // registerTreeView(context, view_id, tree);
-    const viewContainer = vscode.window.registerTreeDataProvider(
-      viewId,
-      new ApioTreeProvider(tree)
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    _registerTreeView(
+      context,
+      preCmds,
+      commands.TOOLS_TREE,
+      "apio.sidebar.tools",
+      "apio.sidebar.tools.enabled"
     );
-    context.subscriptions.push(viewContainer);
   }
 
-  // Construct the status bar 'Apio:' label
-  const apioLabel = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    100
-  );
-  apioLabel.text = "Apio:";
-  apioLabel.tooltip = "Apio quick tools";
-  context.subscriptions.push(apioLabel);
-  apioLabel.show();
+  // --- Unconditionally enable the HELP view.
 
-  // Traverse the definition trees and register the status bar buttons.
-  for (const tree of Object.values(commands.TREE_VIEWS)) {
-    traverseAndRegisterTreeButtons(context, tree);
+  _registerTreeView(
+    context,
+    preCmds,
+    commands.HELP_TREE,
+    "apio.sidebar.help",
+    null
+  );
+
+  // --- Conditionally enable the status bar icons
+
+  if (isOneOf(mode, [Mode.PROJECT])) {
+    // Construct the status bar 'Apio:' label
+    const apioLabel = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      100
+    );
+    apioLabel.text = "Apio:";
+    apioLabel.tooltip = "Apio quick tools";
+    context.subscriptions.push(apioLabel);
+    apioLabel.show();
+
+    // Traverse the definition trees and register the status bar buttons.
+    for (const tree of [
+      commands.PROJECT_TREE,
+      commands.TOOLS_TREE,
+      commands.HELP_TREE,
+    ]) {
+      traverseAndRegisterTreeButtons(context, tree);
+    }
+
+    // Load saved env or use default ""
+    currentEnv = context.workspaceState.get("apio.activeEnv") || "";
+
+    // Create status bar item
+    statusBarEnv = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      90
+    );
+
+    updateEnvSelector();
+
+    statusBarEnv.command = "apio.selectEnv";
+    statusBarEnv.show();
+    context.subscriptions.push(statusBarEnv);
+
+    // Register command: click → show QuickPick
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "apio.selectEnv",
+        envSelectionClickHandler(context, info.apioIniPath)
+      )
+    );
   }
-
-  // Load saved env or use default ""
-  currentEnv = context.workspaceState.get("apio.activeEnv") || "";
-
-  // Create status bar item
-  statusBarEnv = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    90
-  );
-
-  updateEnvSelector();
-
-  statusBarEnv.command = "apio.selectEnv";
-  statusBarEnv.show();
-  context.subscriptions.push(statusBarEnv);
-
-  // Register command: click → show QuickPick
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "apio.selectEnv",
-      envSelectionClickHandler(context, apioIniPath)
-    )
-  );
 
   // All done.
   apioLog.msg("activate() completed.");
@@ -458,12 +687,7 @@ function activate(context) {
 
 // deactivate() - required for cleanup
 function deactivate() {
-  if (apioTerminal) {
-    apioTerminal.dispose();
-    apioTerminal = null;
-  }
-
-  // TODO: Should we clear other global vars?
+  // Nothing to do here.
 }
 
 // Exported functions.
