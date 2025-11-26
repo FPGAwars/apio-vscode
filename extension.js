@@ -274,7 +274,7 @@ async function execCommandInTerminal(cmds) {
   // Create the terminal, with optional args.
   const apioTerminal = vscode.window.createTerminal({
     name: apioTerminalName,
-    // shellIntegration: { enabled: true },  // ← THIS IS THE FIX
+    shellIntegration: { enabled: true },  // Enable shell integration.
     ...extraTerminalArgs,
   });
   apioTerminal.myTerminalId = terminalId;
