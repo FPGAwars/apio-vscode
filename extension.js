@@ -239,7 +239,7 @@ let terminalCounter = 0;
 
 // Execute commands in the terminal and return after they were all
 // executed. The placeholders in the commands are already expanded
-// by the caller. Returns true if the commands were aborted by 
+// by the caller. Returns true if the commands were aborted by
 // closing the terminal, false otherwise.
 async function execCommandInTerminal(cmds) {
   // Increment terminal number.
@@ -291,10 +291,12 @@ async function execCommandInTerminal(cmds) {
 
   const completionListener = vscode.window.onDidEndTerminalShellExecution(
     (e) => {
-      apioLog.msg(`[${terminalId}] cmd listener called for [${e.terminal.myTerminalId}]`);
+      apioLog.msg(
+        `[${terminalId}] cmd listener called for [${e.terminal.myTerminalId}]`
+      );
       if (e.terminal === apioTerminal) {
-        // NOTE: We tried to access here e.execution.exitCode to abort the 
-        // rest of the commands if one fails but couldn't make it to work 
+        // NOTE: We tried to access here e.execution.exitCode to abort the
+        // rest of the commands if one fails but couldn't make it to work
         // because the value is always undefined. Nov 2025.
         apioLog.msg(`[${terminalId}] cmd listener: command done.`);
         commandDone = true;
@@ -303,7 +305,9 @@ async function execCommandInTerminal(cmds) {
   );
 
   const deathListener = vscode.window.onDidCloseTerminal((terminal) => {
-    apioLog.msg(`[${terminalId}] terminal listener called for [${terminal.myTerminalId}]`);
+    apioLog.msg(
+      `[${terminalId}] terminal listener called for [${terminal.myTerminalId}]`
+    );
     if (terminal === apioTerminal) {
       apioLog.msg(`[${terminalId}] terminal listener: aborted.`);
       aborted = true;
@@ -312,7 +316,6 @@ async function execCommandInTerminal(cmds) {
 
   try {
     for (const cmd of cmds) {
-
       // This will be set by the command listener once it's completed.
       commandDone = false;
 
@@ -326,7 +329,6 @@ async function execCommandInTerminal(cmds) {
       }
       apioLog.msg(`[${terminalId}] Done waiting for command.`);
 
-
       // Exit is terminal closed.
       if (aborted) {
         apioLog.msg(`[${terminalId}] Terminal closed.`);
@@ -337,7 +339,6 @@ async function execCommandInTerminal(cmds) {
     // All succeeded, not aborted.
     apioLog.msg(`[${terminalId}] All commands done.`);
     return false;
-
   } finally {
     // Cleanup.
     apioLog.msg(`[${terminalId}] Disposing listeners.`);
@@ -540,6 +541,29 @@ function activate(context) {
 
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
     downloader.init();
+  }
+
+  // Conditionally open apio.ini. This happens only if we just
+  // created a new apio project from the wizard.
+  if (
+    isOneOf(mode, Mode.PROJECT) &&
+    context.globalState.get("apio.justCreatedProject")
+  ) {
+    // Clear the flag immediately
+    context.globalState.update("apio.justCreatedProject", undefined);
+
+    // Open apio.ini in the editor.
+    const apioIniUri = vscode.Uri.file(info.apioIniPath);
+    vscode.window
+      .showTextDocument(apioIniUri, {
+        viewColumn: vscode.ViewColumn.Active,
+        preview: false,
+        preserveFocus: false,
+      })
+      .then(
+        () => console.log("apio.ini opened automatically"),
+        (err) => console.log("Failed to open apio.ini:", err)
+      );
   }
 
   // -- Register the new project wizard.

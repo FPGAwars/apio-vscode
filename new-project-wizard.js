@@ -29,13 +29,13 @@ function registerNewProjectWizard(context) {
   const commandId = "apio.newProjectWizard";
 
   const disposable = vscode.commands.registerCommand(commandId, () => {
-    showWizard();
+    showWizard(context);
   });
 
   context.subscriptions.push(disposable);
 }
 
-function showWizard() {
+function showWizard(context) {
   const panel = vscode.window.createWebviewPanel(
     "apioWizard",
     "Apio – New Project",
@@ -47,7 +47,7 @@ function showWizard() {
 
   panel.webview.onDidReceiveMessage((msg) => {
     if (msg.command === "createProject") {
-      createProject(msg, panel);
+      createProject(context, msg, panel);
     }
   });
 }
@@ -124,7 +124,7 @@ function getWebviewContent() {
   );
 }
 
-async function createProject(data, panel) {
+async function createProject(context, data, panel) {
   const folderPath = data.folder.trim();
 
   if (!path.isAbsolute(folderPath)) {
@@ -170,6 +170,12 @@ async function createProject(data, panel) {
       error: false,
     });
 
+    // Signal to the apio activate() that will be called on the new
+    // workspace to automatically open apio.ini. 
+    await context.globalState.update("apio.justCreatedProject", true);
+
+    // Switch to the new workspace. This will start a new instance of
+    // this extension.
     setTimeout(() => {
       vscode.commands.executeCommand(
         "vscode.openFolder",
