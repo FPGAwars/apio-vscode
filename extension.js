@@ -21,10 +21,10 @@ const fs = require("fs");
 
 // Local imports.
 const commands = require("./commands.js");
-const downloader = require("./apio-downloader.js");
-const platforms = require("./apio-platforms.js");
+const downloader = require("./downloader.js");
+const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
-const viewNotice = require("./view-notice.js");
+const notice = require("./notice-view.js");
 const utils = require("./utils.js");
 const wizard = require("./get-example-wizard.js");
 
@@ -537,7 +537,6 @@ function activate(context) {
   const mode = info.mode;
 
   // Conditionally initialize the apio downloader
-
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
     downloader.init();
   }
@@ -600,7 +599,7 @@ function activate(context) {
 
   // --- Conditionally enable the NOTICE view
   if (info.notice) {
-    viewNotice.showMarkdown(info.notice);
+    notice.showMarkdown(info.notice);
   }
 
   // --- Conditionally enable the PROJECT view.

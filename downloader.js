@@ -1,4 +1,4 @@
-// apio-downloader.js
+// downloader.js
 // Ensures that the apio pyinstaller bundle is installed and that
 // the apio binary is available at ~/.apio/bin/apio[.exe]. If not,
 // It's downloaded and installed on the fly.
@@ -17,7 +17,7 @@ const zipExtract = require("extract-zip");
 const tar = require("tar");
 
 // Local imports
-const platforms = require("./apio-platforms.js");
+const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const jsonUtils = require("./json-utils.js");
 const utils = require("./utils.js");
@@ -41,7 +41,7 @@ function init() {
   // Should be called only once.
   assert(
     _downloadSrcUrl == null,
-    "apio-downloader.init() should be called at most once."
+    "downloader.init() should be called at most once."
   );
 
   // Determine download information.

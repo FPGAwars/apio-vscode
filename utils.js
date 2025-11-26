@@ -8,7 +8,7 @@ const os = require("os");
 const path = require("path");
 
 // Local imports
-const platforms = require("./apio-platforms.js");
+const platforms = require("./platforms.js");
 
 
 // Scans apio.ini and return list of env names.
