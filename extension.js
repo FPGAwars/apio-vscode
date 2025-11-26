@@ -397,7 +397,7 @@ function actionLaunchWrapper(cmds, url, cmdId) {
     // Make sure the apio binary exists. If not, download and install it.
     try {
       await downloader.ensureApioBinary();
-      console.log(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
+      apioLog.msg(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
     } catch (err) {
       console.error("[Apio] Binary setup failed:", err);
       vscode.window.showErrorMessage("Failed to install Apio.");
@@ -561,8 +561,12 @@ function activate(context) {
         preserveFocus: false,
       })
       .then(
-        () => console.log("apio.ini opened automatically"),
-        (err) => console.log("Failed to open apio.ini:", err)
+        () => {
+          apioLog.msg("New project, apio.ini opened automatically");
+        },
+        (err) => {
+          apioLog.msg(`Failed to open apio.ini: ${err}`);
+        }
       );
   }
 
