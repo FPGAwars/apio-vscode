@@ -238,7 +238,7 @@ const TOOLS_TREE = [
         title: "apio terminal",
         tooltip: "Open a terminal with 'apio' access",
         id: "apio.terminal",
-        action: { cmds: [] },
+        action: { cmds: ["apio -h"] },
       },
       {
         title: "apio version",
