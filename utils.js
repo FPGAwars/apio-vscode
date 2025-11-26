@@ -67,6 +67,11 @@ function apioBinaryPath() {
   return path.join(apioBinDir(), apioBinaryName);
 }
 
+// Wait for given time in ms.
+async function asyncSleepMs(timeMs) {
+  await new Promise(resolve => setTimeout(resolve, timeMs));
+}
+
 // Exported functions.
 module.exports = {
   extractApioIniEnvs,
@@ -75,4 +80,5 @@ module.exports = {
   apioBinDir,
   apioTmpDir,
   apioBinaryPath,
+  asyncSleepMs,
 };
