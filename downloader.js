@@ -98,25 +98,22 @@ async function _downloadAndInstall() {
   // await _downloadFile(url, archivePath);
   await _downloadFile(_downloadSrcUrl, _downloadDstFilePath);
 
-  // Remove quarantine (macOS) from the archive.
+  // On macOS, remove extended attributes such as quarantine (macOS) from
+  // the archive file.
   //
-  // TODO: Do we really need this or is the bundle ok because we download
-  // from VSCode?
+  // NOTE: As of Nov 2025, the quarantine attribute is set only when
+  // we download manually from the browser. It is not set when we
+  // download it here under VSCode.
   if (platforms.isDarwin()) {
     await new Promise((res) => {
-      childProcess.exec(
-        `xattr -d com.apple.quarantine "${_downloadDstFilePath}"`,
-        (err) => {
-          if (err) {
-            console.warn("[Apio] Quarantine removal failed:", err.message);
-            apioLog.msg("MacOS quarantine removal was not performed");
-          } else {
-            console.log("[Apio] Quarantine removed");
-            apioLog.msg("MaxOS quarantine removal was performed");
-          }
-          res();
+      childProcess.exec(`xattr -c "${_downloadDstFilePath}"`, (err) => {
+        if (err) {
+          apioLog.msg(`MacOS quarantine removal err:  ${err.message}`);
+        } else {
+          apioLog.msg("MacOS quarantine removal returned OK.");
         }
-      );
+        res();
+      });
     });
   }
 
