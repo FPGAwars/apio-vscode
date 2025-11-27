@@ -235,10 +235,10 @@ const TOOLS_TREE = [
     title: "misc",
     children: [
       {
-        title: "apio terminal",
-        tooltip: "Open a terminal with 'apio' access",
-        id: "apio.terminal",
-        action: { cmds: ["{apio-bin} -h"] },
+        title: "apio shell",
+        tooltip: "Open a shell with 'apio' access",
+        id: "apio.shell",
+        // No action, implemented independently.
       },
       {
         title: "apio version",

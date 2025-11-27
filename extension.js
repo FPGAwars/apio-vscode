@@ -108,6 +108,60 @@ class ApioTreeGroup {
   }
 }
 
+/**
+ * Registers the command "apio.apioTerminal"
+ * - Kills every existing terminal named "Apio"
+ * - Creates a brand-new one
+ * - Executes the preCmds
+ * - Leaves the terminal open for interactive use
+ */
+function registerApioShellCommand(context, preCmds) {
+  const TERMINAL_NAME = "Apio: Shell";
+
+  const disposable = vscode.commands.registerCommand("apio.shell", async () => {
+    // 1. Dispose ALL terminals named "Apio"
+    const apioTerminals = vscode.window.terminals.filter(
+      (t) => t.name === TERMINAL_NAME
+    );
+    for (const term of apioTerminals) {
+      term.dispose();
+    }
+
+    // Small delay only if we actually disposed something
+    // (prevents rare race condition where VS Code still thinks the terminal exists)
+    if (apioTerminals.length > 0) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
+    // 2. Create brand-new terminal
+    const terminal = vscode.window.createTerminal({
+      name: TERMINAL_NAME,
+      cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
+    });
+
+    terminal.show();
+
+    // Make sure the apio binary exists. If not, download and install it.
+    try {
+      await downloader.ensureApioBinary();
+      apioLog.msg(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
+    } catch (err) {
+      console.error("[Apio] Binary setup failed:", err);
+      vscode.window.showErrorMessage("Failed to install Apio.");
+      return;
+    }
+
+    // 3. Send pre-commands
+    for (const cmd of preCmds) {
+      terminal.sendText(cmd);
+    }
+
+  
+  });
+
+  context.subscriptions.push(disposable);
+}
+
 // Recursively traverse the definition tree and return it using
 // datatypes that are expected by vscode. Nodes is a list of nodes.
 function traverseAndConvertTree(nodes) {
@@ -145,7 +199,12 @@ function traverseAndRegisterCommands(context, preCmds, nodes) {
       // Handle a group
       traverseAndRegisterCommands(context, preCmds, node.children);
     } else {
-      // Handle a leaf, it must have an action. If there are commands,
+      // Handle a leaf. If it doesn't have an action, it means that its
+      // command is a one-of that is implemented and registered independently.
+      if (!("action" in node)) {
+        continue;
+      }
+      // Here the leaf has a action. If there are commands,
       // we prefix the pre_cmds, e.g. to cd to the project dir.
       // Note that we don't expand the -e env flag placeholder since the
       // user can select a different env by the time the action will be
@@ -274,7 +333,7 @@ async function execCommandsSequentially(cmds) {
     panel: vscode.TaskPanelKind.Shared,
     showReuseMessage: false,
     focus: false,
-    clear: false,        // we cleared manually above
+    clear: false, // we cleared manually above
     echo: true,
   };
 
@@ -291,7 +350,9 @@ async function execCommandsSequentially(cmds) {
       listener.dispose();
 
       const failed = e.exitCode !== 0;
-      apioLog.msg(`[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`);
+      apioLog.msg(
+        `[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`
+      );
 
       resolve(failed);
     });
@@ -529,7 +590,28 @@ function activate(context) {
     wizard.registerGetExampleWizard(context);
   }
 
-  // -- Determine the pre commands
+  // -- Conditionally register the apio shell command.
+  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+    // Determine the shell pre commands.
+    let cmds = [];
+    if (platforms.isWindows()) {
+      // For windows (CMD and Powershell)
+      cmds.push("cls");
+      cmds.push(`set PATH "${utils.apioBinDir()};$PATH"`);
+      if (info.wsDirPath) cmds.push(`chdir /d "${info.wsDirPath}"`);
+      cmds.push("apio -h");
+    } else {
+      // For macOS and Linux (bash)
+      cmds.push("printf '\\ec'");
+      cmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
+      if (info.wsDirPath) cmds.push(`cd "${info.wsDirPath}"`);
+      cmds.push("apio -h");
+    }
+    // Register the shell command.
+    registerApioShellCommand(context, cmds);
+  }
+
+  // -- Determine the tasks pre commands
 
   let preCmds = null;
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
