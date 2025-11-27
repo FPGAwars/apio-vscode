@@ -102,7 +102,7 @@ const TOOLS_TREE = [
         id: "apio.new.project",
         action: {
           cmds: [
-            `apio api get-examples -f -o ${utils.apioTmpFile("examples.json")}`,
+            `{apio-bin} api get-examples -f -o ${utils.apioTmpFile("examples.json")}`,
           ],
           cmdId: "apio.projectFromExample",
         },
