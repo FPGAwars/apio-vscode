@@ -10,7 +10,6 @@ const path = require("path");
 // Local imports
 const platforms = require("./platforms.js");
 
-
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(apioIniFilePath) {
   // const fs = require("fs");
@@ -63,7 +62,7 @@ function apioTmpDir() {
 
 // Get path of a file in apio temp dir.
 function apioTmpFile(fname) {
-    return path.join(apioTmpDir(), fname);
+  return path.join(apioTmpDir(), fname);
 }
 
 // Get apio executable path.
@@ -74,7 +73,26 @@ function apioBinaryPath() {
 
 // Wait for given time in ms.
 async function asyncSleepMs(timeMs) {
-  await new Promise(resolve => setTimeout(resolve, timeMs));
+  await new Promise((resolve) => setTimeout(resolve, timeMs));
+}
+
+// Write a file with given lines.
+function writeFileFromLines(filePath, lines) {
+  // Ensure the content is properly joined with the desired line ending
+  const content = lines.join(os.EOL) + os.EOL;
+
+  // Extract the directory portion of the path
+  const dir = path.dirname(filePath);
+
+  // Synchronously create parent directories (recursive: true)
+  fs.mkdirSync(dir, { recursive: true });
+
+  // Write the file, overwriting if it exists
+  fs.writeFileSync(filePath, content, { encoding: "utf8" });
+  // Optional: add a trailing newline if desired
+  // if (content && !content.endsWith(lineEnding)) {
+  //   fs.appendFileSync(filePath, lineEnding);
+  // }
 }
 
 // Exported functions.
@@ -87,4 +105,5 @@ module.exports = {
   apioTmpFile,
   apioBinaryPath,
   asyncSleepMs,
+  writeFileFromLines,
 };
