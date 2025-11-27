@@ -235,30 +235,28 @@ class ApioTreeProvider {
 }
 
 /**
- * Executes a list of shell commands sequentially, one by one,
- * showing each command separately in the terminal, and waits for each to complete.
- * Uses VS Code Tasks — completely avoids shell integration problems on Windows.
+ * Executes a list of shell commands sequentially using a single VS Code task.
+ * Waits for completion and returns true if any command failed (non-zero exit code).
  *
- * @param {string[]} cmds - Array of individual commands to run
- * @returns {Promise<boolean>} true if aborted or any command failed, false if all succeeded
+ * @param {string[]} cmds - Array of shell commands to run one after another
+ * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
 async function execCommandsSequentially(cmds) {
   const taskName = "Apio: Run Commands";
 
-  // Kill any previous Apio task to avoid conflicts
+  // 1. Kill any previous Apio task to avoid conflicts
   for (const exec of vscode.tasks.taskExecutions) {
     if (exec.task.name === taskName) {
       exec.terminate();
     }
   }
 
-  let aborted = false;
-
+  // 2. Optional: clear terminal but keep the task title line
   if (vscode.window.activeTerminal?.name === taskName) {
-  // Title is now visible → clear everything EXCEPT the title line
-  vscode.commands.executeCommand("workbench.action.terminal.clear");
+    await vscode.commands.executeCommand("workbench.action.terminal.clear");
   }
 
+  // 3. Build the task — one big command joined with &&
   const task = new vscode.Task(
     { type: "shell" },
     vscode.TaskScope.Workspace,
@@ -274,40 +272,30 @@ async function execCommandsSequentially(cmds) {
   task.presentationOptions = {
     reveal: vscode.TaskRevealKind.Always,
     panel: vscode.TaskPanelKind.Shared,
-    clear: false,
     showReuseMessage: false,
     focus: false,
-    echo: "always",
+    clear: false,        // we cleared manually above
+    echo: true,
   };
 
-  task.isBackground = false;
-  task.definition
-  // task.problemMatchers = ["$none"];    // ← suppresses the termination message
+  // This completely removes the ugly "terminated with exit code: X" line
+  // task.problemMatchers = ["$none"];
 
-  aborted = await new Promise((resolve) => {
-    let resolved = false;
+  // 4. Run the task and wait for the real exit code
+  const execution = await vscode.tasks.executeTask(task);
 
-    const endListener = vscode.tasks.onDidEndTaskProcess((e) => {
-      if (e.execution.task !== task) return;
-      if (resolved) return;
-      resolved = true;
-      const failed = e.exitCode !== 0 && e.exitCode !== null;
-      apioLog.msg(`[Apio Task] Command finished with exit code ${e.exitCode}`);
-      endListener.dispose();
-      resolve(failed); // true = abort further commands
-    });
+  return new Promise((resolve) => {
+    const listener = vscode.tasks.onDidEndTaskProcess((e) => {
+      if (e.execution !== execution) return;
 
-    // Start the task
-    vscode.tasks.executeTask(task).catch((_err) => {
-      if (!resolved) {
-        resolved = true;
-        endListener.dispose();
-        resolve(true); // treat as abort
-      }
+      listener.dispose();
+
+      const failed = e.exitCode !== 0;
+      apioLog.msg(`[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`);
+
+      resolve(failed);
     });
   });
-
-  return aborted;
 }
 
 // A function to execute an action. Action can have commands anr/or url.
