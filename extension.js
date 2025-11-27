@@ -234,117 +234,80 @@ class ApioTreeProvider {
   }
 }
 
-// For debugging.
-let terminalCounter = 0;
+/**
+ * Executes a list of shell commands sequentially, one by one,
+ * showing each command separately in the terminal, and waits for each to complete.
+ * Uses VS Code Tasks — completely avoids shell integration problems on Windows.
+ *
+ * @param {string[]} cmds - Array of individual commands to run
+ * @returns {Promise<boolean>} true if aborted or any command failed, false if all succeeded
+ */
+async function execCommandsSequentially(cmds) {
+  const taskName = "Apio: Run Commands";
 
-// Execute commands in the terminal and return after they were all
-// executed. The placeholders in the commands are already expanded
-// by the caller. Returns true if the commands were aborted by
-// closing the terminal, false otherwise.
-async function execCommandInTerminal(cmds) {
-  // Increment terminal number.
-  ++terminalCounter;
-  const terminalId = `T${terminalCounter.toString().padStart(3, "0")}`;
-
-  // The name of the VSCode terminal we create.
-  const apioTerminalName = "Apio";
-
-  // Kill every existing terminal named "Apio" (usually 0 or 1)
-  // By recreating the terminal for each command we make sure that it
-  // starts at the same state, without side affect by previous commands
-  // or by user typing in the terminal (e.g. setting env vars).
-  vscode.window.terminals
-    .filter((t) => t.name === apioTerminalName)
-    .forEach((t) => {
-      apioLog.msg(`[${terminalId}] disposing [${t.myTerminalId}]`);
-      t.dispose();
-    });
-
-  // For windows we force cmd.exe shell. This is because we don't know yet how
-  // to determine if vscode terminal uses cmd, bash, or powershell (configurable
-  // by the user).
-  let extraTerminalArgs = {};
-  if (platforms.isWindows()) {
-    extraTerminalArgs = {
-      shellPath: "cmd.exe",
-      shellArgs: ["/d"], // /d disables AutoRun; interactive shell does not require /c
-    };
+  // Kill any previous Apio task to avoid conflicts
+  for (const exec of vscode.tasks.taskExecutions) {
+    if (exec.task.name === taskName) {
+      exec.terminate();
+    }
   }
 
-  // Create the terminal, with optional args.
-  const apioTerminal = vscode.window.createTerminal({
-    name: apioTerminalName,
-    shellIntegration: { enabled: true },  // Enable shell integration.
-    ...extraTerminalArgs,
-  });
-  apioTerminal.myTerminalId = terminalId;
-
-  apioLog.msg(`[${terminalId}] created new terminal`);
-
-  // Make the terminal visible, regardless if new or reused.
-  apioTerminal.show();
-
-  // These vars are flipped by the listeners to indicate to the waiting
-  // loop that they occurred.
-  let commandDone = false;
   let aborted = false;
 
-  const completionListener = vscode.window.onDidEndTerminalShellExecution(
-    (e) => {
-      apioLog.msg(
-        `[${terminalId}] cmd listener called for [${e.terminal.myTerminalId}]`
-      );
-      if (e.terminal === apioTerminal) {
-        // NOTE: We tried to access here e.execution.exitCode to abort the
-        // rest of the commands if one fails but couldn't make it to work
-        // because the value is always undefined. Nov 2025.
-        apioLog.msg(`[${terminalId}] cmd listener: command done.`);
-        commandDone = true;
-      }
-    }
+  if (vscode.window.activeTerminal?.name === taskName) {
+  // Title is now visible → clear everything EXCEPT the title line
+  vscode.commands.executeCommand("workbench.action.terminal.clear");
+  }
+
+  const task = new vscode.Task(
+    { type: "shell" },
+    vscode.TaskScope.Workspace,
+    taskName,
+    "apio",
+    new vscode.ShellExecution(cmds.join(" && "), {
+      env: {
+        PATH: `${utils.apioBinDir()}${path.delimiter}${process.env.PATH}`,
+      },
+    })
   );
 
-  const deathListener = vscode.window.onDidCloseTerminal((terminal) => {
-    apioLog.msg(
-      `[${terminalId}] terminal listener called for [${terminal.myTerminalId}]`
-    );
-    if (terminal === apioTerminal) {
-      apioLog.msg(`[${terminalId}] terminal listener: aborted.`);
-      aborted = true;
-    }
+  task.presentationOptions = {
+    reveal: vscode.TaskRevealKind.Always,
+    panel: vscode.TaskPanelKind.Shared,
+    clear: false,
+    showReuseMessage: false,
+    focus: false,
+    echo: "always",
+  };
+
+  task.isBackground = false;
+  task.definition
+  // task.problemMatchers = ["$none"];    // ← suppresses the termination message
+
+  aborted = await new Promise((resolve) => {
+    let resolved = false;
+
+    const endListener = vscode.tasks.onDidEndTaskProcess((e) => {
+      if (e.execution.task !== task) return;
+      if (resolved) return;
+      resolved = true;
+      const failed = e.exitCode !== 0 && e.exitCode !== null;
+      apioLog.msg(`[Apio Task] Command finished with exit code ${e.exitCode}`);
+      endListener.dispose();
+      resolve(failed); // true = abort further commands
+    });
+
+    // Start the task
+    vscode.tasks.executeTask(task).catch((_err) => {
+      if (!resolved) {
+        resolved = true;
+        endListener.dispose();
+        resolve(true); // treat as abort
+      }
+    });
   });
 
-  try {
-    for (const cmd of cmds) {
-      // This will be set by the command listener once it's completed.
-      commandDone = false;
-
-      // Send the next command to the terminal.
-      apioLog.msg(`[${terminalId}] Sending cmd: ${cmd}`);
-      apioTerminal.sendText(cmd);
-
-      // TODO: Do we need timeout here?
-      while (!commandDone && !aborted) {
-        await utils.asyncSleepMs(100);
-      }
-      apioLog.msg(`[${terminalId}] Done waiting for command.`);
-
-      // Exit is terminal closed.
-      if (aborted) {
-        apioLog.msg(`[${terminalId}] Terminal closed.`);
-        return true;
-      }
-    }
-
-    // All succeeded, not aborted.
-    apioLog.msg(`[${terminalId}] All commands done.`);
-    return false;
-  } finally {
-    // Cleanup.
-    apioLog.msg(`[${terminalId}] Disposing listeners.`);
-    completionListener.dispose();
-    deathListener.dispose();
-  }
+  return aborted;
 }
 
 // A function to execute an action. Action can have commands anr/or url.
@@ -362,9 +325,10 @@ async function launchAction(cmds, url, cmdId) {
 
     // Expand the placeholders.
     cmds = cmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+    cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
 
     // Execute the commands and wait for completion.
-    const aborted = await execCommandInTerminal(cmds);
+    const aborted = await execCommandsSequentially(cmds);
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;
@@ -581,23 +545,23 @@ function activate(context) {
 
   let preCmds = null;
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    // Add a command to clear the terminal.
-    // On mac and linux we also have to force clearing the scroll buffer.
-    let command = platforms.isWindows() ? "cls" : 'clear && printf "\\033[3J"';
-    preCmds = [command];
+    preCmds = [];
 
-    // Add a command to add apio ot the path.
-    command = platforms.isWindows()
-      ? `set "PATH=${utils.apioBinDir()};%PATH%"`
-      : `export PATH="${utils.apioBinDir()}:$PATH"`;
-    preCmds.push(command);
-
-    // If a workspace is open, add a command to change directory to the workspace dir.
-    if (info.wsDirPath) {
-      command = platforms.isWindows()
-        ? `chdir /d "${info.wsDirPath}"`
-        : `cd "${info.wsDirPath}"`;
-      preCmds.push(command);
+    if (platforms.isWindows()) {
+      // Pre commands for windows (CMD and Powershell)
+      // preCmds.push("cls");
+      // preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
+      if (info.wsDirPath) {
+        preCmds.push(`chdir /d "${info.wsDirPath}"`);
+      }
+    } else {
+      // Pre commands for macOS and Linux (bash)
+      // preCmds.push("clear");
+      // preCmds.push('printf "\\033[3J"');  // Delete scroll buffer
+      // preCmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
+      if (info.wsDirPath) {
+        preCmds.push(`cd "${info.wsDirPath}"`);
+      }
     }
 
     apioLog.msg(`preCmds: ${preCmds}`);
