@@ -116,7 +116,7 @@ class ApioTreeGroup {
  * - Leaves the terminal open for interactive use
  */
 function registerApioShellCommand(context, preCmds) {
-  const TERMINAL_NAME = "Apio: Shell";
+  const TERMINAL_NAME = "Apio Shell";
 
   const disposable = vscode.commands.registerCommand("apio.shell", async () => {
     // 1. Dispose ALL terminals named "Apio"
@@ -301,7 +301,7 @@ class ApioTreeProvider {
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
 async function execCommandsSequentially(cmds) {
-  const taskName = "Apio: Run Commands";
+  const taskName = "Apio Run";
 
   // 1. Kill any previous Apio task to avoid conflicts
   for (const exec of vscode.tasks.taskExecutions) {
