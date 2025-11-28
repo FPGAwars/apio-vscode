@@ -542,7 +542,7 @@ function _determineActivationInfo() {
   let wsDirPath = ws.uri.fsPath;
   apioLog.msg(`original wsFolderPath: ${wsDirPath}`);
 
-  wsDirPath =   fs.realpathSync.native(wsDirPath);
+  wsDirPath = path.resolve(wsDirPath);
   apioLog.msg(`canonical wsFolderPath: ${wsDirPath}`);
 
   // Determine the path of the expected apio.ini file.
