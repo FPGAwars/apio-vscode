@@ -133,10 +133,9 @@ function registerApioShellCommand(context, preCmds) {
       await new Promise((r) => setTimeout(r, 100));
     }
      
-    // Construct the PATH/Path of the shell, with apio bin in front.
-    // TODO: Do we need to set both for safety for Powershell? Is so, limit to windows.
-    const newPath1 = `${utils.apioBinDir()}${path.delimiter}${process.env.PATH || ''}`;
-    const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
+    // Construct the PATH of the shell, with apio bin in front.
+    const newPath= `${utils.apioBinDir()}${path.delimiter}${process.env.PATH || ''}`;
+    // const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
 
     // 2. Create brand-new terminal
     const terminal = vscode.window.createTerminal({
@@ -144,8 +143,8 @@ function registerApioShellCommand(context, preCmds) {
       // cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
       env: {
         ...process.env,
-        PATH: newPath1,
-        Path: newPath2  
+        PATH: newPath
+        // Path: newPath
       }
     });
 
