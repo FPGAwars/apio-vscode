@@ -332,7 +332,7 @@ async function execCommandsInATask(cmds) {
     const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
     const wrappedCmds = cmds.flatMap((cmd) => [
       " ",
-      `echo + ${cmd}`,
+      `echo $ ${cmd}`,
       `${cmd}`,
       "if %errorlevel% neq 0 exit /b %errorlevel%",
     ]);
@@ -341,7 +341,7 @@ async function execCommandsInATask(cmds) {
       "setlocal",
       "verify >nul",
       ...wrappedCmds,
-      "",
+      " ",
       "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
@@ -349,14 +349,20 @@ async function execCommandsInATask(cmds) {
     shellArgs = ["/c", batchFile];
   } else {
     // Create task batch file for macOS and Linux
-    const lines = ["#!/usr/bin/env bash", "set -euo pipefail", ...cmds];
     const batchFile = path.join(utils.apioTmpDir(), "task.bash");
+    const wrappedCmds = cmds.flatMap((cmd) => [
+      " ",
+      `echo '$ ${cmd}'`,
+      `${cmd}`,
+      `[ $? -ne 0 ] && exit $?`,
+    ]);
+    const lines = ["#!/usr/bin/env bash", ...wrappedCmds, " ", "exit 0"];
     utils.writeFileFromLines(batchFile, lines);
     try {
       fs.chmodSync(batchFile, 0o755);
     } catch {}
     shell = "bash";
-    shellArgs = ["-x", batchFile];
+    shellArgs = [batchFile];
   }
 
   // 4. Build the task
