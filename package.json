@@ -39,7 +39,7 @@
       "activitybar": [
         {
           "id": "apioContainer",
-          "title": "Apio",
+          "title": "Apio FPGA",
           "icon": "media/sidebar-icon.svg"
         }
       ]
