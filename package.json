@@ -71,7 +71,8 @@
           "name": "HELP",
           "id": "apio.sidebar.help",
           "icon": "media/sidebar-icon.svg",
-          "type": "tree"
+          "type": "tree",
+          "when": "apio.sidebar.help.enabled"
         }
       ]
     }

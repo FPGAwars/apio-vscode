@@ -132,9 +132,11 @@ function registerApioShellCommand(context, preCmds) {
     if (apioTerminals.length > 0) {
       await new Promise((r) => setTimeout(r, 100));
     }
-     
+
     // Construct the PATH of the shell, with apio bin in front.
-    const newPath= `${utils.apioBinDir()}${path.delimiter}${process.env.PATH || ''}`;
+    const newPath = `${utils.apioBinDir()}${path.delimiter}${
+      process.env.PATH || ""
+    }`;
     // const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
 
     // 2. Create brand-new terminal
@@ -143,9 +145,9 @@ function registerApioShellCommand(context, preCmds) {
       // cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
       env: {
         ...process.env,
-        PATH: newPath
+        PATH: newPath,
         // Path: newPath
-      }
+      },
     });
 
     terminal.show();
@@ -332,7 +334,7 @@ async function execCommandsInATask(cmds) {
       " ",
       `echo + ${cmd}`,
       `${cmd}`,
-      "if %errorlevel% neq 0 exit /b %errorlevel%"
+      "if %errorlevel% neq 0 exit /b %errorlevel%",
     ]);
     const lines = [
       "@echo off",
@@ -340,7 +342,7 @@ async function execCommandsInATask(cmds) {
       "verify >nul",
       ...wrappedCmds,
       "",
-      "exit /b 0"
+      "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
     shell = "cmd.exe";
@@ -352,7 +354,7 @@ async function execCommandsInATask(cmds) {
     utils.writeFileFromLines(batchFile, lines);
     try {
       fs.chmodSync(batchFile, 0o755);
-    } catch { }
+    } catch {}
     shell = "bash";
     shellArgs = ["-x", batchFile];
   }
@@ -706,7 +708,7 @@ function activate(context) {
     preCmds,
     commands.HELP_TREE,
     "apio.sidebar.help",
-    null
+    "apio.sidebar.help.enabled"
   );
 
   // --- Conditionally enable the status bar icons
