@@ -155,8 +155,6 @@ function registerApioShellCommand(context, preCmds) {
     for (const cmd of preCmds) {
       terminal.sendText(cmd);
     }
-
-  
   });
 
   context.subscriptions.push(disposable);
@@ -300,7 +298,7 @@ class ApioTreeProvider {
  * @param {string[]} cmds - Array of shell commands to run one after another
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
-async function execCommandsSequentially(cmds) {
+async function execCommandsInATask(cmds) {
   const taskName = "Apio Run";
 
   // 1. Kill any previous Apio task to avoid conflicts
@@ -315,17 +313,44 @@ async function execCommandsSequentially(cmds) {
     await vscode.commands.executeCommand("workbench.action.terminal.clear");
   }
 
-  // 3. Build the task — one big command joined with &&
+  // 3. Create the batch file.
+  let shell;
+  let shellArgs;
+  if (platforms.isWindows()) {
+    // Create task batch file for windows.
+    batchFile = path.join(utils.apioTmpDir(), "task.cmd");
+    const lines = [
+      // "@echo off",
+      "setlocal",
+      // "echo.",                                      // nice blank line
+      // ...cmds.map(cmd => `echo ► ${cmd}`),          // ← clearly shows what is running
+      ...cmds.map((cmd) => ` ${cmd}`), // ← actually runs it (indented for clarity)
+      // "echo.",
+      // "echo ✔ Task completed.",
+      // "exit /b 0"
+    ];
+    utils.writeFileFromLines(batchFile, lines);
+    shell = "cmd.exe";
+    shellArgs = ["/c", batchFile];
+  } else {
+    // Create task batch file for macOS and Linux
+    const lines = ["#!/usr/bin/env bash", "set -euo pipefail", ...cmds];
+    const batchFile = path.join(utils.apioTmpDir(), "task.bash");
+    utils.writeFileFromLines(batchFile, lines);
+    try {
+      fs.chmodSync(batchFile, 0o755);
+    } catch {}
+    shell = "bash";
+    shellArgs = ["-x", batchFile];
+  }
+
+  // 3. Build the task
   const task = new vscode.Task(
     { type: "shell" },
     vscode.TaskScope.Workspace,
     taskName,
     "apio",
-    new vscode.ShellExecution(cmds.join(" && "), {
-      env: {
-        PATH: `${utils.apioBinDir()}${path.delimiter}${process.env.PATH}`,
-      },
-    })
+    new vscode.ShellExecution(shell, shellArgs)
   );
 
   task.presentationOptions = {
@@ -336,9 +361,6 @@ async function execCommandsSequentially(cmds) {
     clear: false, // we cleared manually above
     echo: true,
   };
-
-  // This completely removes the ugly "terminated with exit code: X" line
-  // task.problemMatchers = ["$none"];
 
   // 4. Run the task and wait for the real exit code
   const execution = await vscode.tasks.executeTask(task);
@@ -377,7 +399,7 @@ async function launchAction(cmds, url, cmdId) {
     cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
 
     // Execute the commands and wait for completion.
-    const aborted = await execCommandsSequentially(cmds);
+    const aborted = await execCommandsInATask(cmds);
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;
