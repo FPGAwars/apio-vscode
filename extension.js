@@ -132,11 +132,21 @@ function registerApioShellCommand(context, preCmds) {
     if (apioTerminals.length > 0) {
       await new Promise((r) => setTimeout(r, 100));
     }
+     
+    // Construct the PATH/Path of the shell, with apio bin in front.
+    // TODO: Do we need to set both for safety for Powershell? Is so, limit to windows.
+    const newPath1 = `${utils.apioBinDir()}${path.delimiter}${process.env.PATH || ''}`;
+    const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
 
     // 2. Create brand-new terminal
     const terminal = vscode.window.createTerminal({
       name: TERMINAL_NAME,
-      cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
+      // cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
+      env: {
+        ...process.env,
+        PATH: newPath1,
+        Path: newPath2  
+      }
     });
 
     terminal.show();
@@ -317,17 +327,21 @@ async function execCommandsInATask(cmds) {
   let shell;
   let shellArgs;
   if (platforms.isWindows()) {
-    // Create task batch file for windows.
-    batchFile = path.join(utils.apioTmpDir(), "task.cmd");
+    // Create task batch file for Windows (cmd.exe)
+    const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
+    const wrappedCmds = cmds.flatMap(cmd => [
+      " ",
+      `echo + ${cmd}`,
+      `${cmd}`,
+      "if %errorlevel% neq 0 exit /b %errorlevel%"
+    ]);
     const lines = [
-      // "@echo off",
+      "@echo off",
       "setlocal",
-      // "echo.",                                      // nice blank line
-      // ...cmds.map(cmd => `echo ► ${cmd}`),          // ← clearly shows what is running
-      ...cmds.map((cmd) => ` ${cmd}`), // ← actually runs it (indented for clarity)
-      // "echo.",
-      // "echo ✔ Task completed.",
-      // "exit /b 0"
+      "verify >nul",
+      ...wrappedCmds,
+      "",
+      "exit /b 0"
     ];
     utils.writeFileFromLines(batchFile, lines);
     shell = "cmd.exe";
@@ -339,12 +353,12 @@ async function execCommandsInATask(cmds) {
     utils.writeFileFromLines(batchFile, lines);
     try {
       fs.chmodSync(batchFile, 0o755);
-    } catch {}
+    } catch { }
     shell = "bash";
     shellArgs = ["-x", batchFile];
   }
 
-  // 3. Build the task
+  // 4. Build the task
   const task = new vscode.Task(
     { type: "shell" },
     vscode.TaskScope.Workspace,
@@ -362,7 +376,7 @@ async function execCommandsInATask(cmds) {
     echo: true,
   };
 
-  // 4. Run the task and wait for the real exit code
+  // 5. Run the task and wait for the real exit code
   const execution = await vscode.tasks.executeTask(task);
 
   return new Promise((resolve) => {
@@ -614,18 +628,17 @@ function activate(context) {
 
   // -- Conditionally register the apio shell command.
   if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
-    // Determine the shell pre commands.
+    // Determine the shell pre commands. The PATH is set later
+    // when we create the terminal.
     let cmds = [];
     if (platforms.isWindows()) {
       // For windows (CMD and Powershell)
       cmds.push("cls");
-      cmds.push(`set PATH "${utils.apioBinDir()};$PATH"`);
-      if (info.wsDirPath) cmds.push(`chdir /d "${info.wsDirPath}"`);
+      if (info.wsDirPath) cmds.push(`cd "${info.wsDirPath}"`);
       cmds.push("apio -h");
     } else {
       // For macOS and Linux (bash)
       cmds.push("printf '\\ec'");
-      cmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
       if (info.wsDirPath) cmds.push(`cd "${info.wsDirPath}"`);
       cmds.push("apio -h");
     }
