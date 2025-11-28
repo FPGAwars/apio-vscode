@@ -276,7 +276,7 @@ const HELP_TREE = [
         title: "commands",
         tooltip: "Show Apio commands documentation",
         id: "apio.docsCommands",
-        action: { url: "https://fpgawars.github.io/apio/docs/cmd-apio-build" },
+        action: { url: "https://fpgawars.github.io/apio/docs/commands-list" },
       },
       {
         title: "project file apio.ini",

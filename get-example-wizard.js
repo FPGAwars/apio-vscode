@@ -10,7 +10,6 @@ const cp = require("child_process");
 const utils = require("./utils.js");
 const apioLog = require("./apio-log.js");
 
-
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
 function loadApioExamplesData() {
@@ -136,8 +135,11 @@ function getWebviewContent() {
 
 // Dispatched when the user submit the form to create the project.
 async function createProjectFromExample(context, msg, panel) {
-  const folderPath = msg.folder.trim();
+  // Get the destination directory.
+  let folderPath = msg.folder.trim();
 
+  // Make sure it's absolute, though on windows, this doesn't verify that
+  // the driver letter exists.
   if (!path.isAbsolute(folderPath)) {
     panel.webview.postMessage({
       command: "status",
@@ -147,6 +149,12 @@ async function createProjectFromExample(context, msg, panel) {
     return;
   }
 
+  // Use the absolute canonical form of the destination folder. On windows
+  // for example, this include the drive letter c:\ even if the user
+  // didn't specify it.
+  folderPath = path.resolve(folderPath);
+
+  // Construct example full name.
   const example = msg.board + "/" + msg.example;
 
   try {
@@ -182,7 +190,7 @@ async function createProjectFromExample(context, msg, panel) {
     });
 
     // Signal to the apio activate() that will be called on the new
-    // workspace to automatically open apio.ini. 
+    // workspace to automatically open apio.ini.
     await context.globalState.update("apio.justCreatedProject", true);
 
     // Switch to the new workspace. This will start a new instance of
