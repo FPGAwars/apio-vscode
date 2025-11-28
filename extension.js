@@ -539,8 +539,11 @@ function _determineActivationInfo() {
   }
 
   // Determine the path of the expected apio project dir.
-  const wsDirPath = ws.uri.fsPath;
-  apioLog.msg(`wsFolderPath: ${wsDirPath}`);
+  let wsDirPath = ws.uri.fsPath;
+  apioLog.msg(`original wsFolderPath: ${wsDirPath}`);
+
+  wsDirPath =   fs.realpathSync.native(wsDirPath);
+  apioLog.msg(`canonical wsFolderPath: ${wsDirPath}`);
 
   // Determine the path of the expected apio.ini file.
   const apioIniPath = path.join(wsDirPath, "apio.ini");
