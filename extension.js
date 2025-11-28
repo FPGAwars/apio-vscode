@@ -330,7 +330,7 @@ async function execCommandsInATask(cmds) {
   if (platforms.isWindows()) {
     // Create task batch file for Windows (cmd.exe)
     const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
-    const wrappedCmds = cmds.flatMap(cmd => [
+    const wrappedCmds = cmds.flatMap((cmd) => [
       " ",
       `echo + ${cmd}`,
       `${cmd}`,
