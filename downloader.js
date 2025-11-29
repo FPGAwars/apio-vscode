@@ -27,7 +27,7 @@ const utils = require("./utils.js");
 // const githubRepo = "FPGAwars/apio-dev-builds";
 
 // TODO: Change back to fpgawars.
-const apioReleaseTag = "2025-11-25";
+const apioReleaseTag = "2025-11-29";
 const githubRepo = "zapta/apio-dev-builds";
 
 // Download url and local package name
