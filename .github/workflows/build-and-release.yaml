@@ -67,6 +67,21 @@ jobs:
         run: |
           unzip -l $PACKAGE_NAME
 
+      # Delete old pre-releases, keeps all releases.
+      - name: Delete old pre-releases
+        uses: sgpublic/delete-release-action@v1.2
+        with:
+          # Keep all stable releases .
+          release-drop: false
+          # Delete old pre-releases, keep the newest 10 (excluding the absolute latest)
+          pre-release-drop: true
+          pre-release-keep-count: 5
+          pre-release-drop-tag: true  # Also delete tags of deleted pre-releases
+          # Keep all drafts.
+          draft-drop: false
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       # In case we overwrite and exiting release.
       - name: Force release tag update
         run: |
