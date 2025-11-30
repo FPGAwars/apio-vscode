@@ -12,6 +12,11 @@ permissions:
   # Allow release creation
   contents: write
 
+env:
+  # prevents warnings in the vscode editor.
+  RELEASE_TAG: ""
+  PACKAGE_TAG: ""
+
 jobs:
   # ----- Parameters collection job
   build-and-release:
@@ -76,7 +81,7 @@ jobs:
           # Delete old pre-releases, keep the newest 10 (excluding the absolute latest)
           pre-release-drop: true
           pre-release-keep-count: 5
-          pre-release-drop-tag: true  # Also delete tags of deleted pre-releases
+          pre-release-drop-tag: true # Also delete tags of deleted pre-releases
           # Keep all drafts.
           draft-drop: false
         env:

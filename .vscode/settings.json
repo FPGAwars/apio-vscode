@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "Apio",
+        "errorlevel",
         "fpgas",
         "fpgawars",
         "FTDI",
@@ -12,6 +13,8 @@
         "pipefail",
         "pyinstaller",
         "setlocal",
+        "sgpublic",
+        "softprops",
         "systemverilog",
         "testbench",
         "testbenchs",
