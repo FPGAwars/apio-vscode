@@ -327,9 +327,13 @@ async function execCommandsInATask(cmds) {
   // 3. Create the batch file.
   let shell;
   let shellArgs;
+  const okMessage = "Task completed successfully.";
   if (platforms.isWindows()) {
-    // Create task batch file for Windows (cmd.exe)
+    // Handle the case of Windows.
     const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
+    shell = "cmd.exe";
+    shellArgs = ["/c", batchFile];
+    // Construct the task batch file task.cmd.
     const wrappedCmds = cmds.flatMap((cmd) => [
       " ",
       `echo $ ${cmd}`,
@@ -342,27 +346,35 @@ async function execCommandsInATask(cmds) {
       "verify >nul",
       ...wrappedCmds,
       " ",
+      `echo.`,
+      `echo ${okMessage}`,
       "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
-    shell = "cmd.exe";
-    shellArgs = ["/c", batchFile];
   } else {
-    // Create task batch file for macOS and Linux
+    // Handle the case of macOS and Linux
     const batchFile = path.join(utils.apioTmpDir(), "task.bash");
+    shell = "bash";
+    shellArgs = [batchFile];
+    // Construct the task batch file task.bash.
     const wrappedCmds = cmds.flatMap((cmd) => [
       " ",
       `echo '$ ${cmd}'`,
       `${cmd}`,
       `[ $? -ne 0 ] && exit $?`,
     ]);
-    const lines = ["#!/usr/bin/env bash", ...wrappedCmds, " ", "exit 0"];
+    const lines = [
+      "#!/usr/bin/env bash",
+      ...wrappedCmds,
+      " ",
+      "echo",
+      `echo "${okMessage}"`,
+      "exit 0",
+    ];
     utils.writeFileFromLines(batchFile, lines);
     try {
       fs.chmodSync(batchFile, 0o755);
     } catch {}
-    shell = "bash";
-    shellArgs = [batchFile];
   }
 
   // 4. Build the task
