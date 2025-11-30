@@ -325,9 +325,11 @@ async function execCommandsInATask(cmds) {
   }
 
   // 3. Create the batch file.
+  const okMessage = "Task completed successfully.";
+  const failMessage = "Task failed.";
+
   let shell;
   let shellArgs;
-  const okMessage = "Task completed successfully.";
   if (platforms.isWindows()) {
     // Handle the case of Windows.
     const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
@@ -338,7 +340,12 @@ async function execCommandsInATask(cmds) {
       " ",
       `echo $ ${cmd}`,
       `${cmd}`,
-      "if %errorlevel% neq 0 exit /b %errorlevel%",
+      `set "ERR=%errorlevel%"`, 
+      `if !ERR! neq 0 (`,
+      `  echo.`,
+      `  echo ${failMessage}`,
+      `  exit /b !ERR!`,
+      `)`,
     ]);
     const lines = [
       "@echo off",
@@ -361,7 +368,12 @@ async function execCommandsInATask(cmds) {
       " ",
       `echo '$ ${cmd}'`,
       `${cmd}`,
-      `[ $? -ne 0 ] && exit $?`,
+      `ERR=$?`, 
+      `if [ $ERR -ne 0 ]; then`,
+      `  echo`,
+      `  echo "${failMessage}"`,
+      `  exit $ERR`, 
+      `fi`,
     ]);
     const lines = [
       "#!/usr/bin/env bash",
