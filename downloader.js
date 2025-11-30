@@ -22,13 +22,10 @@ const apioLog = require("./apio-log.js");
 const jsonUtils = require("./json-utils.js");
 const utils = require("./utils.js");
 
-// The release to download
-// const apioReleaseTag = "2025-11-17";
-// const githubRepo = "FPGAwars/apio-dev-builds";
-
-// TODO: Change back to fpgawars.
-const apioReleaseTag = "2025-11-29";
-const githubRepo = "zapta/apio-dev-builds";
+// Where to find the apio bundle on github.
+// https://github.com/FPGAwars/apio-dev-builds/releases
+const githubRepo = "FPGAwars/apio-dev-builds";
+const apioReleaseTag = "2025-11-30";
 
 // Download url and local package name
 const downloadMetadataFileName = "download-metadata.json";
