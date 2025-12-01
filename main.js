@@ -341,10 +341,10 @@ async function execCommandsInATask(cmds) {
       `echo $ ${cmd}`,
       `${cmd}`,
       `set "ERR=%errorlevel%"`, 
-      `if !ERR! neq 0 (`,
+      `if %ERR% neq 0 (`,
       `  echo.`,
       `  echo ${failMessage}`,
-      `  exit /b !ERR!`,
+      `  exit /b %ERR%`,
       `)`,
     ]);
     const lines = [
