@@ -33,7 +33,7 @@
     "onStartupFinished",
     "workspaceContains:apio.ini"
   ],
-  "main": "./extension.js",
+  "main": "./main.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -49,28 +49,24 @@
         {
           "name": "NOTICE",
           "id": "apio.sidebar.notice",
-          "icon": "media/sidebar-icon.svg",
           "type": "webview",
           "when": "apio.sidebar.notice.enabled"
         },
         {
           "name": "PROJECT",
           "id": "apio.sidebar.project",
-          "icon": "media/sidebar-icon.svg",
           "type": "tree",
           "when": "apio.sidebar.project.enabled"
         },
         {
           "name": "TOOLS",
           "id": "apio.sidebar.tools",
-          "icon": "media/sidebar-icon.svg",
           "type": "tree",
           "when": "apio.sidebar.tools.enabled"
         },
         {
           "name": "HELP",
           "id": "apio.sidebar.help",
-          "icon": "media/sidebar-icon.svg",
           "type": "tree",
           "when": "apio.sidebar.help.enabled"
         }
