@@ -17,15 +17,11 @@ const zipExtract = require("extract-zip");
 const tar = require("tar");
 
 // Local imports
+const constants = require("./constants.js");
 const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const jsonUtils = require("./json-utils.js");
 const utils = require("./utils.js");
-
-// Where to find the apio bundle on github.
-// https://github.com/FPGAwars/apio-dev-builds/releases
-const githubRepo = "FPGAwars/apio-dev-builds";
-const apioReleaseTag = "2025-12-01";
 
 // Download url and local package name
 const downloadMetadataFileName = "download-metadata.json";
@@ -42,11 +38,15 @@ function init() {
   );
 
   // Determine download information.
-  const yyyymmdd = apioReleaseTag.replaceAll("-", "");
+  const yyyymmdd = constants.APIO_RELEASE_TAG.replaceAll("-", "");
   const platformId = platforms.getPlatformId();
+  const baseUrl =
+    "https://github.com/" +
+    constants.APIO_RELEASE_GITHUB_REPO +
+    "/releases/download/" +
+    constants.APIO_RELEASE_TAG +
+    "/";
   const ext = platforms.isWindows() ? "zip" : "tgz";
-
-  const baseUrl = `https://github.com/${githubRepo}/releases/download/${apioReleaseTag}/`;
   const packageFileName = `apio-${platformId}-${yyyymmdd}-bundle.${ext}`;
   _downloadSrcUrl = baseUrl + packageFileName;
   _downloadDstFilePath = path.join(utils.apioHomeDir(), packageFileName);
