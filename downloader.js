@@ -25,7 +25,7 @@ const utils = require("./utils.js");
 // Where to find the apio bundle on github.
 // https://github.com/FPGAwars/apio-dev-builds/releases
 const githubRepo = "FPGAwars/apio-dev-builds";
-const apioReleaseTag = "2025-11-30";
+const apioReleaseTag = "2025-12-01";
 
 // Download url and local package name
 const downloadMetadataFileName = "download-metadata.json";
