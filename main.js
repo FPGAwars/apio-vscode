@@ -41,11 +41,11 @@ This Apio extension does not support the platform *${platformId}*
 
 // Markdown notice to show when there is no open apio project.
 const NO_APIO_PROJECT_NOTICE = `
-#### No Apio project open
+#### No Apio project
 
-To open an existing project use **File → Open Folder...**
+To open an existing project use File → Open Folder...
 
-To create new project click below on **TOOLS → examples → get example**
+To create new project click below on TOOLS → examples → get example.
 `.trim();
 
 // Convert an object to a dump string.
