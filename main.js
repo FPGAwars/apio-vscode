@@ -320,7 +320,10 @@ async function execCommandsInATask(cmds) {
       `if %ERR% neq 0 (`,
       `  echo.`,
       `  echo ${failMessage}`,
-      `  exit /b %ERR%`,
+      // Experimental: suppress the vscode additional error message by
+      // exiting with 0. Grok advises against doing it.
+      // `  exit /b %ERR%`,
+      `  exit /b 0`,
       `)`,
     ]);
     const lines = [
@@ -348,7 +351,10 @@ async function execCommandsInATask(cmds) {
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
       `  echo "${failMessage}"`,
-      `  exit $ERR`,
+      // Experimental: suppress the vscode additional error message by
+      // exiting with 0. Grok advises against doing it.
+      // `  exit $ERR`,
+      `  exit 0`,
       `fi`,
     ]);
     const lines = [
