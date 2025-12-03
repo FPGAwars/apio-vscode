@@ -70,15 +70,17 @@ function pretty(obj) {
 
 // Extension activation is one in one of these levels.
 const Mode = Object.freeze({
-  // Full project support, workspace is opened, apio.ini
-  // is found.
+  // Platform is not supported. Workspace may or may not be
+  // open and it may or may not contain apio.ini.
+  NOT_SUPPORTED: "not-supported-mode",
+  // Platform is supported but no workspace open.
+  NO_WORKSPACE: "no-workspace-mode",
+  // Platform is supported, workspace is open, but there is
+  // no apio.ini
+  NO_PROJECT: "no-project-mode",
+  // Platform is supported and a workspace is open and has
+  // apio.ini in it.
   PROJECT: "project-mode",
-  // No apio.ini found, project specific functionality is disabled.
-  // May or may not have an open workspace dir.
-  NON_PROJECT: "non-project-mode",
-  // Incompatible platform. All functionality but help links
-  // is disabled. Not allowing even to create a project.
-  DISABLED: "disabled-mode",
 });
 
 // An immutable data object with activation info. If notice is not
@@ -340,7 +342,7 @@ async function execCommandsInATask(cmds) {
       " ",
       `echo $ ${cmd}`,
       `${cmd}`,
-      `set "ERR=%errorlevel%"`, 
+      `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
       `  echo.`,
       `  echo ${failMessage}`,
@@ -368,11 +370,11 @@ async function execCommandsInATask(cmds) {
       " ",
       `echo '$ ${cmd}'`,
       `${cmd}`,
-      `ERR=$?`, 
+      `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
       `  echo "${failMessage}"`,
-      `  exit $ERR`, 
+      `  exit $ERR`,
       `fi`,
     ]);
     const lines = [
@@ -540,27 +542,29 @@ function envSelectionClickHandler(context, apioIniPath) {
 // Called from activate() to determine the activation mode to perform.
 // Returns an ActivationInfo object with the activation params.
 function _determineActivationInfo() {
-  // Check that we are on a supported platforms.
+  // If platform is not supported then mode = NOT_SUPPORTED.
   const platformId = platforms.getPlatformId();
   if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
     return ActivationInfo({
-      mode: Mode.DISABLED,
+      mode: Mode.NOT_SUPPORTED,
       notice: PLATFORM_NOT_SUPPORTED_NOTICE(platformId),
       wsDirPath: null,
       apioIniPath: null,
     });
   }
 
-  // Determine the workspace folder, do nothing if none.
+  // If workspace is not opened then mode = NO_WORKSPACE
   const ws = vscode.workspace.workspaceFolders?.[0];
   if (!ws) {
     return ActivationInfo({
-      mode: Mode.NON_PROJECT,
+      mode: Mode.NO_WORKSPACE,
       notice: NO_WORKSPACE_NOTICE,
       wsDirPath: null,
       apioIniPath: null,
     });
   }
+
+  // Here the platform is supported and workspace is open.
 
   // Determine the path of the expected apio project dir.
   let wsDirPath = ws.uri.fsPath;
@@ -573,17 +577,20 @@ function _determineActivationInfo() {
   const apioIniPath = path.join(wsDirPath, "apio.ini");
   apioLog.msg(`apio_ini_path: ${apioIniPath}`);
 
-  // Do nothing if apio.ini doesn't exist. This is not an Apio workspace.
+  // If apio.ini doesn't exist then mode = NO_PROJECT. Note that
+  // we set apioIniPath even though apio.ini doesn't exist because
+  // we want to watch that path in case the user will create it.
   if (!fs.existsSync(apioIniPath)) {
     return ActivationInfo({
-      mode: Mode.NON_PROJECT,
+      mode: Mode.NO_PROJECT,
       notice: NO_APIO_INI_NOTICE,
       wsDirPath: wsDirPath,
-      apioIniPath: null,
+      apioIniPath: apioIniPath,
     });
   }
 
-  // Here when apio.ini found, use full project mode.
+  // Here when the platform is supported, a workspace is open, and
+  // it contains apio.ini.
   return ActivationInfo({
     mode: Mode.PROJECT,
     notice: null, // No notice
@@ -622,12 +629,13 @@ function activate(context) {
   const mode = info.mode;
 
   // Conditionally initialize the apio downloader
-  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+  if (isOneOf(mode, [Mode.NO_WORKSPACE, Mode.NO_PROJECT, Mode.PROJECT])) {
     downloader.init();
   }
 
   // Conditionally open apio.ini. This happens only if we just
-  // created a new apio project from the get example wizard.
+  // created a new apio project from the get example wizard which temporarily
+  // sets the apio.justCreatedProject flag.
   if (
     isOneOf(mode, Mode.PROJECT) &&
     context.globalState.get("apio.justCreatedProject")
@@ -656,12 +664,12 @@ function activate(context) {
   // -- Register the get example wizard. We invoke it from
   // -- the 'get example' command after running 'apio api get-examples ...'
   // -- to generate a json file with the examples data.
-  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+  if (isOneOf(mode, [Mode.NO_WORKSPACE, Mode.NO_PROJECT, Mode.PROJECT])) {
     wizard.registerGetExampleWizard(context);
   }
 
   // -- Conditionally register the apio shell command.
-  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+  if (isOneOf(mode, [Mode.NO_WORKSPACE, Mode.NO_PROJECT, Mode.PROJECT])) {
     // Determine the shell pre commands. The PATH is set later
     // when we create the terminal.
     let cmds = [];
@@ -683,21 +691,16 @@ function activate(context) {
   // -- Determine the tasks pre commands
 
   let preCmds = null;
-  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+  if (isOneOf(mode, [Mode.NO_WORKSPACE, Mode.NO_PROJECT, Mode.PROJECT])) {
     preCmds = [];
 
     if (platforms.isWindows()) {
-      // Pre commands for windows (CMD and Powershell)
-      // preCmds.push("cls");
-      // preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
+      // Windows (cmd.exe)
       if (info.wsDirPath) {
         preCmds.push(`chdir /d "${info.wsDirPath}"`);
       }
     } else {
-      // Pre commands for macOS and Linux (bash)
-      // preCmds.push("clear");
-      // preCmds.push('printf "\\033[3J"');  // Delete scroll buffer
-      // preCmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
+      // MacOS and Linux (bash)
       if (info.wsDirPath) {
         preCmds.push(`cd "${info.wsDirPath}"`);
       }
@@ -724,7 +727,7 @@ function activate(context) {
 
   // --- Conditionally enable the TOOLS view.
 
-  if (isOneOf(mode, [Mode.PROJECT, Mode.NON_PROJECT])) {
+  if (isOneOf(mode, [Mode.NO_WORKSPACE, Mode.NO_PROJECT, Mode.PROJECT])) {
     _registerTreeView(
       context,
       preCmds,
@@ -790,6 +793,13 @@ function activate(context) {
     );
   }
 
+  // If the workspace is open, register an apio.ini watcher so
+  // we can change the extension configuration to adapt to apio.ini
+  // addition/deletion/change.
+  if (isOneOf(mode, [Mode.NO_PROJECT, Mode.PROJECT])) {
+    registerApioIniWatcher(context, info.wsDirPath);
+  }
+
   // All done.
   apioLog.msg("activate() completed.");
 }
@@ -797,6 +807,40 @@ function activate(context) {
 // deactivate() - required for cleanup
 function deactivate() {
   // Nothing to do here.
+}
+
+// Register a watcher for apio.ini addition/deletion/change. Called
+// only if the workspace is open.
+function registerApioIniWatcher(context, wsDirPath) {
+  // The pattern of the apio.ini file.
+  const globPattern = new vscode.RelativePattern(wsDirPath, "apio.ini");
+
+  // The apio.ini watcher.
+  const watcher = vscode.workspace.createFileSystemWatcher(globPattern);
+
+  // Called when apio.ini created.
+  async function onApioIniCreate() {
+    apioLog.msg("onApioIniCreate() called");
+    await vscode.commands.executeCommand('workbench.action.restartExtensionHost');
+  }
+
+  // Called when apio.ini changed.
+  async function onApioIniChange() {
+    apioLog.msg("onApioIniChange() called");
+    await vscode.commands.executeCommand('workbench.action.restartExtensionHost');
+  }
+
+  // Called when apio.ini deleted.
+  async function onApioIniDelete() {
+    apioLog.msg("onApioIniDelete() called");
+    await vscode.commands.executeCommand('workbench.action.restartExtensionHost');
+  }
+
+  watcher.onDidCreate(onApioIniCreate, context.subscriptions);
+  watcher.onDidChange(onApioIniChange, context.subscriptions);
+  watcher.onDidDelete(onApioIniDelete, context.subscriptions);
+
+  context.subscriptions.push(watcher);
 }
 
 // Exported functions.
