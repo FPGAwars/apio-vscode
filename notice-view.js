@@ -18,7 +18,11 @@ function ensureProviderRegistered() {
   providerDisposable = vscode.window.registerWebviewViewProvider(VIEW_ID, {
     resolveWebviewView(wv) {
       webviewView = wv;
-      wv.webview.options = { enableScripts: false };
+      wv.webview.options = { 
+        // Prohibit general scripts, for security.
+        enableScripts: false, 
+        // This allows command links in the markdown text.
+        enableCommandUris: true };
 
       // If we already have markdown waiting and the view is supposed to be visible
       if (currentMarkdown && vscode.commands.getCommands().then) { // context exists

@@ -43,9 +43,8 @@ This Apio extension does not support the platform *${platformId}*
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-To open an existing project use File → Open Folder...
-
-To create new project click below on TOOLS → examples → get example.
+[Open](command:workbench.action.files.openFolder) an existing Apio project or 
+[create](command:apio.getExample) a new Apio project from an example.
 `.trim();
 
 // Convert an object to a dump string.

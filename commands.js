@@ -99,7 +99,7 @@ const TOOLS_TREE = [
       {
         title: "get example",
         tooltip: "Create a project from an example",
-        id: "apio.new.project",
+        id: "apio.getExample",
         action: {
           cmds: [
             `{apio-bin} api get-examples -f -o ${utils.apioTmpFile("examples.json")}`,
