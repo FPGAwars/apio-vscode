@@ -15,8 +15,9 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 
 rm -f *.vsix
 
-# Make sure all the dependencies are in node_modules
-npm install
+# Clean install – guaranteed identical to anyone else with the same lockfile
+rm -rf node_modules
+npm ci --foreground-scripts --legacy-peer-deps
 
 # Build
 npx vsce package 
