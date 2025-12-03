@@ -25,7 +25,7 @@ const PROJECT_TREE = [
         tooltip: "Build and upload to the FPGA board",
         id: "apio.upload",
         action: { cmds: ["{apio-bin} upload {env-flag}"] },
-        btn: { icon: "$(play)", position: 3 },
+        btn: { icon: "$(arrow-right)", position: 3 },
       },
       {
         title: "clean",
