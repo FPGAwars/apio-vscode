@@ -25,7 +25,7 @@ const PROJECT_TREE = [
         tooltip: "Build and upload to the FPGA board",
         id: "apio.upload",
         action: { cmds: ["{apio-bin} upload {env-flag}"] },
-        btn: { icon: "$(play)", position: 3 },
+        btn: { icon: "$(arrow-right)", position: 3 },
       },
       {
         title: "clean",
@@ -99,7 +99,7 @@ const TOOLS_TREE = [
       {
         title: "get example",
         tooltip: "Create a project from an example",
-        id: "apio.new.project",
+        id: "apio.getExample",
         action: {
           cmds: [
             `{apio-bin} api get-examples -f -o ${utils.apioTmpFile("examples.json")}`,

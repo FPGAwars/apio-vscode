@@ -50,24 +50,28 @@
           "name": "NOTICE",
           "id": "apio.sidebar.notice",
           "type": "webview",
+          "icon": "$(info)",
           "when": "apio.sidebar.notice.enabled"
         },
         {
           "name": "PROJECT",
           "id": "apio.sidebar.project",
           "type": "tree",
+          "icon": "$(project)",
           "when": "apio.sidebar.project.enabled"
         },
         {
           "name": "TOOLS",
           "id": "apio.sidebar.tools",
           "type": "tree",
+          "icon": "$(tools)",
           "when": "apio.sidebar.tools.enabled"
         },
         {
           "name": "HELP",
           "id": "apio.sidebar.help",
           "type": "tree",
+          "icon": "$(question)",
           "when": "apio.sidebar.help.enabled"
         }
       ]
