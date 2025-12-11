@@ -2,8 +2,8 @@
   "name": "apio",
   "displayName": "Apio FPGA",
   "description": "One-click build for Apio FPGA projects",
-  "version": "0.1.0",
-  "publisher": "FPGAwars",
+  "version": "0.1.1",
+  "publisher": "fpgawars",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
