@@ -23,8 +23,13 @@ jobs:
           fileName: "*.vsix" # matches any .vsix in the release
           token: ${{ secrets.GITHUB_TOKEN }} # default token is enough
 
+      - name: List files
+        run: |
+          ls -al
+
       - name: Install vsce
-        run: npm install -g @vscode/vsce
+        run: |
+          npm install -g @vscode/vsce
 
       - name: Publish fpgawars.apio to Visual Studio Marketplace
         env:
@@ -32,4 +37,4 @@ jobs:
         run: |
           VSIX_FILE=$(ls *.vsix | head -n1)
           echo "Publishing $VSIX_FILE ..."
-          vsce publish --packagePath "$VSIX_FILE" -p "$VSCE_PAT" --skipDuplicate
+          vsce publish --packagePath "$VSIX_FILE" -p "$VSCE_PAT" --skip-duplicate
