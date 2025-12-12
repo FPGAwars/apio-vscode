@@ -13,8 +13,10 @@ let currentMarkdown = "";
 
 // Register the provider only once (lazy, on first show)
 function ensureProviderRegistered() {
+  // If already registered.
   if (providerDisposable) return;
 
+  // Else register.
   providerDisposable = vscode.window.registerWebviewViewProvider(VIEW_ID, {
     resolveWebviewView(wv) {
       webviewView = wv;
@@ -26,10 +28,8 @@ function ensureProviderRegistered() {
       };
 
       // If we already have markdown waiting and the view is supposed to be visible
+      // then render the pending content immediately.
       if (currentMarkdown && vscode.commands.getCommands().then) {
-        // context exists
-        const ctx = vscode.workspace.getConfiguration().get(CONTEXT_KEY);
-        // Simpler: just render if we have content
         renderCurrentMarkdown();
       }
     },
