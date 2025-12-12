@@ -43,8 +43,9 @@ This Apio extension does not support the platform *${platformId}*
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-[Open](command:workbench.action.files.openFolder) an existing Apio project or 
-[create](command:apio.getExample) a new Apio project from an example.
+[Open](command:workbench.action.files.openFolder) an existing Apio project,  
+[create](command:apio.getExample) a new Apio project from an example, or 
+visit the [Quick Start](https://fpgawars.github.io/apio/docs/quick-start/#__tabbed_1_1) page.
 `.trim();
 
 // Convert an object to a dump string.
