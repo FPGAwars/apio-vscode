@@ -1,0 +1,35 @@
+name: publish-to-vscode-marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag, e.g. 2025-12-10"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # needed to download release assets
+
+    steps:
+      - name: Download .vsix from the selected release
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: ${{ github.repository }}
+          tag: ${{ inputs.release_tag }}
+          fileName: "*.vsix" # matches any .vsix in the release
+          token: ${{ secrets.GITHUB_TOKEN }} # default token is enough
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Publish fpgawars.apio to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          VSIX_FILE=$(ls *.vsix | head -n1)
+          echo "Publishing $VSIX_FILE ..."
+          vsce publish --packagePath "$VSIX_FILE" -p "$VSCE_PAT" --skipDuplicate
