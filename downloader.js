@@ -3,25 +3,26 @@
 // the apio binary is available at ~/.apio/bin/apio[.exe]. If not,
 // It's downloaded and installed on the fly.
 
-"use strict";
 
 // Standard imports
-const fs = require("fs");
-const path = require("path");
-const stream = require("node:stream");
-const childProcess = require("child_process");
-const assert = require("node:assert");
+import * as fs from "fs";
+import * as path from "path";
+import * as stream from "node:stream";
+import * as childProcess from "child_process";
+
+// Assert function.
+import assert from "node:assert";
 
 // Dependency imports
-const zipExtract = require("extract-zip");
-const tar = require("tar");
+import * as zipExtract from "extract-zip";
+import * as tar from "tar";
 
 // Local imports
-const constants = require("./constants.js");
-const platforms = require("./platforms.js");
-const apioLog = require("./apio-log.js");
-const jsonUtils = require("./json-utils.js");
-const utils = require("./utils.js");
+import * as constants from "./constants.js";
+import * as platforms from "./platforms.js";
+import * as apioLog from "./apio-log.js";
+import * as jsonUtils from "./json-utils.js";
+import * as utils from "./utils.js";
 
 // Download url and local package name
 const downloadMetadataFileName = "download-metadata.json";
@@ -30,7 +31,7 @@ let _downloadDstFilePath = null;
 
 // Initializes this module. Should be called once before any other
 // function of this module.
-function init() {
+export function init() {
   // Should be called only once.
   assert(
     _downloadSrcUrl == null,
@@ -54,7 +55,7 @@ function init() {
 
 // Ensures the Apio binary is ready and if not download and installs it.
 // @returns {Promise<string>} that govern the downloading.
-async function ensureApioBinary() {
+export async function ensureApioBinary() {
   // Check if the apio binary exists.
   const binaryExists = await _testFsItem(
     utils.apioBinaryPath(),
@@ -224,6 +225,3 @@ async function _testFsItem(path, mode = fs.constants.F_OK) {
     return false;
   }
 }
-
-// Exported functions.
-module.exports = { init, ensureApioBinary };

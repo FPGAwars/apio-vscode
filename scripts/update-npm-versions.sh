@@ -10,6 +10,9 @@ set -e
 rm -rf node_modules
 rm -f package-lock.json
 
+# Do we need this?
+#npm install --save-dev globals
+
 # Update package-lock.json
 # Add --no-audit if it's too flaky.
 npm install \

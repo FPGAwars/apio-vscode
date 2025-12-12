@@ -1,7 +1,7 @@
 // Minimal, robust JSON file I/O utilities for VS Code extensions
 
-const fs = require('fs');
-const path = require('path');
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Writes an object to a JSON file.
@@ -10,15 +10,15 @@ const path = require('path');
  * @param {object} dict
  * @returns {Promise<boolean>} true on success, false on any error
  */
-async function writeJson(filePath, dict) {
-    try {
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        const content = JSON.stringify(dict, null, 4) + '\n';
-        await fs.promises.writeFile(filePath, content, 'utf8');
-        return true;
-    } catch {
-        return false;
-    }
+export async function writeJson(filePath, dict) {
+  try {
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+    const content = JSON.stringify(dict, null, 4) + "\n";
+    await fs.promises.writeFile(filePath, content, "utf8");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -27,16 +27,11 @@ async function writeJson(filePath, dict) {
  * @param {string} filePath
  * @returns {Promise<object>}
  */
-async function readJson(filePath) {
-    try {
-        const data = await fs.promises.readFile(filePath, 'utf8');
-        return data.trim() ? JSON.parse(data) : {};
-    } catch {
-        return {};
-    }
+export async function readJson(filePath) {
+  try {
+    const data = await fs.promises.readFile(filePath, "utf8");
+    return data.trim() ? JSON.parse(data) : {};
+  } catch {
+    return {};
+  }
 }
-
-module.exports = {
-    writeJson,
-    readJson
-};

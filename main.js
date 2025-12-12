@@ -12,21 +12,19 @@
 // To debug under VCS, have this file open and type F5 to open the test
 // window. To restart the test window, type CMD-R in the test window.
 
-"use strict";
-
 // Imports
-const vscode = require("vscode");
-const path = require("path");
-const fs = require("fs");
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 
 // Local imports.
-const commands = require("./commands.js");
-const downloader = require("./downloader.js");
-const platforms = require("./platforms.js");
-const apioLog = require("./apio-log.js");
-const notice = require("./notice-view.js");
-const utils = require("./utils.js");
-const wizard = require("./get-example-wizard.js");
+import * as commands from "./commands.js";
+import * as downloader from "./downloader.js";
+import * as platforms from "./platforms.js";
+import * as apioLog from "./apio-log.js";
+import * as notice from "./notice-view.js";
+import * as utils from "./utils.js";
+import * as wizard from "./get-example-wizard.js";
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -639,7 +637,7 @@ function configure(context) {
 }
 
 // Standard VSC extension activate() function.
-function activate(context) {
+export function activate(context) {
   // Init Apio log output channel.
   apioLog.init(context);
   apioLog.msg("activate() started.");
@@ -795,7 +793,7 @@ function activate(context) {
 }
 
 // deactivate() - required for cleanup
-function deactivate() {
+export function deactivate() {
   // Nothing to do here.
 }
 
@@ -832,6 +830,3 @@ function registerApioIniWatcher(context, wsDirPath) {
 
   context.subscriptions.push(watcher);
 }
-
-// Exported functions.
-module.exports = { activate, deactivate };

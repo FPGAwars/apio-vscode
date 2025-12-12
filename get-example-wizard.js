@@ -1,14 +1,13 @@
 // Implements the 'get example' command wizard.
 
-"use strict";
 
-const vscode = require("vscode");
-const path = require("path");
-const fs = require("fs");
-const cp = require("child_process");
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
+import * as cp from "child_process";
 
-const utils = require("./utils.js");
-const apioLog = require("./apio-log.js");
+import * as utils from "./utils.js";
+import * as apioLog from "./apio-log.js";
 
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
@@ -27,7 +26,7 @@ function loadApioExamplesData() {
   return data; // ← now result is in scope and has value
 }
 
-function registerGetExampleWizard(context) {
+export function registerGetExampleWizard(context) {
   const commandId = "apio.projectFromExample";
 
   apioLog.msg(`Registering command: ${commandId}`);
@@ -123,7 +122,7 @@ function getWebviewContent() {
     JSON.stringify(examplesData.examples) +
     ";" +
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
-    "function clearStatus(){s.innerHTML='<div id=\"placeholder\" style=\"color:var(--vscode-disabledForeground);font-style:italic;\">Status messages will appear here once you submit the form.</div>';}" +
+    'function clearStatus(){s.innerHTML=\'<div id="placeholder" style="color:var(--vscode-disabledForeground);font-style:italic;">Status messages will appear here once you submit the form.</div>\';}' +
     "clearStatus();" +
     'b.onchange=function(){e.innerHTML="<option value=\\"\\" disabled selected>-- Select example --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();list.forEach(ex=>e.innerHTML+="<option value=\\""+ex+"\\">"+ex+"</option>");}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
@@ -210,5 +209,3 @@ async function createProjectFromExample(context, msg, panel) {
     });
   }
 }
-
-module.exports = { registerGetExampleWizard };

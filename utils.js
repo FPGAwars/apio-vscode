@@ -1,18 +1,15 @@
 // Utility functions
 
-"use strict";
-
 // Standard imports.
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 // Local imports
-const platforms = require("./platforms.js");
+import * as platforms from "./platforms.js";
 
 // Scans apio.ini and return list of env names.
-function extractApioIniEnvs(apioIniFilePath) {
-  // const fs = require("fs");
+export function extractApioIniEnvs(apioIniFilePath) {
   try {
     const content = fs.readFileSync(apioIniFilePath, "utf8");
     const lines = content.split(/\r?\n/);
@@ -41,43 +38,43 @@ function extractApioIniEnvs(apioIniFilePath) {
 }
 
 // Get the user home dir
-function userHomeDir() {
+export function userHomeDir() {
   return os.homedir();
 }
 
 // Get apio home dir, this is an apio managed directory.
-function apioHomeDir() {
+export function apioHomeDir() {
   return path.join(userHomeDir(), ".apio");
 }
 
 // Get apio bin dir, this where the apio binary resides.
-function apioBinDir() {
+export function apioBinDir() {
   return path.join(apioHomeDir(), "bin");
 }
 
 // Get apio temp dir.
-function apioTmpDir() {
+export function apioTmpDir() {
   return path.join(apioHomeDir(), "tmp");
 }
 
 // Get path of a file in apio temp dir.
-function apioTmpFile(fname) {
+export function apioTmpFile(fname) {
   return path.join(apioTmpDir(), fname);
 }
 
 // Get apio executable path.
-function apioBinaryPath() {
+export function apioBinaryPath() {
   const apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
   return path.join(apioBinDir(), apioBinaryName);
 }
 
 // Wait for given time in ms.
-async function asyncSleepMs(timeMs) {
+export async function asyncSleepMs(timeMs) {
   await new Promise((resolve) => setTimeout(resolve, timeMs));
 }
 
 // Write a file with given lines.
-function writeFileFromLines(filePath, lines) {
+export function writeFileFromLines(filePath, lines) {
   // Ensure the content is properly joined with the desired line ending
   const content = lines.join(os.EOL) + os.EOL;
 
@@ -94,16 +91,3 @@ function writeFileFromLines(filePath, lines) {
   //   fs.appendFileSync(filePath, lineEnding);
   // }
 }
-
-// Exported functions.
-module.exports = {
-  extractApioIniEnvs,
-  userHomeDir,
-  apioHomeDir,
-  apioBinDir,
-  apioTmpDir,
-  apioTmpFile,
-  apioBinaryPath,
-  asyncSleepMs,
-  writeFileFromLines,
-};

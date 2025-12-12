@@ -84,7 +84,7 @@
     "lint:fix": "eslint . --ext .js --fix"
   },
   "author": "",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/fpgawars/apio/issues"
   },
