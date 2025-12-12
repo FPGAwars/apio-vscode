@@ -1,5 +1,21 @@
 name: publish-to-vscode-marketplace
 
+# From Grok:
+#
+# ──────────────────────────────────────────────────────────────
+# PAT REQUIREMENTS (VSCE_PAT secret)
+# ──────────────────────────────────────────────────────────────
+# Must be created in Azure DevOps[](https://dev.azure.com)
+# Required scope:
+#   Custom defined → Marketplace → Manage
+# Organization setting:
+#   Prefer "All accessible organizations" (works reliably with any publisher)
+#   "Specific organization" also works but may need re-creation if you change orgs
+# This single PAT can publish ANY publisher owned by the same Microsoft account
+# (no way to restrict it to just fpgawars — that’s by design)
+# Recommended lifetime: 90–365 days, then rotate
+# ──────────────────────────────────────────────────────────────
+
 on:
   workflow_dispatch:
     inputs:
