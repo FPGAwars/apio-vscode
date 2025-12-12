@@ -37,4 +37,4 @@ jobs:
         run: |
           VSIX_FILE=$(ls *.vsix | head -n1)
           echo "Publishing $VSIX_FILE ..."
-          vsce publish --packagePath "$VSIX_FILE" -p "$VSCE_PAT" --skip-duplicate
+          vsce publish --packagePath "$VSIX_FILE" -p "$VSCE_PAT"
