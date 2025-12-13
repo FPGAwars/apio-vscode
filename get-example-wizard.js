@@ -2,6 +2,7 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 
 import * as utils from "./utils.js";
 import * as tasks from "./tasks.js";
@@ -74,6 +75,9 @@ function getWebviewContent() {
       ")</option>";
   }
 
+  // Hint for the dir field.
+  const dirHint =  path.join(utils.userHomeDir(), "my-project");
+
   return (
     "<!DOCTYPE html>\n" +
     '<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -110,7 +114,7 @@ function getWebviewContent() {
     "</select>" +
     '<div id="desc" class="description"></div>' +
     '<label for="folder">3. Project folder (absolute path)</label>' +
-    '<input id="folder" placeholder="/home/user/my-project   or   C:\\fpga\\my-project" required style="font-family:monospace;">' +
+    '<input id="folder" placeholder="E.g. ' + dirHint + '" required style="font-family:monospace;">' +
     '<button type="submit" id="btn">Create Project</button>' +
     '<div id="status"><div id="placeholder" style="color:var(--vscode-disabledForeground);font-style:italic;">Status messages will appear here once you submit the form.</div></div>' +
     "</form>" +
