@@ -165,7 +165,7 @@ export async function openProjectFromExample(
     // Use the absolute canonical form of the destination folder. On windows
     // for example, this include the drive letter c:\ even if the user
     // didn't specify it.
-    folder = path.resolve(folder);
+    folder = path.normalize(path.resolve(folder));
 
     // Folder should not exist.
     if (fs.existsSync(folder)) {
@@ -203,9 +203,7 @@ export async function openProjectFromExample(
       // is already open.
       const wsInfo = utils.getWorkspaceInfo();
 
-      const sameFolder =
-        wsInfo.wsDirPath &&
-        path.resolve(folder) == path.resolve(wsInfo.wsDirPath);
+      const sameFolder = wsInfo.wsDirPath && (folder == wsInfo.wsDirPath);
 
       if (sameFolder) {
         // Current and destination workspace folders are the same one, simply

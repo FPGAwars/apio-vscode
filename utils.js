@@ -40,7 +40,7 @@ export function extractApioIniEnvs(apioIniFilePath) {
 
 // Get the user home dir
 export function userHomeDir() {
-  return path.resolve(os.homedir());
+  return path.normalize(path.resolve(os.homedir()));
 }
 
 // Get apio home dir, this is an apio managed directory.
@@ -106,7 +106,7 @@ export const WorkspaceInfo = ({ wsDirPath, apioIniPath, apioIniExists }) =>
 export function getWorkspaceInfo() {
   // Determine wsDirPath str, null if workspace is not open.
   const ws = vscode.workspace.workspaceFolders?.[0];
-  const wsDirPath = ws ? path.resolve(ws.uri.fsPath) : null;
+  const wsDirPath = ws ? path.normalize(path.resolve(ws.uri.fsPath)) : null;
 
   // Determine apioIniPath str, null if workspace is not open.
   const apioIniPath = wsDirPath ? path.join(wsDirPath, "apio.ini") : null;
