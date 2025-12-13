@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 
 import * as utils from "./utils.js";
+import * as tasks from "./tasks.js";
 import * as apioLog from "./apio-log.js";
 
 // Load the examples json data from apio. Before invoking this
@@ -151,5 +152,5 @@ async function createProjectFromExampleHandler(context, msg, panel) {
   // Try to create the example project and then open it in VSCode. In case
   // of a success, this call doesn't return because we switch to a new
   // workspace.
-  await utils.openProjectFromExample(context, board, example, folder, callback);
+  await tasks.openProjectFromExample(context, board, example, folder, callback);
 }

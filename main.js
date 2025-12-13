@@ -25,6 +25,7 @@ import * as apioLog from "./apio-log.js";
 import * as notice from "./notice-view.js";
 import * as utils from "./utils.js";
 import * as wizard from "./get-example-wizard.js";
+import * as tasks from "./tasks.js";
 
 // Place holder for the default apio env.
 const ENV_DEFAULT = "(default)";
@@ -41,9 +42,9 @@ This Apio extension does not support the platform *${platformId}*
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-[Open](command:workbench.action.files.openFolder) an existing Apio project,  
-[create](command:apio.getExample) a new Apio project from an example, or 
-visit the [Quick Start](https://fpgawars.github.io/apio/docs/quick-start/#__tabbed_1_1) page.
+[Open](command:workbench.action.files.openFolder) your existing Apio project,  
+[play](command:apio.demoProject) with the Apio demo project, or 
+[read](https://fpgawars.github.io/apio/docs/quick-start/#__tabbed_1_1) the Getting Started guide.
 `.trim();
 
 // Convert an object to a dump string.
@@ -51,9 +52,7 @@ function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
-// An immutable data object with workspace info.
-const WorkspaceInfo = ({ wsDirPath, apioIniPath, apioIniExists }) =>
-  Object.freeze({ wsDirPath, apioIniPath, apioIniExists });
+
 
 // For apio env selector.
 let statusBarEnvSelector;
@@ -82,7 +81,7 @@ class ApioTreeGroup {
 }
 
 /**
- * Registers the command "apio.apioTerminal"
+ * Registers the command "apio.shell"
  * - Kills every existing terminal named "Apio"
  * - Creates a brand-new one
  * - Executes the preCmds
@@ -112,7 +111,7 @@ function registerApioShellCommand(context, preCmds) {
     }`;
     // const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
 
-    // 2. Create brand-new terminal
+    // Create brand-new terminal
     const terminal = vscode.window.createTerminal({
       name: TERMINAL_NAME,
       // cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
@@ -126,20 +125,56 @@ function registerApioShellCommand(context, preCmds) {
     terminal.show();
 
     // Make sure the apio binary exists. If not, download and install it.
-    try {
-      await downloader.ensureApioBinary();
-      apioLog.msg(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
-    } catch (err) {
-      console.error("[Apio] Binary setup failed:", err);
-      vscode.window.showErrorMessage("Failed to install Apio.");
-      return;
-    }
+    await downloader.ensureApioBinary();
 
-    // 3. Send pre-commands
+
+    // Send pre-commands to the terminal
     for (const cmd of preCmds) {
       terminal.sendText(cmd);
     }
   });
+
+  context.subscriptions.push(disposable);
+}
+
+/**
+ * Registers the command "apio.demoProject"
+ */
+function registerDemoProjectCommand(context) {
+  // Register the command handler.
+  const disposable = vscode.commands.registerCommand(
+    "apio.demoProject",
+    async () => {
+      // Make sure the apio binary exists. If not, download and install it.
+      await downloader.ensureApioBinary();
+
+
+      // Get temp demo dir
+      const demoDir = utils.apioDemoDir();
+
+      // Remove old demo dir, if exists.
+      await fs.promises
+        .rm(demoDir, { recursive: true, force: true })
+        .catch(() => {});
+
+      // Action callback, throws an error if demo project creation failed.
+      function callback(ok, text) {
+        if (!ok) {
+          throw Error(text);
+        }
+      }
+
+      // Populate the demo directory with the given example and open it in VSCode.
+      // Does not return if successful since VSCode leaves this workspace.
+      await tasks.openProjectFromExample(
+        context,
+        "alhambra-ii",
+        "getting-started",
+        demoDir,
+        callback
+      );
+    }
+  );
 
   context.subscriptions.push(disposable);
 }
@@ -276,136 +311,6 @@ class ApioTreeProvider {
   }
 }
 
-/**
- * Executes a list of shell commands sequentially using a single VS Code task.
- * Waits for completion and returns true if any command failed (non-zero exit code).
- *
- * @param {string[]} cmds - Array of shell commands to run one after another
- * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
- */
-async function execCommandsInATask(cmds) {
-  const taskName = "Apio Run";
-
-  // 1. Kill any previous Apio task to avoid conflicts
-  for (const exec of vscode.tasks.taskExecutions) {
-    if (exec.task.name === taskName) {
-      exec.terminate();
-    }
-  }
-
-  // 2. Optional: clear terminal but keep the task title line
-  if (vscode.window.activeTerminal?.name === taskName) {
-    await vscode.commands.executeCommand("workbench.action.terminal.clear");
-  }
-
-  // 3. Create the batch file.
-  const okMessage = "Task completed successfully.";
-  const failMessage = "Task failed.";
-
-  let shell;
-  let shellArgs;
-  if (platforms.isWindows()) {
-    // Handle the case of Windows.
-    const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
-    shell = "cmd.exe";
-    shellArgs = ["/c", batchFile];
-    // Construct the task batch file task.cmd.
-    const wrappedCmds = cmds.flatMap((cmd) => [
-      " ",
-      `echo $ ${cmd}`,
-      `${cmd}`,
-      `set "ERR=%errorlevel%"`,
-      `if %ERR% neq 0 (`,
-      `  echo.`,
-      `  echo ${failMessage}`,
-      // Experimental: suppress the vscode additional error message by
-      // exiting with 0. Grok advises against doing it.
-      // `  exit /b %ERR%`,
-      `  exit /b 0`,
-      `)`,
-    ]);
-    const lines = [
-      "@echo off",
-      "setlocal",
-      "verify >nul",
-      ...wrappedCmds,
-      " ",
-      `echo.`,
-      `echo ${okMessage}`,
-      "exit /b 0",
-    ];
-    utils.writeFileFromLines(batchFile, lines);
-  } else {
-    // Handle the case of macOS and Linux
-    const batchFile = path.join(utils.apioTmpDir(), "task.bash");
-    shell = "bash";
-    shellArgs = [batchFile];
-    // Construct the task batch file task.bash.
-    const wrappedCmds = cmds.flatMap((cmd) => [
-      " ",
-      `echo '$ ${cmd}'`,
-      `${cmd}`,
-      `ERR=$?`,
-      `if [ $ERR -ne 0 ]; then`,
-      `  echo`,
-      `  echo "${failMessage}"`,
-      // Experimental: suppress the vscode additional error message by
-      // exiting with 0. Grok advises against doing it.
-      // `  exit $ERR`,
-      `  exit 0`,
-      `fi`,
-    ]);
-    const lines = [
-      "#!/usr/bin/env bash",
-      ...wrappedCmds,
-      " ",
-      "echo",
-      `echo "${okMessage}"`,
-      "exit 0",
-    ];
-    utils.writeFileFromLines(batchFile, lines);
-    try {
-      fs.chmodSync(batchFile, 0o755);
-    } catch {}
-  }
-
-  // 4. Build the task
-  const task = new vscode.Task(
-    { type: "shell" },
-    vscode.TaskScope.Workspace,
-    taskName,
-    "apio",
-    new vscode.ShellExecution(shell, shellArgs)
-  );
-
-  task.presentationOptions = {
-    reveal: vscode.TaskRevealKind.Always,
-    panel: vscode.TaskPanelKind.Shared,
-    showReuseMessage: false,
-    focus: false,
-    clear: false, // we cleared manually above
-    echo: true,
-  };
-
-  // 5. Run the task and wait for the real exit code
-  const execution = await vscode.tasks.executeTask(task);
-
-  return new Promise((resolve) => {
-    const listener = vscode.tasks.onDidEndTaskProcess((e) => {
-      if (e.execution !== execution) return;
-
-      listener.dispose();
-
-      const failed = e.exitCode !== 0;
-      apioLog.msg(
-        `[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`
-      );
-
-      resolve(failed);
-    });
-  });
-}
-
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
@@ -424,7 +329,7 @@ async function launchAction(cmds, url, cmdId) {
     cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
 
     // Execute the commands and wait for completion.
-    const aborted = await execCommandsInATask(cmds);
+    const aborted = await tasks.execCommandsInATask(cmds);
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;
@@ -455,14 +360,7 @@ function actionLaunchWrapper(cmds, url, cmdId) {
     apioLog.msg("-----");
 
     // Make sure the apio binary exists. If not, download and install it.
-    try {
-      await downloader.ensureApioBinary();
-      apioLog.msg(`[Apio] Binary ready: ${utils.apioBinaryPath()}`);
-    } catch (err) {
-      console.error("[Apio] Binary setup failed:", err);
-      vscode.window.showErrorMessage("Failed to install Apio.");
-      return;
-    }
+    await downloader.ensureApioBinary();
 
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
@@ -517,25 +415,7 @@ function envSelectionClickHandler(context, apioIniPath) {
   return _handler;
 }
 
-// Returns a WorkspaceInfo.
-function getWorkspaceInfo() {
-  // Determine wsDirPath str, null if workspace is not open.
-  const ws = vscode.workspace.workspaceFolders?.[0];
-  const wsDirPath = ws ? path.resolve(ws.uri.fsPath) : null;
 
-  // Determine apioIniPath str, null if workspace is not open.
-  const apioIniPath = wsDirPath ? path.join(wsDirPath, "apio.ini") : null;
-
-  // Determine apioIniExists bool, true if workspace is open and apio.ini exists.
-  const apioIniExists = apioIniPath ? fs.existsSync(apioIniPath) : false;
-
-  // Pack as an immutable object and return.
-  return WorkspaceInfo({
-    wsDirPath: wsDirPath,
-    apioIniPath: apioIniPath,
-    apioIniExists: apioIniExists,
-  });
-}
 
 // Register a tree view.
 function _registerTreeView(context, tree, preCmds, viewId) {
@@ -557,7 +437,7 @@ function configure(context) {
   apioLog.msg("configure() called.");
 
   // Get the current state of the workspace.
-  const wsInfo = getWorkspaceInfo();
+  const wsInfo = utils.getWorkspaceInfo();
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
 
   // Conditionally open apio.ini. This happens only if we just
@@ -655,7 +535,7 @@ export function activate(context) {
   // initialization of the extension.
 
   // Get the workspace info.
-  const wsInfo = getWorkspaceInfo();
+  const wsInfo = utils.getWorkspaceInfo();
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
 
   // Initialize the loader.
@@ -686,6 +566,9 @@ export function activate(context) {
 
   // Register the shell command.
   registerApioShellCommand(context, preCmds);
+
+  // Register the demo project command
+  registerDemoProjectCommand(context);
 
   // Compute tasks pre-commands.
   preCmds = [];

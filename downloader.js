@@ -3,7 +3,6 @@
 // the apio binary is available at ~/.apio/bin/apio[.exe]. If not,
 // It's downloaded and installed on the fly.
 
-
 // Standard imports
 import * as fs from "fs";
 import * as path from "path";
@@ -54,33 +53,41 @@ export function init() {
 }
 
 // Ensures the Apio binary is ready and if not download and installs it.
-// @returns {Promise<string>} that govern the downloading.
+// Throws an exception if failed.
 export async function ensureApioBinary() {
-  // Check if the apio binary exists.
-  const binaryExists = await _testFsItem(
-    utils.apioBinaryPath(),
-    fs.constants.X_OK | fs.constants.R_OK
-  );
-  apioLog.msg(`Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`);
+  try {
+    // Check if the apio binary exists.
+    const binaryExists = await _testFsItem(
+      utils.apioBinaryPath(),
+      fs.constants.X_OK | fs.constants.R_OK
+    );
+    apioLog.msg(
+      `Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`
+    );
 
-  // Check if the download metadata has a matching download url
-  const metadataFilePath = path.join(
-    utils.apioBinDir(),
-    downloadMetadataFileName
-  );
-  //  'metadata' is {} if file doesn't exist or any error.
-  const metadataDict = await jsonUtils.readJson(metadataFilePath);
-  const lastUrl = metadataDict.url ?? null;
-  const urlMatches = lastUrl == _downloadSrcUrl;
-  apioLog.msg(`Download url match =  ${urlMatches}`);
+    // Check if the download metadata has a matching download url
+    const metadataFilePath = path.join(
+      utils.apioBinDir(),
+      downloadMetadataFileName
+    );
+    //  'metadata' is {} if file doesn't exist or any error.
+    const metadataDict = await jsonUtils.readJson(metadataFilePath);
+    const lastUrl = metadataDict.url ?? null;
+    const urlMatches = lastUrl == _downloadSrcUrl;
+    apioLog.msg(`Download url match =  ${urlMatches}`);
 
-  if (binaryExists && urlMatches) {
-    // Binary is good, will use it.
-    apioLog.msg(`Existing binary ok: ${utils.apioBinaryPath()}`);
-  } else {
-    // Binary is missing or not good, will download and install it.
-    apioLog.msg("Need to download and install a new binary.");
-    await _downloadAndInstall();
+    if (binaryExists && urlMatches) {
+      // Binary is good, will use it.
+      apioLog.msg(`Existing binary ok: ${utils.apioBinaryPath()}`);
+    } else {
+      // Binary is missing or not good, will download and install it.
+      apioLog.msg("Need to download and install a new binary.");
+      await _downloadAndInstall();
+      apioLog.msg(`[Apio] Binary installed: ${utils.apioBinaryPath()}`);
+    }
+  } catch (err) {
+        // Handle errors, we wrap with 'Apio' message and throw again.
+    throw Error(`[Apio] binary installation failed: ${err.message}`);
   }
 }
 

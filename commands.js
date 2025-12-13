@@ -2,7 +2,6 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
-
 import * as utils from "./utils.js";
 
 // Commands for the PROJECT view. Thee commands are used only
@@ -89,6 +88,12 @@ export const TOOLS_TREE = [
   {
     title: "examples",
     children: [
+      {
+        title: "demo project",
+        tooltip: "Play with a demo project",
+        id: "apio.demoProject",
+        // No action, implemented independently.
+      },
       {
         title: "list examples",
         tooltip: "List project examples",
