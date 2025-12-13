@@ -14,14 +14,13 @@
  *   linux-aarch64, windows-amd64
  */
 
-"use strict";
 
-const process = require("process");
+import * as process from "process";
 
 // The set of platforms ids that are supported by this extension.
 // Generally speaking we support platforms for which we build an
 // (pyinstaller) Apio release bundle.
-const SUPPORTED_PLATFORMS_IDS = [
+export const SUPPORTED_PLATFORMS_IDS = [
   "darwin-arm64",
   "linux-x86-64",
   "windows-amd64",
@@ -41,7 +40,7 @@ let _cachedPlatformId = null;
  * @returns {string} One of the five supported platform IDs.
  * @throws {Error} If the platform/architecture is unsupported.
  */
-function getPlatformId() {
+export function getPlatformId() {
   // Return cached value if already computed
   if (_cachedPlatformId !== null) {
     return _cachedPlatformId;
@@ -79,23 +78,14 @@ function getPlatformId() {
 /**
  * Quick boolean checks – all based on the cached platform ID.
  */
-function isWindows() {
+export function isWindows() {
   return getPlatformId().startsWith("windows-");
 }
-function isDarwin() {
+export function isDarwin() {
   return getPlatformId().startsWith("darwin-");
 }
-function isLinux() {
+export function isLinux() {
   return getPlatformId().startsWith("linux-");
 }
 
-/* ------------------------------------------------------------------ */
-/* Module exports                                                     */
-/* ------------------------------------------------------------------ */
-module.exports = {
-  SUPPORTED_PLATFORMS_IDS,
-  getPlatformId,
-  isWindows,
-  isDarwin,
-  isLinux,
-};
+

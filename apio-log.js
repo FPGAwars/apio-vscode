@@ -1,16 +1,15 @@
 // apio-log.js
 // Centralized logging for the Apio extension.
 
-"use strict";
 
-const vscode = require("vscode");
+import * as vscode from "vscode";
 
 let outputChannel = null;
 
 // Initializes the Apio output channel and push it to the extension context.
 // Must be called **once** from `activate(context)`.
 // @param {vscode.ExtensionContext} context
-function init(context) {
+export function init(context) {
   if (outputChannel) {
     return; // already initialized
   }
@@ -22,7 +21,7 @@ function init(context) {
 // Append a message to the Apio output channel.
 // @param {string} line Message to log
 // @param {boolean} [show=false] If true, the channel is shown (preserves focus)
-function msg(line, show = false) {
+export function msg(line, show = false) {
   if (!outputChannel) {
     // Fallback: create a temporary channel if initLog was never called.
     // This should never happen in normal operation.
@@ -37,14 +36,8 @@ function msg(line, show = false) {
 }
 
 // Explicitly show the Apio output channel (preserves focus).
-function showChannel() {
+export function showChannel() {
   if (outputChannel) {
     outputChannel.show(true);
   }
 }
-
-module.exports = {
-  init,
-  msg,
-  showChannel,
-};

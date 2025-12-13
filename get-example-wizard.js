@@ -1,19 +1,16 @@
 // Implements the 'get example' command wizard.
 
-"use strict";
+import * as vscode from "vscode";
+import * as fs from "fs";
 
-const vscode = require("vscode");
-const path = require("path");
-const fs = require("fs");
-const cp = require("child_process");
-
-const utils = require("./utils.js");
-const apioLog = require("./apio-log.js");
+import * as utils from "./utils.js";
+import * as tasks from "./tasks.js";
+import * as apioLog from "./apio-log.js";
 
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
 function loadApioExamplesData() {
-  const filePath = utils.apioTmpFile("examples.json");
+  const filePath = utils.apioTmpChild("examples.json");
   const rawContent = fs.readFileSync(filePath, "utf-8");
 
   let data;
@@ -27,7 +24,7 @@ function loadApioExamplesData() {
   return data; // ← now result is in scope and has value
 }
 
-function registerGetExampleWizard(context) {
+export function registerGetExampleWizard(context) {
   const commandId = "apio.projectFromExample";
 
   apioLog.msg(`Registering command: ${commandId}`);
@@ -51,7 +48,7 @@ function showWizard(context) {
 
   panel.webview.onDidReceiveMessage((msg) => {
     if (msg.command === "createProjectFromExample") {
-      createProjectFromExample(context, msg, panel);
+      createProjectFromExampleHandler(context, msg, panel);
     }
   });
 }
@@ -123,7 +120,7 @@ function getWebviewContent() {
     JSON.stringify(examplesData.examples) +
     ";" +
     'const b=document.getElementById("board"),e=document.getElementById("example"),d=document.getElementById("desc"),s=document.getElementById("status");' +
-    "function clearStatus(){s.innerHTML='<div id=\"placeholder\" style=\"color:var(--vscode-disabledForeground);font-style:italic;\">Status messages will appear here once you submit the form.</div>';}" +
+    'function clearStatus(){s.innerHTML=\'<div id="placeholder" style="color:var(--vscode-disabledForeground);font-style:italic;">Status messages will appear here once you submit the form.</div>\';}' +
     "clearStatus();" +
     'b.onchange=function(){e.innerHTML="<option value=\\"\\" disabled selected>-- Select example --</option>";d.textContent="";const x=b.value;if(x&&data[x]){const list=Object.keys(data[x]).sort();list.forEach(ex=>e.innerHTML+="<option value=\\""+ex+"\\">"+ex+"</option>");}};' +
     'e.onchange=function(){const x=b.value,y=e.value;if(x&&y&&data[x][y])d.textContent=data[x][y].description||"";else d.textContent="";};' +
@@ -134,81 +131,26 @@ function getWebviewContent() {
 }
 
 // Dispatched when the user submit the form to create the project.
-async function createProjectFromExample(context, msg, panel) {
+async function createProjectFromExampleHandler(context, msg, panel) {
   // Get the destination directory.
-  let folderPath = msg.folder.trim();
+  let folder = msg.folder.trim();
 
-  // Make sure it's absolute, though on windows, this doesn't verify that
-  // the driver letter exists.
-  if (!path.isAbsolute(folderPath)) {
+  // Get the example info.
+  const board = msg.board;
+  const example = msg.example;
+
+  // Called back with ok/error status which it displays to the user
+  // as green/red.
+  function callback(ok, text) {
     panel.webview.postMessage({
       command: "status",
-      text: "Error: Please enter an <strong>absolute path</strong><br>e.g. /home/user/my-project or C:\\fpga\\my-project",
-      error: true,
+      text: text,
+      error: !ok,
     });
-    return;
   }
 
-  // Use the absolute canonical form of the destination folder. On windows
-  // for example, this include the drive letter c:\ even if the user
-  // didn't specify it.
-  folderPath = path.resolve(folderPath);
-
-  // Construct example full name.
-  const example = msg.board + "/" + msg.example;
-
-  try {
-    if (fs.existsSync(folderPath)) {
-      throw new Error("Directory already exists: " + folderPath);
-    }
-
-    fs.mkdirSync(folderPath, { recursive: true });
-
-    await new Promise((resolve, reject) => {
-      cp.exec(
-        utils.apioBinaryPath() + " examples fetch " + example,
-        { cwd: folderPath },
-        (err, _stdout, stderr) => {
-          if (err || stderr) {
-            reject(
-              new Error(
-                stderr.trim() || err.message || "Failed to fetch example"
-              )
-            );
-          } else {
-            resolve();
-          }
-        }
-      );
-    });
-
-    panel.webview.postMessage({
-      command: "status",
-      text:
-        "Success! Opening project...<br><strong>" + folderPath + "</strong>",
-      error: false,
-    });
-
-    // Signal to the apio activate() that will be called on the new
-    // workspace to automatically open apio.ini.
-    await context.globalState.update("apio.justCreatedProject", true);
-
-    // Switch to the new workspace. This will start a new instance of
-    // this extension.
-    setTimeout(() => {
-      vscode.commands.executeCommand(
-        "vscode.openFolder",
-        vscode.Uri.file(folderPath),
-        false
-      );
-    }, 1200);
-  } catch (err) {
-    panel.webview.postMessage({
-      command: "status",
-      text: "Error: " + err.message,
-      error: true,
-    });
-  }
+  // Try to create the example project and then open it in VSCode. In case
+  // of a success, this call doesn't return because we switch to a new
+  // workspace.
+  await tasks.openProjectFromExample(context, board, example, folder, callback);
 }
-
-module.exports = { registerGetExampleWizard };

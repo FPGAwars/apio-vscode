@@ -2,7 +2,7 @@
 // 100% self-contained – main file only does:
 // const { showMarkdown, hide } = require('./notice-view');
 
-const vscode = require("vscode");
+import * as vscode from "vscode";
 
 const VIEW_ID = "apio.sidebar.notice";
 const CONTEXT_KEY = "apio.sidebar.notice.enabled";
@@ -13,21 +13,23 @@ let currentMarkdown = "";
 
 // Register the provider only once (lazy, on first show)
 function ensureProviderRegistered() {
+  // If already registered.
   if (providerDisposable) return;
 
+  // Else register.
   providerDisposable = vscode.window.registerWebviewViewProvider(VIEW_ID, {
     resolveWebviewView(wv) {
       webviewView = wv;
-      wv.webview.options = { 
+      wv.webview.options = {
         // Prohibit general scripts, for security.
-        enableScripts: false, 
+        enableScripts: false,
         // This allows command links in the markdown text.
-        enableCommandUris: true };
+        enableCommandUris: true,
+      };
 
       // If we already have markdown waiting and the view is supposed to be visible
-      if (currentMarkdown && vscode.commands.getCommands().then) { // context exists
-        const ctx = vscode.workspace.getConfiguration().get(CONTEXT_KEY);
-        // Simpler: just render if we have content
+      // then render the pending content immediately.
+      if (currentMarkdown && vscode.commands.getCommands().then) {
         renderCurrentMarkdown();
       }
     },
@@ -45,7 +47,10 @@ async function renderCurrentMarkdown() {
   if (!webviewView || !currentMarkdown) return;
 
   try {
-    const html = await vscode.commands.executeCommand("markdown.api.render", currentMarkdown);
+    const html = await vscode.commands.executeCommand(
+      "markdown.api.render",
+      currentMarkdown
+    );
     webviewView.webview.html = getHtml(html);
   } catch {
     // Fallback when markdown.api.render is not available
@@ -73,7 +78,7 @@ function getHtml(body) {
 }
 
 // Public API
-async function showMarkdown(markdown) {
+export async function showMarkdown(markdown) {
   const md = markdown?.trim();
   if (!md) return;
 
@@ -87,12 +92,9 @@ async function showMarkdown(markdown) {
   // else: resolveWebviewView will call render when the view appears
 }
 
-function hide() {
+export function hide() {
   vscode.commands.executeCommand("setContext", CONTEXT_KEY, false);
   if (webviewView) {
-    webviewView.webview.html = "";   // free memory
+    webviewView.webview.html = ""; // free memory
   }
 }
-
-// Export only what the consumer needs
-module.exports = { showMarkdown, hide };

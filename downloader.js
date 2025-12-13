@@ -3,25 +3,25 @@
 // the apio binary is available at ~/.apio/bin/apio[.exe]. If not,
 // It's downloaded and installed on the fly.
 
-"use strict";
-
 // Standard imports
-const fs = require("fs");
-const path = require("path");
-const stream = require("node:stream");
-const childProcess = require("child_process");
-const assert = require("node:assert");
+import * as fs from "fs";
+import * as path from "path";
+import * as stream from "node:stream";
+import * as childProcess from "child_process";
+
+// Assert function.
+import assert from "node:assert";
 
 // Dependency imports
-const zipExtract = require("extract-zip");
-const tar = require("tar");
+import * as zipExtract from "extract-zip";
+import * as tar from "tar";
 
 // Local imports
-const constants = require("./constants.js");
-const platforms = require("./platforms.js");
-const apioLog = require("./apio-log.js");
-const jsonUtils = require("./json-utils.js");
-const utils = require("./utils.js");
+import * as constants from "./constants.js";
+import * as platforms from "./platforms.js";
+import * as apioLog from "./apio-log.js";
+import * as jsonUtils from "./json-utils.js";
+import * as utils from "./utils.js";
 
 // Download url and local package name
 const downloadMetadataFileName = "download-metadata.json";
@@ -30,7 +30,7 @@ let _downloadDstFilePath = null;
 
 // Initializes this module. Should be called once before any other
 // function of this module.
-function init() {
+export function init() {
   // Should be called only once.
   assert(
     _downloadSrcUrl == null,
@@ -53,33 +53,41 @@ function init() {
 }
 
 // Ensures the Apio binary is ready and if not download and installs it.
-// @returns {Promise<string>} that govern the downloading.
-async function ensureApioBinary() {
-  // Check if the apio binary exists.
-  const binaryExists = await _testFsItem(
-    utils.apioBinaryPath(),
-    fs.constants.X_OK | fs.constants.R_OK
-  );
-  apioLog.msg(`Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`);
+// Throws an exception if failed.
+export async function ensureApioBinary() {
+  try {
+    // Check if the apio binary exists.
+    const binaryExists = await _testFsItem(
+      utils.apioBinaryPath(),
+      fs.constants.X_OK | fs.constants.R_OK
+    );
+    apioLog.msg(
+      `Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`
+    );
 
-  // Check if the download metadata has a matching download url
-  const metadataFilePath = path.join(
-    utils.apioBinDir(),
-    downloadMetadataFileName
-  );
-  //  'metadata' is {} if file doesn't exist or any error.
-  const metadataDict = await jsonUtils.readJson(metadataFilePath);
-  const lastUrl = metadataDict.url ?? null;
-  const urlMatches = lastUrl == _downloadSrcUrl;
-  apioLog.msg(`Download url match =  ${urlMatches}`);
+    // Check if the download metadata has a matching download url
+    const metadataFilePath = path.join(
+      utils.apioBinDir(),
+      downloadMetadataFileName
+    );
+    //  'metadata' is {} if file doesn't exist or any error.
+    const metadataDict = await jsonUtils.readJson(metadataFilePath);
+    const lastUrl = metadataDict.url ?? null;
+    const urlMatches = lastUrl == _downloadSrcUrl;
+    apioLog.msg(`Download url match =  ${urlMatches}`);
 
-  if (binaryExists && urlMatches) {
-    // Binary is good, will use it.
-    apioLog.msg(`Existing binary ok: ${utils.apioBinaryPath()}`);
-  } else {
-    // Binary is missing or not good, will download and install it.
-    apioLog.msg("Need to download and install a new binary.");
-    await _downloadAndInstall();
+    if (binaryExists && urlMatches) {
+      // Binary is good, will use it.
+      apioLog.msg(`Existing binary ok: ${utils.apioBinaryPath()}`);
+    } else {
+      // Binary is missing or not good, will download and install it.
+      apioLog.msg("Need to download and install a new binary.");
+      await _downloadAndInstall();
+      apioLog.msg(`[Apio] Binary installed: ${utils.apioBinaryPath()}`);
+    }
+  } catch (err) {
+        // Handle errors, we wrap with 'Apio' message and throw again.
+    throw Error(`[Apio] binary installation failed: ${err.message}`);
   }
 }
 
@@ -224,6 +232,3 @@ async function _testFsItem(path, mode = fs.constants.F_OK) {
     return false;
   }
 }
-
-// Exported functions.
-module.exports = { init, ensureApioBinary };

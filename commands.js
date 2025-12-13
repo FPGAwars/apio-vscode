@@ -2,14 +2,12 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
-"use strict";
-
-const utils = require("./utils.js");
+import * as utils from "./utils.js";
 
 // Commands for the PROJECT view. Thee commands are used only
 // in the PROJECT mode and always have an open workspace and
 // an apio.ini file.
-const PROJECT_TREE = [
+export const PROJECT_TREE = [
   {
     title: "make",
     children: [
@@ -86,10 +84,16 @@ const PROJECT_TREE = [
 // Commands for the TOOLS view. Thee commands are used only
 // in the PROJECT and NON_PROJECT mode and can't assume that a workspace
 // is open or that the project file apio.ini exist.
-const TOOLS_TREE = [
+export const TOOLS_TREE = [
   {
     title: "examples",
     children: [
+      {
+        title: "demo project",
+        tooltip: "Play with a demo project",
+        id: "apio.demoProject",
+        // No action, implemented independently.
+      },
       {
         title: "list examples",
         tooltip: "List project examples",
@@ -102,7 +106,9 @@ const TOOLS_TREE = [
         id: "apio.getExample",
         action: {
           cmds: [
-            `{apio-bin} api get-examples -f -o ${utils.apioTmpFile("examples.json")}`,
+            `{apio-bin} api get-examples -f -o ${utils.apioTmpChild(
+              "examples.json"
+            )}`,
           ],
           cmdId: "apio.projectFromExample",
         },
@@ -262,7 +268,7 @@ const TOOLS_TREE = [
   },
 ];
 
-const HELP_TREE = [
+export const HELP_TREE = [
   {
     title: "documentation",
     children: [
@@ -322,6 +328,3 @@ const HELP_TREE = [
     ],
   },
 ];
-
-// Exported symbols
-module.exports = { PROJECT_TREE, TOOLS_TREE, HELP_TREE };

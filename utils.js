@@ -1,18 +1,16 @@
 // Utility functions
 
-"use strict";
-
 // Standard imports.
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
+import * as vscode from "vscode";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 // Local imports
-const platforms = require("./platforms.js");
+import * as platforms from "./platforms.js";
 
 // Scans apio.ini and return list of env names.
-function extractApioIniEnvs(apioIniFilePath) {
-  // const fs = require("fs");
+export function extractApioIniEnvs(apioIniFilePath) {
   try {
     const content = fs.readFileSync(apioIniFilePath, "utf8");
     const lines = content.split(/\r?\n/);
@@ -41,43 +39,48 @@ function extractApioIniEnvs(apioIniFilePath) {
 }
 
 // Get the user home dir
-function userHomeDir() {
-  return os.homedir();
+export function userHomeDir() {
+  return path.normalize(path.resolve(os.homedir()));
 }
 
 // Get apio home dir, this is an apio managed directory.
-function apioHomeDir() {
+export function apioHomeDir() {
   return path.join(userHomeDir(), ".apio");
 }
 
 // Get apio bin dir, this where the apio binary resides.
-function apioBinDir() {
+export function apioBinDir() {
   return path.join(apioHomeDir(), "bin");
 }
 
 // Get apio temp dir.
-function apioTmpDir() {
+export function apioTmpDir() {
   return path.join(apioHomeDir(), "tmp");
 }
 
-// Get path of a file in apio temp dir.
-function apioTmpFile(fname) {
+// Get path of a file or dir in apio temp dir.
+export function apioTmpChild(fname) {
   return path.join(apioTmpDir(), fname);
 }
 
 // Get apio executable path.
-function apioBinaryPath() {
+export function apioBinaryPath() {
   const apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
   return path.join(apioBinDir(), apioBinaryName);
 }
 
+// Get apio demo dir (under the temp directory).
+export function apioDemoDir() {
+  return apioTmpChild("apio-demo");
+}
+
 // Wait for given time in ms.
-async function asyncSleepMs(timeMs) {
+export async function asyncSleepMs(timeMs) {
   await new Promise((resolve) => setTimeout(resolve, timeMs));
 }
 
 // Write a file with given lines.
-function writeFileFromLines(filePath, lines) {
+export function writeFileFromLines(filePath, lines) {
   // Ensure the content is properly joined with the desired line ending
   const content = lines.join(os.EOL) + os.EOL;
 
@@ -95,15 +98,26 @@ function writeFileFromLines(filePath, lines) {
   // }
 }
 
-// Exported functions.
-module.exports = {
-  extractApioIniEnvs,
-  userHomeDir,
-  apioHomeDir,
-  apioBinDir,
-  apioTmpDir,
-  apioTmpFile,
-  apioBinaryPath,
-  asyncSleepMs,
-  writeFileFromLines,
-};
+// An immutable data object with workspace info.
+export const WorkspaceInfo = ({ wsDirPath, apioIniPath, apioIniExists }) =>
+  Object.freeze({ wsDirPath, apioIniPath, apioIniExists });
+
+// Returns a WorkspaceInfo.
+export function getWorkspaceInfo() {
+  // Determine wsDirPath str, null if workspace is not open.
+  const ws = vscode.workspace.workspaceFolders?.[0];
+  const wsDirPath = ws ? path.normalize(path.resolve(ws.uri.fsPath)) : null;
+
+  // Determine apioIniPath str, null if workspace is not open.
+  const apioIniPath = wsDirPath ? path.join(wsDirPath, "apio.ini") : null;
+
+  // Determine apioIniExists bool, true if workspace is open and apio.ini exists.
+  const apioIniExists = apioIniPath ? fs.existsSync(apioIniPath) : false;
+
+  // Pack as an immutable object and return.
+  return WorkspaceInfo({
+    wsDirPath: wsDirPath,
+    apioIniPath: apioIniPath,
+    apioIniExists: apioIniExists,
+  });
+}
