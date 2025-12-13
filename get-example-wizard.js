@@ -9,7 +9,7 @@ import * as apioLog from "./apio-log.js";
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
 function loadApioExamplesData() {
-  const filePath = utils.apioTmpFile("examples.json");
+  const filePath = utils.apioTmpChild("examples.json");
   const rawContent = fs.readFileSync(filePath, "utf-8");
 
   let data;

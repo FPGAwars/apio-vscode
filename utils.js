@@ -59,8 +59,8 @@ export function apioTmpDir() {
   return path.join(apioHomeDir(), "tmp");
 }
 
-// Get path of a file in apio temp dir.
-export function apioTmpFile(fname) {
+// Get path of a file or dir in apio temp dir.
+export function apioTmpChild(fname) {
   return path.join(apioTmpDir(), fname);
 }
 

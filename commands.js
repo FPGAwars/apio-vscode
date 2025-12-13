@@ -101,7 +101,7 @@ export const TOOLS_TREE = [
         id: "apio.getExample",
         action: {
           cmds: [
-            `{apio-bin} api get-examples -f -o ${utils.apioTmpFile(
+            `{apio-bin} api get-examples -f -o ${utils.apioTmpChild(
               "examples.json"
             )}`,
           ],
