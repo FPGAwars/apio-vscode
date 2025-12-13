@@ -1,9 +1,11 @@
 // Utility functions
 
 // Standard imports.
+import * as vscode from "vscode";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as cp from "child_process";
 
 // Local imports
 import * as platforms from "./platforms.js";
@@ -90,4 +92,83 @@ export function writeFileFromLines(filePath, lines) {
   // if (content && !content.endsWith(lineEnding)) {
   //   fs.appendFileSync(filePath, lineEnding);
   // }
+}
+
+// Populate the given directory with given example and open the project
+// with VSCode. If everything goes well, the function does not return as
+// VSCode switches to the new workspace.
+//
+// 'board' and 'example' specify the example to use. 'folder' is the destination
+// path. It should not exist and should be an absolute path. 'callback' is
+// calls on success and on failure with (ok:bool, text:str).
+export async function openProjectFromExample(
+  context,
+  board,
+  example,
+  folder,
+  callback
+) {
+  try {
+    // Folder path should be absolute.
+    if (!path.isAbsolute(folder)) {
+      throw new Error(`Error: Folder is not an absolute path: ${folder}`);
+    }
+
+    // Use the absolute canonical form of the destination folder. On windows
+    // for example, this include the drive letter c:\ even if the user
+    // didn't specify it.
+    folder = path.resolve(folder);
+
+    // Folder should not exist.
+    if (fs.existsSync(folder)) {
+      throw new Error("Directory already exists: " + folder);
+    }
+
+    // Construct example full name.
+    const exampleId = board + "/" + example;
+
+    // Create the destination folder.
+    fs.mkdirSync(folder, { recursive: true });
+
+    // Run 'apio examples fetch board/example' in the demo folder.
+    await new Promise((resolve, reject) => {
+      cp.exec(
+        apioBinaryPath() + " examples fetch " + exampleId,
+        { cwd: folder },
+        (err, _stdout, stderr) => {
+          if (err || stderr) {
+            reject(
+              new Error(
+                stderr.trim() || err.message || "Failed to fetch example"
+              )
+            );
+          } else {
+            resolve();
+          }
+        }
+      );
+    });
+
+    // Here when the example created ok, before we switch to the new project
+    // call back with ok status to allow a brief success indication to the user.
+    callback(true, "Success! Opening project.");
+
+    // Signal to the apio activate() that will be called on the new
+    // workspace to automatically open apio.ini.
+    await context.globalState.update("apio.justCreatedProject", true);
+
+    // Switch to the new workspace. This will start a new instance of
+    // this extension.
+    setTimeout(() => {
+      vscode.commands.executeCommand(
+        "vscode.openFolder",
+        vscode.Uri.file(folder),
+        false
+      );
+    }, 1200);
+
+    // Here when error.
+  } catch (err) {
+    callback(false, "Error: " + err.message);
+  }
 }
