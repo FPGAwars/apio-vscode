@@ -1,12 +1,12 @@
 // Implements the 'get example' command wizard.
 
-import * as vscode from "vscode";
-import * as fs from "fs";
-import * as path from "path";
+const vscode = require("vscode");
+const path = require("path");
+const fs = require("fs");
 
-import * as utils from "./utils.js";
-import * as tasks from "./tasks.js";
-import * as apioLog from "./apio-log.js";
+const utils = require("./utils.js");
+const tasks = require("./tasks.js");
+const apioLog = require("./apio-log.js");
 
 // Load the examples json data from apio. Before invoking this
 // wizard we run 'apio api get-examples -o <output-file>'.
@@ -25,7 +25,7 @@ function loadApioExamplesData() {
   return data; // ← now result is in scope and has value
 }
 
-export function registerGetExampleWizard(context) {
+function registerGetExampleWizard(context) {
   const commandId = "apio.projectFromExample";
 
   apioLog.msg(`Registering command: ${commandId}`);
@@ -76,7 +76,7 @@ function getWebviewContent() {
   }
 
   // Hint for the dir field.
-  const dirHint =  path.join(utils.userHomeDir(), "my-project");
+  const dirHint = path.join(utils.userHomeDir(), "my-project");
 
   return (
     "<!DOCTYPE html>\n" +
@@ -114,7 +114,9 @@ function getWebviewContent() {
     "</select>" +
     '<div id="desc" class="description"></div>' +
     '<label for="folder">3. Project folder (absolute path)</label>' +
-    '<input id="folder" placeholder="E.g. ' + dirHint + '" required style="font-family:monospace;">' +
+    '<input id="folder" placeholder="E.g. ' +
+    dirHint +
+    '" required style="font-family:monospace;">' +
     '<button type="submit" id="btn">Create Project</button>' +
     '<div id="status"><div id="placeholder" style="color:var(--vscode-disabledForeground);font-style:italic;">Status messages will appear here once you submit the form.</div></div>' +
     "</form>" +
@@ -158,3 +160,6 @@ async function createProjectFromExampleHandler(context, msg, panel) {
   // workspace.
   await tasks.openProjectFromExample(context, board, example, folder, callback);
 }
+
+// Export for require()
+module.exports = { registerGetExampleWizard };
