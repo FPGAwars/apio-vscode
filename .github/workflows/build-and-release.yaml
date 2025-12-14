@@ -47,10 +47,15 @@ jobs:
           echo $package_name
           echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
 
-      - name: Install Node
+      # - name: Install Node
+      #   uses: actions/setup-node@v6
+      #   with:
+      #     node-version: 24
+
+      - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: 'package.json'  # Detects from engines.node
 
       - name: Verify npx
         run: npx --version
