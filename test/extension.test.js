@@ -147,8 +147,12 @@ suite("Integration tests", () => {
     console.log("test-build test started");
     this.timeout(120 * 1000); // 120 secs timeout, for windows.
 
+    // The suite setup leave the workspace empty.
+    assert(!(await fileExistsInWorkspace("apio.ini")));
+
     // Populate the workspace
     await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
+    assert(await fileExistsInWorkspace("apio.ini"));
 
     // Issue build command
     await vscode.commands.executeCommand("apio.build");
