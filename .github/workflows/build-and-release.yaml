@@ -47,11 +47,6 @@ jobs:
           echo $package_name
           echo "PACKAGE_NAME=$package_name" >> $GITHUB_ENV
 
-      # - name: Install Node
-      #   uses: actions/setup-node@v6
-      #   with:
-      #     node-version: 24
-
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -60,14 +55,18 @@ jobs:
       - name: Verify npx
         run: npx --version
 
-      - name: Install dependencies
-        run: npm ci --foreground-scripts --legacy-peer-deps
-
-      - name: Build extension package
+      - name: Build the .vsix file
         run: |
-          ls -al
-          npx vsce package
-          ls -al
+          ./script/build.sh
+
+      #- name: Install dependencies
+      #  run: npm ci --foreground-scripts --legacy-peer-deps
+
+      #- name: Build extension package
+      #  run: |
+      #    ls -al
+      #    npx vsce package
+      #    ls -al
 
       - name: Rename package file
         run: |
