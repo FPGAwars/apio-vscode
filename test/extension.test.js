@@ -72,7 +72,9 @@ async function execAsync(command) {
 }
 
 function workspaceDirPath() {
-  const result = path.resolve(__dirname, "..", ".vscode-test", "workspace");
+  const result = path.normalize(
+    path.resolve(__dirname, "..", ".vscode-test", "workspace")
+  );
   return result;
 }
 
@@ -112,7 +114,7 @@ async function populateEmptyWorkspaceFromExample(example) {
 }
 
 suite("Integration tests", () => {
-  // Suite setup.
+  // Per suite setup.
   suiteSetup(async function () {
     // Prolog
     console.log("suiteSetup(): called");
@@ -124,6 +126,12 @@ suite("Integration tests", () => {
     // Force installation of apio binary and it's packages.
     await vscode.commands.executeCommand("apio.packagesUpdate");
     await briefDelay();
+  });
+
+  // Per test setup.
+  setup(async function () {
+    // Prolog
+    console.log("setup(): called");
 
     // Make sure the workspace is empty.
     await cleanWorkspaceContents();
@@ -139,6 +147,50 @@ suite("Integration tests", () => {
     // Invoke the command.
     await vscode.commands.executeCommand("apio.version");
     await briefDelay();
+
+    // Test done ok.
+  });
+
+  // Test that the extension tracks properly the workspace state.
+  test("test-extension-states", async function () {
+    // Epilog
+    console.log("test-extensions-states test started");
+    this.timeout(10 * 60 * 1000); // 10 min timeout, for windows,
+
+    // The test setup leave the workspace empty.
+
+    const expectedWsDirPath = workspaceDirPath();
+    const expectedApioIniPath = path.join(workspaceDirPath(), "apio.ini");
+
+    // Initial state, workspace exists, no apio.ini.
+    assert(!(await fileExistsInWorkspace("apio.ini")));
+    let wsInfo = utils.getWorkspaceInfo();
+    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
+    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
+    assert(!wsInfo.apioIniExists);
+
+    // Populate the workspace
+    await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
+    assert(await fileExistsInWorkspace("apio.ini"));
+
+    // New state, workspace exists, apio.ini exists.
+    assert(await fileExistsInWorkspace("apio.ini"));
+    wsInfo = utils.getWorkspaceInfo();
+    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
+    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
+    assert(wsInfo.apioIniExists);
+
+    // Delete apio.ini file.
+    await fs.promises.unlink(expectedApioIniPath);
+
+    // New state, workspace exists, no apio.
+    assert(!(await fileExistsInWorkspace("apio.ini")));
+    wsInfo = utils.getWorkspaceInfo();
+    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
+    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
+    assert(!wsInfo.apioIniExists);
+
+    // Test done ok.
   });
 
   // Test the project build functions
@@ -147,7 +199,7 @@ suite("Integration tests", () => {
     console.log("test-build test started");
     this.timeout(10 * 60 * 1000); // 10 min timeout, for windows,
 
-    // The suite setup leave the workspace empty.
+    // The test setup leave the workspace empty.
     assert(!(await fileExistsInWorkspace("apio.ini")));
 
     // Populate the workspace
@@ -180,5 +232,7 @@ suite("Integration tests", () => {
 
     // Verify that _build is cleaned.
     assert(!(await fileExistsInWorkspace("_build")));
+
+    // Test done ok.
   });
 });
