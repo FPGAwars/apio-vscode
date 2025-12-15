@@ -11,6 +11,7 @@ const path = require("path");
 const fs = require("fs");
 const childProcess = require("child_process");
 const util = require("util");
+const assert = require("assert");
 
 // Local imports
 const utils = require("../utils.js");
@@ -26,6 +27,22 @@ const BRIEF_DELAY_SECS = 3;
 async function briefDelay(secs = BRIEF_DELAY_SECS) {
   const delayMs = Math.trunc(1000 * secs);
   await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+//  Returns true if the file exists in the workspace, false if it does not.
+//  Throws only on unexpected filesystem errors (e.g., permission issues).
+async function fileExistsInWorkspace(relPath) {
+  const filePath = path.join(workspaceDirPath(), relPath);
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK);
+    return true;
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return false;
+    }
+    // Re-throw unexpected errors (e.g., EACCES)
+    throw error;
+  }
 }
 
 // Executes a shell command asynchronously.
@@ -80,15 +97,9 @@ async function cleanWorkspaceContents() {
   console.log(`Successfully emptied workspace at ${workspacePath}).`);
 }
 
-
-// Populates the test workspace with the fixed Apio example project "alhambra-ii/getting-started".
-// Ensures the workspace is empty before population.
-// This function takes no arguments and uses the fixed example name along with the provided
-// utility functions for paths.
+// Populates the test workspace with the given example project.
+// Caller should make sure workspace is empty.
 async function populateEmptyWorkspaceFromExample(example) {
-  // Ensure the workspace is empty
-  // await cleanWorkspaceContents();
-
   // Populate the workspace with the fixed project
   const apioBinaryPath = utils.apioBinaryPath();
   const wsDirPath = workspaceDirPath();
@@ -151,7 +162,19 @@ suite("Integration tests", () => {
     await vscode.commands.executeCommand("apio.test");
     await briefDelay();
 
-    // Check file existence.
-    // TODO
+    // Check generated files
+    assert(await fileExistsInWorkspace("_build/default/hardware.json"));
+    assert(await fileExistsInWorkspace("_build/default/hardware.pnr"));
+    assert(await fileExistsInWorkspace("_build/default/hardware.asc"));
+    assert(await fileExistsInWorkspace("_build/default/hardware.bin"));
+    assert(await fileExistsInWorkspace("_build/default/main_tb.out"));
+    assert(await fileExistsInWorkspace("_build/default/main_tb.vcd"));
+
+    // Issue clean command
+    await vscode.commands.executeCommand("apio.clean");
+    await briefDelay();
+
+    // Verify that _build is cleaned.
+    assert(!(await fileExistsInWorkspace("_build")));
   });
 });
