@@ -31,20 +31,20 @@ jobs:
         with:
           node-version-file: "package.json" # Detects from engines.node
 
-      - name: Install Node dependencies
+      - name: Run lint
+        run: |
+          ./scripts/lint.sh
+
+      - name: Init test environment
         run: |
           ./scripts/init-test-env.sh
 
       - name: List directories
         run: |
           pwd
-          ls -al 
+          ls -al
           ls -al .vscode-test
           ls -al .vscode-test/workspace
-
-      - name: Run lint
-        run: |
-          ./scripts/lint.sh
 
       - name: Run tests
         run: |
