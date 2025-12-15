@@ -1,6 +1,6 @@
 // To run the test interactively in VS Code, run ./scripts/init-test-env.sh
 // and use the extension ms-vscode.extension-test-runner to run the test
-// interactively, with or without debug.
+// interactively, with or without debug. Alternatively, run using ./scripts/test.sh.
 
 // NOTE: We don't know how to test commands such as 'demo project' and 'get examples'
 // which switch the workspace. This causes the test to fail.
