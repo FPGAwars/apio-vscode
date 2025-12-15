@@ -325,7 +325,7 @@ async function launchAction(cmds, url, cmdId) {
     cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
 
     // Execute the commands and wait for completion.
-    const aborted = await tasks.execCommandsInATask(cmds);
+    const aborted = await tasks.execCommandsInATask(cmds, preserveExitCode=false);
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;

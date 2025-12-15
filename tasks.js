@@ -15,9 +15,13 @@ const utils = require("./utils.js");
  * Waits for completion and returns true if any command failed (non-zero exit code).
  *
  * @param {string[]} cmds - Array of shell commands to run one after another
+ * @param {bool} preserveExitCode - if true, the batch file exists with an error code
+ *   if any of its commands fails, otherwise it returns with zero despite the error.
+ *   We use 'false' for regular apio commands to suppress the additional vscode
+ *   task error banner
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
-async function execCommandsInATask(cmds) {
+async function execCommandsInATask(cmds, preserveExitCode) {
   const taskName = "Apio Run";
 
   // 1. Kill any previous Apio task to avoid conflicts
@@ -52,11 +56,7 @@ async function execCommandsInATask(cmds) {
       `if %ERR% neq 0 (`,
       `  echo.`,
       `  echo ${failMessage}`,
-      // Experimental: suppress the vscode additional error message by
-      // exiting with 0. Grok advises against doing it. We could pass in
-      // a 'preserveErrors boolean flag.
-      // `  exit /b %ERR%`,
-      `  exit /b 0`,
+      preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
     const lines = [
@@ -84,11 +84,7 @@ async function execCommandsInATask(cmds) {
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
       `  echo "${failMessage}"`,
-      // Experimental: suppress the vscode additional error message by
-      // exiting with 0. Grok advises against doing it. We could pass in
-      // a 'preserveErrors boolean flag.
-      // `  exit $ERR`,
-      `  exit 0`,
+      preserveExitCode ? `  exit $ERR` : `  exit 0`,
       `fi`,
     ]);
     const lines = [
@@ -179,10 +175,11 @@ async function openProjectFromExample(
     fs.mkdirSync(folder, { recursive: true });
 
     // Run 'apio examples fetch board/example' in the demo folder.
-    const aborted = await execCommandsInATask([
+    const commands = [
       `cd ${folder}`,
       `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
-    ]);
+    ];
+    const aborted = await execCommandsInATask(commands, preserveExitCode=true);
     if (aborted) {
       throw Error("Failed to fetch example");
     }
