@@ -14,6 +14,7 @@ const util = require("util");
 const assert = require("assert");
 
 // Local imports
+const main = require("../main.js");
 const utils = require("../utils.js");
 
 // Convert exec() to promise form.
@@ -152,43 +153,53 @@ suite("Integration tests", () => {
   });
 
   // Test that the extension tracks properly the workspace state.
-  test("test-extension-states", async function () {
+  test("test-extension-config", async function () {
     // Epilog
-    console.log("test-extensions-states test started");
+    console.log("test-extensions-config test started");
     this.timeout(10 * 60 * 1000); // 10 min timeout, for windows,
-
-    // The test setup leave the workspace empty.
-
-    const expectedWsDirPath = workspaceDirPath();
-    const expectedApioIniPath = path.join(workspaceDirPath(), "apio.ini");
 
     // Initial state, workspace exists, no apio.ini.
     assert(!(await fileExistsInWorkspace("apio.ini")));
-    let wsInfo = utils.getWorkspaceInfo();
-    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
-    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
-    assert(!wsInfo.apioIniExists);
+
+    assert.deepStrictEqual(main.getConfigSummary(), {
+      noticeViewEnabled: true,
+      projectViewEnabled: false,
+      toolsViewEnabled: true,
+      helpViewEnabled: true,
+      statusBarEnabled: false,
+    });
 
     // Populate the workspace
     await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
     assert(await fileExistsInWorkspace("apio.ini"));
 
-    // New state, workspace exists, apio.ini exists.
-    assert(await fileExistsInWorkspace("apio.ini"));
-    wsInfo = utils.getWorkspaceInfo();
-    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
-    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
-    assert(wsInfo.apioIniExists);
+    // Give the extension sufficient time to change state.
+    await briefDelay((secs = 10));
+
+    // Check extension config.
+    assert.deepStrictEqual(main.getConfigSummary(), {
+      noticeViewEnabled: false,
+      projectViewEnabled: true,
+      toolsViewEnabled: true,
+      helpViewEnabled: true,
+      statusBarEnabled: true,
+    });
 
     // Delete apio.ini file.
-    await fs.promises.unlink(expectedApioIniPath);
+    const apioIniPath = path.join(workspaceDirPath(), "apio.ini");
+    await fs.promises.unlink(apioIniPath);
 
-    // New state, workspace exists, no apio.
-    assert(!(await fileExistsInWorkspace("apio.ini")));
-    wsInfo = utils.getWorkspaceInfo();
-    assert.strictEqual(wsInfo.wsDirPath, expectedWsDirPath);
-    assert.strictEqual(wsInfo.apioIniPath, expectedApioIniPath);
-    assert(!wsInfo.apioIniExists);
+    // Give the extension sufficient time to change state.
+    await briefDelay((secs = 10));
+
+    // Check extension config.
+    assert.deepStrictEqual(main.getConfigSummary(), {
+      noticeViewEnabled: true,
+      projectViewEnabled: false,
+      toolsViewEnabled: true,
+      helpViewEnabled: true,
+      statusBarEnabled: false,
+    });
 
     // Test done ok.
   });
