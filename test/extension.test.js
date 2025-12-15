@@ -134,7 +134,7 @@ suite("Integration tests", () => {
   test("test-build", async function () {
     // Epilog
     console.log("test-build test started");
-    this.timeout(30000); // 10 secs timeout for this function.
+    this.timeout(120 * 1000); // 120 secs timeout for this function. Windows is slow.
 
     // Populate the workspace
     await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
