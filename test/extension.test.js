@@ -116,7 +116,7 @@ suite("Integration tests", () => {
   suiteSetup(async function () {
     // Prolog
     console.log("suiteSetup(): called");
-    this.timeout(60000); // 60 secs timeout for the setup.
+    this.timeout(120 * 1000); // 120 secs timeout, for windows,
 
     // Activate the extension. This registers the commands.
     await vscode.extensions.getExtension("fpgawars.apio").activate();
@@ -134,7 +134,7 @@ suite("Integration tests", () => {
   test("test-apio-version", async function () {
     //Prolog
     console.log("test-apio-version test started");
-    this.timeout(10000); // 5 secs timeout for this function.
+    this.timeout(10000); // 10 secs timeout.
 
     // Invoke the command.
     await vscode.commands.executeCommand("apio.version");
@@ -145,7 +145,7 @@ suite("Integration tests", () => {
   test("test-build", async function () {
     // Epilog
     console.log("test-build test started");
-    this.timeout(120 * 1000); // 120 secs timeout for this function. Windows is slow.
+    this.timeout(120 * 1000); // 120 secs timeout, for windows.
 
     // Populate the workspace
     await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
