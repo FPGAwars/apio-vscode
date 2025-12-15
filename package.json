@@ -6,7 +6,7 @@
   "publisher": "fpgawars",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.107.0"
   },
   "categories": [
     "Programming Languages",
@@ -92,12 +92,12 @@
     "tar": "^6.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.107.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "@eslint/js": "^9.39.1",
     "eslint": "^9.39.1",
     "globals": "^16.5.0"
   }
