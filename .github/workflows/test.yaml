@@ -1,0 +1,50 @@
+name: test
+
+on:
+  # On push
+  push:
+
+  # On pull request
+  pull_request:
+
+  # Allow manual activations.
+  workflow_dispatch:
+
+jobs:
+  test:
+
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash  # Explicitly use Bash on all platforms
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'  # Detects from engines.node
+
+      - name: Install Node dependencies
+        run: |
+          ./scripts/init-test-env.sh
+
+      - name: Run lint
+        run: |
+          ./scripts/lint.sh
+
+      - name: Run tests
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            # On Ubuntu we need to run headless.
+            xvfb-run -a ./scripts/test.sh
+          else
+            ./scripts/test.sh
+          fi

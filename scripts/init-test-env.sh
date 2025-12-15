@@ -9,9 +9,5 @@ set -e
 
 mkdir -p .vscode-test/workspace
 
-# rm -f *.vsix
-# rm -rf node_modules
-# rm -rf .vscode-test
-
-npm install
+npm ci
 
