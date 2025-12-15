@@ -12,7 +12,6 @@ on:
 
 jobs:
   test:
-
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-latest, windows-latest]
@@ -21,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash  # Explicitly use Bash on all platforms
+        shell: bash # Explicitly use Bash on all platforms
 
     steps:
       - name: Checkout this repo
@@ -30,11 +29,18 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: 'package.json'  # Detects from engines.node
+          node-version-file: "package.json" # Detects from engines.node
 
       - name: Install Node dependencies
         run: |
           ./scripts/init-test-env.sh
+
+      - name: List directories
+        run: |
+          pwd
+          ls -al 
+          ls -al .vscode-test
+          ls -al .vscode-test/workspace
 
       - name: Run lint
         run: |
