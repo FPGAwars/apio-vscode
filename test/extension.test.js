@@ -116,7 +116,7 @@ suite("Integration tests", () => {
   suiteSetup(async function () {
     // Prolog
     console.log("suiteSetup(): called");
-    this.timeout(120 * 1000); // 120 secs timeout, for windows,
+    this.timeout(10 * 60 * 1000); // 10 min timeout, for windows,
 
     // Activate the extension. This registers the commands.
     await vscode.extensions.getExtension("fpgawars.apio").activate();
@@ -145,7 +145,7 @@ suite("Integration tests", () => {
   test("test-build", async function () {
     // Epilog
     console.log("test-build test started");
-    this.timeout(120 * 1000); // 120 secs timeout, for windows.
+    this.timeout(10 * 60 * 1000); // 10 min timeout, for windows,
 
     // The suite setup leave the workspace empty.
     assert(!(await fileExistsInWorkspace("apio.ini")));
