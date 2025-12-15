@@ -57,7 +57,7 @@ jobs:
 
       - name: Build the .vsix file
         run: |
-          ./script/build.sh
+          ./scripts/build.sh
 
       #- name: Install dependencies
       #  run: npm ci --foreground-scripts --legacy-peer-deps
