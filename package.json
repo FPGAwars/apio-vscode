@@ -78,7 +78,8 @@
     }
   },
   "scripts": {
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "test": "vscode-test"
   },
   "author": "",
   "type": "commonjs",
@@ -91,6 +92,11 @@
     "tar": "^6.2.0"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "@eslint/js": "^9.39.1",
     "eslint": "^9.39.1",
     "globals": "^16.5.0"
