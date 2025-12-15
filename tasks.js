@@ -1,14 +1,14 @@
 // Contains the execution of tasks using a temporary batch file.
 
-// Imports
-import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
+// Standard imports
+const vscode = require("vscode");
+const path = require("path");
+const fs = require("fs");
 
 // Local imports.
-import * as platforms from "./platforms.js";
-import * as apioLog from "./apio-log.js";
-import * as utils from "./utils.js";
+const platforms = require("./platforms.js");
+const apioLog = require("./apio-log.js");
+const utils = require("./utils.js");
 
 /**
  * Executes a list of shell commands sequentially using a single VS Code task.
@@ -17,7 +17,7 @@ import * as utils from "./utils.js";
  * @param {string[]} cmds - Array of shell commands to run one after another
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
-export async function execCommandsInATask(cmds) {
+async function execCommandsInATask(cmds) {
   const taskName = "Apio Run";
 
   // 1. Kill any previous Apio task to avoid conflicts
@@ -149,7 +149,7 @@ export async function execCommandsInATask(cmds) {
 // 'board' and 'example' specify the example to use. 'folder' is the destination
 // path. It should not exist and should be an absolute path. 'callback' is
 // calls on success and on failure with (ok:bool, text:str).
-export async function openProjectFromExample(
+async function openProjectFromExample(
   context,
   board,
   example,
@@ -203,7 +203,7 @@ export async function openProjectFromExample(
       // is already open.
       const wsInfo = utils.getWorkspaceInfo();
 
-      const sameFolder = wsInfo.wsDirPath && (folder == wsInfo.wsDirPath);
+      const sameFolder = wsInfo.wsDirPath && folder == wsInfo.wsDirPath;
 
       if (sameFolder) {
         // Current and destination workspace folders are the same one, simply
@@ -226,3 +226,9 @@ export async function openProjectFromExample(
     callback(false, "Error: " + err.message);
   }
 }
+
+// Export for require()
+module.exports = {
+  execCommandsInATask,
+  openProjectFromExample,
+};

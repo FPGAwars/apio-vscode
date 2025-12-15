@@ -20,7 +20,7 @@ rm -rf node_modules
 npm ci --foreground-scripts --legacy-peer-deps
 
 # Do we need this?
-npm install --save-dev globals
+#npm install --save-dev globals
 
 # Build
 npx vsce package 

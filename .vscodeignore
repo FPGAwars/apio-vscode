@@ -1,6 +1,7 @@
 .git
 .gitignore
 .vscode
+.vscode-test
 *.vsix
 install-locally.sh
 clear-apio-extension.sh

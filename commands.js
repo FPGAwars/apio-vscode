@@ -2,12 +2,12 @@
 // dict object. We use it to extract and register commands,
 // sidebar view entries, and status bar buttons.
 
-import * as utils from "./utils.js";
+const utils = require("./utils.js");
 
 // Commands for the PROJECT view. Thee commands are used only
 // in the PROJECT mode and always have an open workspace and
 // an apio.ini file.
-export const PROJECT_TREE = [
+const PROJECT_TREE = [
   {
     title: "make",
     children: [
@@ -84,7 +84,7 @@ export const PROJECT_TREE = [
 // Commands for the TOOLS view. Thee commands are used only
 // in the PROJECT and NON_PROJECT mode and can't assume that a workspace
 // is open or that the project file apio.ini exist.
-export const TOOLS_TREE = [
+const TOOLS_TREE = [
   {
     title: "examples",
     children: [
@@ -268,7 +268,7 @@ export const TOOLS_TREE = [
   },
 ];
 
-export const HELP_TREE = [
+const HELP_TREE = [
   {
     title: "documentation",
     children: [
@@ -328,3 +328,6 @@ export const HELP_TREE = [
     ],
   },
 ];
+
+// Export for require()
+module.exports = { PROJECT_TREE, TOOLS_TREE, HELP_TREE };

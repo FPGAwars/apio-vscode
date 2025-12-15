@@ -2,7 +2,7 @@
 // 100% self-contained – main file only does:
 // const { showMarkdown, hide } = require('./notice-view');
 
-import * as vscode from "vscode";
+const vscode = require("vscode");
 
 const VIEW_ID = "apio.sidebar.notice";
 const CONTEXT_KEY = "apio.sidebar.notice.enabled";
@@ -78,7 +78,7 @@ function getHtml(body) {
 }
 
 // Public API
-export async function showMarkdown(markdown) {
+async function showMarkdown(markdown) {
   const md = markdown?.trim();
   if (!md) return;
 
@@ -92,9 +92,15 @@ export async function showMarkdown(markdown) {
   // else: resolveWebviewView will call render when the view appears
 }
 
-export function hide() {
+function hide() {
   vscode.commands.executeCommand("setContext", CONTEXT_KEY, false);
   if (webviewView) {
     webviewView.webview.html = ""; // free memory
   }
 }
+
+// Import for require()
+module.exports = {
+  showMarkdown,
+  hide,
+};

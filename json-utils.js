@@ -1,7 +1,7 @@
 // Minimal, robust JSON file I/O utilities for VS Code extensions
 
-import * as fs from "fs";
-import * as path from "path";
+const fs = require("fs");
+const path = require("path");
 
 /**
  * Writes an object to a JSON file.
@@ -10,7 +10,7 @@ import * as path from "path";
  * @param {object} dict
  * @returns {Promise<boolean>} true on success, false on any error
  */
-export async function writeJson(filePath, dict) {
+async function writeJson(filePath, dict) {
   try {
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
     const content = JSON.stringify(dict, null, 4) + "\n";
@@ -27,7 +27,7 @@ export async function writeJson(filePath, dict) {
  * @param {string} filePath
  * @returns {Promise<object>}
  */
-export async function readJson(filePath) {
+async function readJson(filePath) {
   try {
     const data = await fs.promises.readFile(filePath, "utf8");
     return data.trim() ? JSON.parse(data) : {};
@@ -35,3 +35,9 @@ export async function readJson(filePath) {
     return {};
   }
 }
+
+// Export for require()
+module.exports = {
+  writeJson,
+  readJson,
+};

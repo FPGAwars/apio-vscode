@@ -6,7 +6,7 @@
   "publisher": "fpgawars",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.107.0"
   },
   "categories": [
     "Programming Languages",
@@ -78,10 +78,11 @@
     }
   },
   "scripts": {
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "test": "vscode-test"
   },
   "author": "",
-  "type": "module",
+  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/fpgawars/apio/issues"
   },
@@ -92,6 +93,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.1",
     "globals": "^16.5.0"
   }
