@@ -4,11 +4,13 @@
 set -e
 
 # Start from scratch
-rm -f *.vsix
-rm -rf node_modules
-rm -rf .vscode-test
+#rm -f *.vsix
+#rm -rf node_modules
+#rm -rf .vscode-test
 
-npm install
+#npm install
+
+./scripts/init-test-env.sh
 
 npm run lint
 

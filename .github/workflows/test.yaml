@@ -16,9 +16,11 @@ on:
 
 jobs:
   test:
+
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-latest, windows-latest]
+        vscode-version: ["1.85.0", "stable"]
 
     runs-on: ${{ matrix.os }}
 
@@ -54,7 +56,7 @@ jobs:
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
             # On Ubuntu we need to run headless.
-            xvfb-run -a ./scripts/test.sh
+            xvfb-run -a ./scripts/test.sh ${{ matrix.vscode-version }}
           else
-            ./scripts/test.sh
+            ./scripts/test.sh ${{ matrix.vscode-version }}
           fi

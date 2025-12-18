@@ -56,6 +56,10 @@ function pretty(obj) {
 let statusBarEnvSelector;
 let currentEnv = ENV_DEFAULT;
 
+// This is a summary of the config operation which is updated each time we reconfigure the
+// extension. For now used for testing only.
+let configSummary = {};
+
 // List of visual element items. We keep them here so
 // we can show/hide them as needed.
 let statusBarElements = [];
@@ -325,7 +329,10 @@ async function launchAction(cmds, url, cmdId) {
     cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
 
     // Execute the commands and wait for completion.
-    const aborted = await tasks.execCommandsInATask(cmds);
+    const aborted = await tasks.execCommandsInATask(
+      cmds,
+      (preserveExitCode = false)
+    );
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;
@@ -505,6 +512,15 @@ function configure(context) {
       element.hide();
     }
   }
+
+  // Update the config summary
+  configSummary = {
+    noticeViewEnabled: !wsInfo.apioIniExists,
+    projectViewEnabled: wsInfo.apioIniExists,
+    toolsViewEnabled: true,
+    helpViewEnabled: true,
+    statusBarEnabled: wsInfo.apioIniExists,
+  };
 
   // All done.
   apioLog.msg("configure() completed.");
@@ -710,6 +726,10 @@ function registerApioIniWatcher(context, wsDirPath) {
 
 // Export for require()
 module.exports = {
+  // Standard extension exports.
   activate,
   deactivate,
+
+  // Getters for testing
+  getConfigSummary: () => configSummary,
 };

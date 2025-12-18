@@ -58,6 +58,12 @@ const PROJECT_TREE = [
         btn: { icon: "$(debug-alt)", position: 5 },
       },
       {
+        title: "sim (detached)",
+        tooltip: "Run sim with detached viewer",
+        id: "apio.simDetached",
+        action: { cmds: ["{apio-bin} sim --detach {env-flag}"] },
+      },
+      {
         title: "test",
         tooltip: "Run automatic tests",
         id: "apio.test",
