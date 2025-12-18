@@ -1,6 +1,9 @@
 const { defineConfig } = require('@vscode/test-cli');
 const path = require('path');
 
+// See docs here:
+// https://github.com/microsoft/vscode-test-cli
+
 module.exports = defineConfig({
     files: 'test/**/*.test.js',
     workspaceFolder: path.resolve(__dirname, '.vscode-test/workspace'),
