@@ -107,7 +107,7 @@ const TOOLS_TREE = [
         action: { cmds: ["{apio-bin} examples list"] },
       },
       {
-        title: "get example",
+        title: "get example...",
         tooltip: "Create a project from an example",
         id: "apio.getExample",
         action: {
