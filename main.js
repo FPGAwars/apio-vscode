@@ -12,6 +12,12 @@
 // To debug under VCS, have this file open and type F5 to open the test
 // window. To restart the test window, type CMD-R in the test window.
 
+// Extension icon.png source is from
+// https://www.flaticon.com/free-icon/circuit_11732924
+//
+// Sidebar media/sidebar-icon.svg is from
+// https://www.flaticon.com/free-icon/cpu_12653854
+
 // Standard imports
 const vscode = require("vscode");
 const path = require("path");
