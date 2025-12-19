@@ -20,6 +20,9 @@ if code --list-extensions | grep -q '^fpgawars.apio$'; then
   code --uninstall-extension fpgawars.apio
 fi
 
+# Remove local cache
+rm -rf ~/.vscode/extensions/fpgawars.apio*
+
 # List the files included in the package
 #unzip -l apio-*.vsix
 
