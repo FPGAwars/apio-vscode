@@ -89,7 +89,8 @@ jobs:
           #   "false" - exists and is a release exists
           #   "true"  - exists and is a pre-release
           #   ""      - doesn't exist
-          status=$(gh release view "$RELEASE_TAG" --json isPrerelease -q .isPrerelease  || true
+          status=$(gh release view "$RELEASE_TAG" --json isPrerelease -q .isPrerelease  || true)
+          echo "Status is [$status]"
           if [[ "$status" == "false" ]]; then
             echo "Error: A stable (non-prerelease) release for tag $RELEASE_TAG already exists."
             exit 1
