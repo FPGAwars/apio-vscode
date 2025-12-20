@@ -2,7 +2,7 @@
   "name": "apio",
   "displayName": "Apio FPGA",
   "description": "One-click build for Apio FPGA projects",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "fpgawars",
   "icon": "icon.png",
   "engines": {
