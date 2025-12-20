@@ -17,6 +17,9 @@ env:
   # prevents warnings in the vscode editor.
   RELEASE_TAG: ""
   PACKAGE_TAG: ""
+  VSCODE_EXTENSION_VERSION: ""
+  APIO_RELEASE_GITHUB_REPO: ""
+  APIO_RELEASE_TAG: ""
 
 jobs:
   # ----- Parameters collection job
@@ -26,6 +29,10 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
+
+      - name: List repo files
+        run: |
+          ls -al
 
       # E.g. "2025-11-02"
       - name: Determine release tag
@@ -55,6 +62,58 @@ jobs:
       - name: Verify npx
         run: npx --version
 
+      - name: List repo files
+        run: |
+          ls -al
+
+      - name: Extract values and set environment variables
+        run: |
+          const workspace = process.env.GITHUB_WORKSPACE;
+
+          const fs = require('fs');
+          const path = require('path');
+          const constants = require(path.join(workspace, 'constants.js'));
+          const pkg = require(path.join(workspace, 'package.json'));
+
+          const envPath = process.env.GITHUB_ENV;
+
+          fs.appendFileSync(envPath, `VSCODE_EXTENSION_VERSION=${pkg.version}\n`);
+          fs.appendFileSync(envPath, `APIO_RELEASE_GITHUB_REPO=${constants.APIO_RELEASE_GITHUB_REPO}\n`);
+          fs.appendFileSync(envPath, `APIO_RELEASE_TAG=${constants.APIO_RELEASE_TAG}\n`);
+        shell: node {0}
+
+      # Create the build info file that we will include in the package.
+      - name: Create build info
+        run: |
+          # Generate build-info.json
+          cat > build-info.json <<EOF
+          {
+            "package-name":  "apio-vscode",
+            "description" : "Apio extension for Visual Studio Code",
+            "source-repo":  "${{github.repository}}",
+            "source-sha":   "${{ github.sha }}",
+            "source-branch": "${{ github.ref_name }}",
+            "package-version": "$VSCODE_EXTENSION_VERSION",
+            "apio-release-repo": "$APIO_RELEASE_GITHUB_REPO",
+            "apio-release-tag" : "$APIO_RELEASE_TAG",
+            "build-time":  "$(date +'%Y-%m-%d %H:%M:%S %Z')",
+            "builder-workflow":  "${{ github.workflow }}",
+            "workflow-run-id":  "${{github.run_id}}",
+            "workflow-run-number": "${{github.run_number}}",
+            "release-tag": "${RELEASE_TAG}"
+          }
+          EOF
+
+          cat -n build-info.json
+
+      - name: Format build info 
+        run: |
+          set -x
+          cat -n build-info.json
+          npm install -g json-align
+          json-align --in-place --spaces 2 build-info.json
+          cat -n build-info.json
+
       - name: Build the .vsix file
         run: |
           ./scripts/build.sh
@@ -67,6 +126,30 @@ jobs:
       - name: Show packaged files
         run: |
           unzip -l $PACKAGE_NAME
+
+
+      # Add notes for the release page.
+      - name: Create the release text
+        run: |
+          cat  > RELEASE-BODY.txt <<EOF
+          This is the daily build of the Apio VSCode extension.
+
+          > This repository keeps only the last 5 pre-releases so to preserve
+          > a release, check off its's pre-release [] checkbox.
+
+          **IMPORTANT**: This releases is hard coded to fetch the apio binary from
+          [this Apio release](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG)
+          which must exist for this VS Code extension to be functional.
+
+          Build info:
+          \`\`\`
+          $(tr -d '",{}' < build-info.json)
+          \`\`\`
+
+          [Installation instructions](https://fpgawars.github.io/apio/docs/quick-start)
+          EOF
+
+          cat -n RELEASE-BODY.txt
 
       # Delete old pre-releases, keeps all releases.
       - name: Delete old pre-releases
@@ -85,18 +168,21 @@ jobs:
 
       - name: Delete same tag pre-release if exist.
         run: |
-          # Status values:
-          #   "false" - exists and is a release exists
-          #   "true"  - exists and is a pre-release
-          #   ""      - doesn't exist
-          status=$(gh release view "$RELEASE_TAG" --json isPrerelease -q .isPrerelease  || true)
-          echo "Status is [$status]"
-          if [[ "$status" == "false" ]]; then
+          set -e
+          gh release list --limit 100
+          output=$(gh release view "$RELEASE_TAG" --json name,tagName,isDraft,isImmutable,isPrerelease 2>&1 || true)
+          echo $output
+          if [[ "$output" == "release not found" ]]; then
+            echo "Release $RELEASE_TAG does not exist, safe to continue."
+          elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "true" ]]; then
+            echo "Release $RELEASE_TAG exists and is a pre-release, deleting."
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+          elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "false" ]]; then
             echo "Error: A stable release (non pre-release) already exists for tag $RELEASE_TAG."
             exit 1
-          elif [[ "$status" == "true" ]]; then
-            echo "Deleting existing pre-release and tag $RELEASE_TAG."
-            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
+          else
+            echo "Error determining if release $RELEASE_TAG exists"
+            exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -106,6 +192,7 @@ jobs:
         with:
           tag_name: ${{env.RELEASE_TAG}}
           name: ${{env.RELEASE_TAG}}
+          body_path: RELEASE-BODY.txt
           preserve_order: true
           prerelease: true
           fail_on_unmatched_files: true
