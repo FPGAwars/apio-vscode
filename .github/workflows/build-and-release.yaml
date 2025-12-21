@@ -137,8 +137,8 @@ jobs:
           > This repository keeps only the last 5 pre-releases so to preserve
           > a release, check off its's pre-release [] checkbox.
 
-          **IMPORTANT**: This releases is hard coded to fetch the apio binary from
-          [this Apio release](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG)
+          **IMPORTANT**: This releases is hard coded to fetch the apio binary from \
+          [this Apio release](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG) \
           which must exist for this VS Code extension to be functional.
 
           Build info:
