@@ -12,6 +12,7 @@
         "Icestudio",
         "makefiles",
         "pipefail",
+        "prexists",
         "pyinstaller",
         "setlocal",
         "sgpublic",
