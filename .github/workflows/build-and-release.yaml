@@ -187,6 +187,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: List repo files
+        run: |
+          ls -al
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.2.2
         with:
