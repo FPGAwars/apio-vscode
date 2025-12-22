@@ -143,8 +143,8 @@ async function execCommandsInATask(cmds, preserveExitCode) {
 // VSCode switches to the new workspace.
 //
 // 'board' and 'example' specify the example to use. 'folder' is the destination
-// path. It should not exist and should be an absolute path. 'callback' is
-// calls on success and on failure with (ok:bool, text:str).
+// path and should be an absolute path and should not exist or be empty. 
+// 'callback' is calls on success and on failure with (ok:bool, text:str).
 async function openProjectFromExample(
   context,
   board,
@@ -163,23 +163,31 @@ async function openProjectFromExample(
     // didn't specify it.
     folder = path.normalize(path.resolve(folder));
 
-    // Folder should not exist.
-    if (fs.existsSync(folder)) {
-      throw new Error("Directory already exists: " + folder);
+    // Folder should not exist or be empty.
+    //
+    // NOTE: Initially we used to delete the directory here before recreating
+    // it below but this failed on windows if VS Code was already opened on the
+    // apio demo project dir.
+    if (fs.existsSync(folder) && fs.readdirSync(folder).length > 0) {
+      throw new Error(`Directory must not exist or must be empty: ${folder}`);
     }
+
+    // Create the destination folder if it doesn't exist. Does nothing if it 
+    // already exist..
+    fs.mkdirSync(folder, { recursive: true });
 
     // Construct example full name.
     const exampleId = board + "/" + example;
-
-    // Create the destination folder.
-    fs.mkdirSync(folder, { recursive: true });
 
     // Run 'apio examples fetch board/example' in the demo folder.
     const commands = [
       `cd ${folder}`,
       `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
     ];
-    const aborted = await execCommandsInATask(commands, preserveExitCode=true);
+    const aborted = await execCommandsInATask(
+      commands,
+      (preserveExitCode = true)
+    );
     if (aborted) {
       throw Error("Failed to fetch example");
     }

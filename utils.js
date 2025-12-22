@@ -5,6 +5,7 @@ const vscode = require("vscode");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const assert = require("node:assert");
 
 // Local imports
 const platforms = require("./platforms.js");
@@ -122,6 +123,40 @@ function getWorkspaceInfo() {
   });
 }
 
+/**
+ * Ensures the Apio demo directory exists and is completely empty.
+ * Fails strictly if any content cannot be deleted.
+ * @returns {Promise<string>} The path to the verified empty demo directory.
+ */
+async function prepareEmptyApioDemoDir() {
+  const demoDir = apioDemoDir();
+
+  // Safety assertion to prevent operations on unexpected paths
+  assert(
+    demoDir.includes("apio-demo"),
+    `Expected Apio demo directory to contain "apio-dir" in its path for safety, but got: ${demoDir}`
+  );
+
+  await fs.promises.mkdir(demoDir, { recursive: true });
+
+  // Read only entry names (sufficient for unified deletion)
+  const entryNames = await fs.promises.readdir(demoDir);
+
+  const deletePromises = entryNames.map(async (entryName) => {
+    const fullPath = path.join(demoDir, entryName);
+    try {
+      await fs.promises.rm(fullPath, { recursive: true, force: true });
+    } catch (err) {
+      throw new Error(`Failed to delete "${fullPath}": ${err.message}`);
+    }
+  });
+
+  await Promise.all(deletePromises);
+
+  // All done ok.
+  return demoDir;
+}
+
 // Exported for require().
 module.exports = {
   extractApioIniEnvs,
@@ -136,4 +171,5 @@ module.exports = {
   writeFileFromLines,
   WorkspaceInfo,
   getWorkspaceInfo,
+  prepareEmptyApioDemoDir,
 };

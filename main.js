@@ -21,7 +21,6 @@
 // Standard imports
 const vscode = require("vscode");
 const path = require("path");
-const fs = require("fs");
 
 // Local imports.
 const commands = require("./commands.js");
@@ -155,13 +154,15 @@ function registerDemoProjectCommand(context) {
       // Make sure the apio binary exists. If not, download and install it.
       await downloader.ensureApioBinary();
 
+      const demoDir = await utils.prepareEmptyApioDemoDir();
+
       // Get temp demo dir
-      const demoDir = utils.apioDemoDir();
+      // const demoDir = utils.apioDemoDir();
 
       // Remove old demo dir, if exists.
-      await fs.promises
-        .rm(demoDir, { recursive: true, force: true })
-        .catch(() => {});
+      // await fs.promises
+      //   .rm(demoDir, { recursive: true, force: true })
+      //   .catch(() => {});
 
       // Action callback, throws an error if demo project creation failed.
       function callback(ok, text) {
