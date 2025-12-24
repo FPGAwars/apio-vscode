@@ -113,19 +113,19 @@ function registerApioShellCommand(context, preCmds) {
     }
 
     // Construct the PATH of the shell, with apio bin in front.
-    const newPath = `${utils.apioBinDir()}${path.delimiter}${
-      process.env.PATH || ""
-    }`;
-    // const newPath2 = `${utils.apioBinDir()}${path.delimiter}${process.env.Path || ''}`;
+    // NOTE: Ideally we would like to have apioBinDir at the front but if we put it in
+    // the front, VS Code moves it to the end, so we put it in the end for clarity.
+    const newPath = process.env.PATH + path.delimiter + utils.apioBinDir();
 
     // Create brand-new terminal
     const terminal = vscode.window.createTerminal({
       name: TERMINAL_NAME,
-      // cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || undefined,
       env: {
         ...process.env,
+        // NOTE: We could pass here just apioBinDir() and vscode would prefix it
+        // with the inherited base path but according to Grok it's safer this way
+        // in case the terminal integration in vscode is disabled manually.
         PATH: newPath,
-        // Path: newPath
       },
     });
 

@@ -1,6 +1,6 @@
 
 
-## [0.1.4] - Apio 2025-12-21
+## [0.1.4]
 
 ### Changed
 - Custom `boards.jsonc`, `fpgas.jsonc`, and `programmers.jsonc` definition files are now
@@ -11,7 +11,7 @@
 - FPGA constraint files such as `pinout.pcf` can now be placed also in subdirectories.
   Previously they had to reside at the top directory of the project. This provides more flexibility in multi-board projects.
 
-## [0.1.3] - Apio 2025-12-19
+## [0.1.3]
 
 Initial version.
 
