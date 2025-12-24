@@ -40,8 +40,8 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
 - **Apio Quick Start** – [fpgawars.github.io/apio/docs/quick-start](https://fpgawars.github.io/apio/docs/quick-start)
 - **Apio Discussions** – [github.com/FPGAwars/apio/discussions](https://github.com/fpgawars/apio/discussions)
 - **Apio Issues** – [github.com/FPGAwars/apio/issues](https://github.com/fpgawars/apio/issues)
+- **Apio Visual Studio Code Repository** – [github.com/FPGAwars/apio-vscode](https://github.com/fpgawars/apio-vscode)
 - **Apio CORE Repository** – [github.com/FPGAwars/apio](https://github.com/fpgawars/apio)
-- **Apio VS Code Repository** – [github.com/FPGAwars/apio-vscode](https://github.com/fpgawars/apio-vscode)
 
 ---
 
