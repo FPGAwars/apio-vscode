@@ -233,7 +233,7 @@ jobs:
         uses: fpgawars/apio-workflows/.github/actions/create-pre-release@main
         with:
           release_tag: ${{ env.RELEASE_TAG }}
-          body_path: RELEASE_BODY.txt
+          body_path: RELEASE-BODY.txt
           # We intensionally list explicitly all the expected files.
           files: |
             apio-vscode-${{env.PACKAGE_TAG}}.vsix
