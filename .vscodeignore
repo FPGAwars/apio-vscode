@@ -14,5 +14,6 @@ scripts
 # This image is served in README.md from the github repo so 
 # no need to include in the package.
 media/screenshot1.png
+media/apio-vscode-animation.gif
 
 

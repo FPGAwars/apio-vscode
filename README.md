@@ -4,17 +4,6 @@ This official extension by the Apio team brings Apio’s power directly into VSC
 
 ![VSCode screenshot](media/apio-vscode-animation.gif)
 
-The screen has the following sections:
-
-1. Apio quick command buttons and environment selector.
-2. Apio command explorer tab.
-3. Apio commands collapsible tree.
-4. Apio commands output terminal.
-
----
-
-## Background
-
 Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and SystemVerilog development. It requires no complex toolchains, licenses, or makefiles and works seamlessly on **Linux**, **Windows**, and **macOS**.
 
 ---
@@ -34,7 +23,6 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
 ---
 
 ## Resources
-
 
 - **Apio Documentation** – [fpgawars.github.io/apio](https://fpgawars.github.io/apio)
 - **Apio Quick Start** – [fpgawars.github.io/apio/docs/quick-start](https://fpgawars.github.io/apio/docs/quick-start)

@@ -30,4 +30,4 @@ rm -rf ~/.vscode/extensions/fpgawars.apio*
 code --install-extension apio-*.vsix 
 
 
-
+du -sh apio-*.vsix
