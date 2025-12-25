@@ -2,7 +2,7 @@
 
 This official extension by the Apio team brings Apio’s power directly into VSCode with **one-click buttons** and a **dedicated sidebar panel**. Common commands (`lint`, `build`, `upload`) appear on the status bar, while the full command set is organized in a collapsible tree under the **Apio** tab.
 
-![VSCode screenshot](media/screenshot1.png)
+![VSCode screenshot](media/apio-vscode-animation.gif)
 
 The screen has the following sections:
 
