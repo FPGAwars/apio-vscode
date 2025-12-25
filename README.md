@@ -2,7 +2,7 @@
 
 This official extension by the Apio team brings Apio’s power directly into VSCode with **one-click buttons** and a **dedicated sidebar panel**. Common commands (`lint`, `build`, `upload`) appear on the status bar, while the full command set is organized in a collapsible tree under the **Apio** tab.
 
-![VSCode screenshot](media/screenshot1.png)
+![VSCode screenshot](media/apio-vscode-animation.gif)
 
 The screen has the following sections:
 
@@ -40,8 +40,8 @@ Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and 
 - **Apio Quick Start** – [fpgawars.github.io/apio/docs/quick-start](https://fpgawars.github.io/apio/docs/quick-start)
 - **Apio Discussions** – [github.com/FPGAwars/apio/discussions](https://github.com/fpgawars/apio/discussions)
 - **Apio Issues** – [github.com/FPGAwars/apio/issues](https://github.com/fpgawars/apio/issues)
+- **Apio Visual Studio Code Repository** – [github.com/FPGAwars/apio-vscode](https://github.com/fpgawars/apio-vscode)
 - **Apio CORE Repository** – [github.com/FPGAwars/apio](https://github.com/fpgawars/apio)
-- **Apio VS Code Repository** – [github.com/FPGAwars/apio-vscode](https://github.com/fpgawars/apio-vscode)
 
 ---
 
