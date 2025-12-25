@@ -6,7 +6,8 @@
   "publisher": "fpgawars",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.85.0",
+    "node": "22.x"
   },
   "categories": [
     "Programming Languages",
