@@ -96,7 +96,7 @@ function getWebviewContent() {
     ".status-message.success{background:#28a745;color:white}" +
     ".status-message.error{background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);border:1px solid var(--vscode-inputValidation-errorBorder)}" +
     "</style></head><body>" +
-    "<h1>Apio – Create Example Project</h1>" +
+    "<h1>Create Apio Example Project</h1>" +
     '<div class="instruction">' +
     "Use this page to create a new Apio project from one of the officially provided examples.<br><br>" +
     "Only boards that have at least one example are shown in the list below. " +
