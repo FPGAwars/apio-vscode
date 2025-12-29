@@ -215,13 +215,14 @@ function traverseAndConvertTree(nodes) {
 }
 
 // Recursively Traverse the tree nodes and register the commands with
-// VSCode.
-function traverseAndRegisterCommands(context, nodes, preCmds) {
+// VSCode. Titles is an array with the title strings of the parents.
+function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
   // const result = [];
   for (const node of nodes) {
+    nodeTitles = [...titles, node.title];
     if ("children" in node) {
       // Handle a group
-      traverseAndRegisterCommands(context, node.children, preCmds);
+      traverseAndRegisterCommands(context, node.children, nodeTitles, preCmds);
     } else {
       // Handle a leaf. If it doesn't have an action, it means that its
       // command is a one-of that is implemented and registered independently.
@@ -236,17 +237,23 @@ function traverseAndRegisterCommands(context, nodes, preCmds) {
       const cmds =
         node.action?.cmds != null ? preCmds.concat(node.action.cmds) : null;
 
+      // Optional text to show on successful completions of the commands.
+      const completionMsgs = node.action?.completionMsgs;
+
       // Extract optional url. Null of doesn't exist.
       const url = node.action?.url;
 
       // Extract command id. Null if doesn't exit.
       const cmdId = node.action?.cmdId;
 
+      // Construct the node title string
+      nodeTitle = "🔹 " + nodeTitles.join(" ‣ ");
+
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          actionLaunchWrapper(cmds, url, cmdId)
+          actionLaunchWrapper(nodeTitle, cmds, url, cmdId, completionMsgs)
         )
       );
     }
@@ -321,7 +328,7 @@ class ApioTreeProvider {
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
-async function launchAction(cmds, url, cmdId) {
+async function launchAction(title, cmds, url, cmdId, completionMsgs) {
   // Handle the optional commands.
   if (cmds != null) {
     // Determine the value of the {env-flag} placeholder. It's derived
@@ -337,9 +344,12 @@ async function launchAction(cmds, url, cmdId) {
 
     // Execute the commands and wait for completion.
     const aborted = await tasks.execCommandsInATask(
+      title,
       cmds,
-      (preserveExitCode = false)
+      false, // preserveExitCode
+      completionMsgs
     );
+
     if (aborted) {
       apioLog.msg("Terminal commands aborted or timeout.");
       return;
@@ -362,7 +372,7 @@ async function launchAction(cmds, url, cmdId) {
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(cmds, url, cmdId) {
+function actionLaunchWrapper(title, cmds, url, cmdId, completionMsgs) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
@@ -375,7 +385,7 @@ function actionLaunchWrapper(cmds, url, cmdId) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      await launchAction(cmds, url, cmdId);
+      await launchAction(title, cmds, url, cmdId, completionMsgs);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -425,10 +435,11 @@ function envSelectionClickHandler(context, apioIniPath) {
   return _handler;
 }
 
-// Register a tree view.
-function _registerTreeView(context, tree, preCmds, viewId) {
+// Register a tree view. Title is a string representing the tree
+// view in the title path of the command tasks.
+function _registerTreeView(context, tree, title, preCmds, viewId) {
   // Register the tree commands wit vscode.
-  traverseAndRegisterCommands(context, tree, preCmds);
+  traverseAndRegisterCommands(context, tree, [title], preCmds);
 
   // Register three entries with its view.
   const viewContainer = vscode.window.registerTreeDataProvider(
@@ -611,6 +622,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.PROJECT_TREE,
+      "PROJECT",
       preCmds,
       "apio.sidebar.project"
     );
@@ -618,6 +630,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.TOOLS_TREE,
+      "TOOLS",
       preCmds,
       "apio.sidebar.tools"
     );
@@ -625,6 +638,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.HELP_TREE,
+      "HELP",
       preCmds,
       "apio.sidebar.help"
     );

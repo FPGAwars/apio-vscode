@@ -34,20 +34,6 @@ jobs:
         run: |
           ls -al
 
-      # # E.g. "2025-11-02"
-      # - name: Determine release tag
-      #   run: |
-      #     release_tag="$(date +'%Y-%m-%d')"
-      #     echo $release_tag
-      #     echo "RELEASE_TAG=$release_tag" >> $GITHUB_ENV
-
-      # # E.g. "20251102"
-      # - name: Determine package tag
-      #   run: |
-      #     package_tag="${RELEASE_TAG//-/}"
-      #     echo $package_tag
-      #     echo "PACKAGE_TAG=$package_tag" >> $GITHUB_ENV
-
       - name: Get release and package tags
         uses: fpgawars/apio-workflows/.github/actions/get-release-and-package-tags@main
         with:
@@ -117,14 +103,6 @@ jobs:
 
           cat -n build-info.json
 
-      # - name: Format build info
-      #   run: |
-      #     set -x
-      #     cat -n build-info.json
-      #     npm install -g json-align
-      #     json-align --in-place --spaces 2 build-info.json
-      #     cat -n build-info.json
-
       - name: Format build info json file in-place
         uses: fpgawars/apio-workflows/.github/actions/format-json-file@main
         with:
@@ -158,8 +136,8 @@ jobs:
           > This repository keeps only the last 5 pre-releases so to preserve
           > a release, check off its's pre-release [] checkbox.
 
-          **IMPORTANT**: This releases is hard coded to fetch the apio binary from
-          [this Apio release](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG) \
+          **IMPORTANT**: This extension releases is hard coded to fetch the apio binary from
+          [Apio CLI release $APIO_RELEASE_TAG](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG) \
           which must exist for this VS Code extension
           to be functional.
 
@@ -172,42 +150,6 @@ jobs:
           EOF
 
           cat -n RELEASE-BODY.txt
-
-      # # Delete old pre-releases, keeps all releases.
-      # - name: Delete old pre-releases
-      #   uses: sgpublic/delete-release-action@v1.2
-      #   with:
-      #     # Keep all stable releases .
-      #     release-drop: false
-      #     # Delete old pre-releases, keep the newest 10 (excluding the absolute latest)
-      #     pre-release-drop: true
-      #     pre-release-keep-count: 5
-      #     pre-release-drop-tag: true # Also delete tags of deleted pre-releases
-      #     # Keep all drafts.
-      #     draft-drop: false
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
-
-      # - name: Delete same tag pre-release if exist.
-      #   run: |
-      #     set -e
-      #     gh release list --limit 100
-      #     output=$(gh release view "$RELEASE_TAG" --json name,tagName,isDraft,isImmutable,isPrerelease 2>&1 || true)
-      #     echo $output
-      #     if [[ "$output" == "release not found" ]]; then
-      #       echo "Release $RELEASE_TAG does not exist, safe to continue."
-      #     elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "true" ]]; then
-      #       echo "Release $RELEASE_TAG exists and is a pre-release, deleting."
-      #       gh release delete "$RELEASE_TAG" --yes --cleanup-tag
-      #     elif [[ "$(echo "$output" | jq -r '.isPrerelease')" == "false" ]]; then
-      #       echo "Error: A stable release (non pre-release) already exists for tag $RELEASE_TAG."
-      #       exit 1
-      #     else
-      #       echo "Error determining if release $RELEASE_TAG exists"
-      #       exit 1
-      #     fi
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
 
       - name: Cleanup old pre-releases
         uses: fpgawars/apio-workflows/.github/actions/cleanup-old-prereleases@main

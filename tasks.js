@@ -21,7 +21,12 @@ const utils = require("./utils.js");
  *   task error banner
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
-async function execCommandsInATask(cmds, preserveExitCode) {
+async function execCommandsInATask(
+  title,
+  cmds,
+  preserveExitCode,
+  completionMsgs
+) {
   const taskName = "Apio Run";
 
   // 1. Kill any previous Apio task to avoid conflicts
@@ -37,8 +42,9 @@ async function execCommandsInATask(cmds, preserveExitCode) {
   }
 
   // 3. Create the batch file.
-  const okMessage = "Task completed successfully.";
+  const okMessage = completionMsgs || ["Task completed successfully."];
   const failMessage = "Task failed.";
+  const titleMessage = `${title}`;
 
   let shell;
   let shellArgs;
@@ -48,7 +54,7 @@ async function execCommandsInATask(cmds, preserveExitCode) {
     shell = "cmd.exe";
     shellArgs = ["/c", batchFile];
     // Construct the task batch file task.cmd.
-    const wrappedCmds = cmds.flatMap((cmd) => [
+    const cmdsLines = cmds.flatMap((cmd) => [
       " ",
       `echo $ ${cmd}`,
       `${cmd}`,
@@ -63,10 +69,14 @@ async function execCommandsInATask(cmds, preserveExitCode) {
       "@echo off",
       "setlocal",
       "verify >nul",
-      ...wrappedCmds,
+      `echo ${titleMessage}`,
+      `echo.`,
+      ...cmdsLines,
       " ",
       `echo.`,
-      `echo ${okMessage}`,
+      // `echo ${okMessage}`,
+      ...okMessage.map((s) => `echo ${s}`),
+      // ...okMessage.map((s) => makeGreenEcho(s, true)),
       "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
@@ -76,7 +86,9 @@ async function execCommandsInATask(cmds, preserveExitCode) {
     shell = "bash";
     shellArgs = [batchFile];
     // Construct the task batch file task.bash.
-    const wrappedCmds = cmds.flatMap((cmd) => [
+    //
+    // Generate for each command.
+    const cmdsLines = cmds.flatMap((cmd) => [
       " ",
       `echo '$ ${cmd}'`,
       `${cmd}`,
@@ -87,14 +99,20 @@ async function execCommandsInATask(cmds, preserveExitCode) {
       preserveExitCode ? `  exit $ERR` : `  exit 0`,
       `fi`,
     ]);
+    // Combine all the lines.
     const lines = [
       "#!/usr/bin/env bash",
-      ...wrappedCmds,
+      `echo "${titleMessage}"`,
+      "echo",
+      ...cmdsLines,
       " ",
       "echo",
-      `echo "${okMessage}"`,
+      // `echo "${okMessage}"`,
+      ...okMessage.map((s) => `echo "${s}"`),
+      // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
+    // Write to a file.
     utils.writeFileFromLines(batchFile, lines);
     try {
       fs.chmodSync(batchFile, 0o755);
@@ -143,7 +161,7 @@ async function execCommandsInATask(cmds, preserveExitCode) {
 // VSCode switches to the new workspace.
 //
 // 'board' and 'example' specify the example to use. 'folder' is the destination
-// path and should be an absolute path and should not exist or be empty. 
+// path and should be an absolute path and should not exist or be empty.
 // 'callback' is calls on success and on failure with (ok:bool, text:str).
 async function openProjectFromExample(
   context,
@@ -172,7 +190,7 @@ async function openProjectFromExample(
       throw new Error(`Directory must not exist or must be empty: ${folder}`);
     }
 
-    // Create the destination folder if it doesn't exist. Does nothing if it 
+    // Create the destination folder if it doesn't exist. Does nothing if it
     // already exist..
     fs.mkdirSync(folder, { recursive: true });
 
@@ -185,8 +203,10 @@ async function openProjectFromExample(
       `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
     ];
     const aborted = await execCommandsInATask(
+      `Create project`,
       commands,
-      (preserveExitCode = true)
+      true, // preserveExitCode
+      ["Project created successfully, opening it..."] // completionMsgs
     );
     if (aborted) {
       throw Error("Failed to fetch example");
