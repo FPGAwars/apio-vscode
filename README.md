@@ -9,7 +9,14 @@
 
 ---
 
-Apio Ide is an easy to install and use Visual Studio Code extension that provides the full FPGA design capabilities within an IDE. For a quick start, visit the [Getting started with Apio](https://fpgawars.github.io/apio/docs/quick-start) guide.
+Apio IDE is an easy to use Visual Studio Code extension for FPGA design from A to Z. For a quick start, visit the [Getting started with Apio](https://fpgawars.github.io/apio/docs/quick-start) guide.
+
+<br>
+
+Simulation example:
+
+![GTKWave screenshot](media/sim-gtkwave.png)
+
 
 ## Description
 
@@ -19,23 +26,34 @@ Apio IDE supports every stage of the FPGA workflow, from simulating and testing,
 
 Apio IDE currently supports over 80 FPGA boards, custom boards can be easily added, and it includes over 60 ready-to-use example projects. Apio CLI currently supports the ICE40, ECP5, and GOWIN FPGA architectures.
 
+## Sample Apio IDE session
+
+1. **Apio icon** - Expose the Apio menu tree.
+2. **examples > demo project** menu entry - Create a demo project.
+3. **apio.ini** file - Review the Apio project file.
+4. **main.v** file   - Review the source code.
+5. **test** button - Run the automatic project tests.
+6. **sim** button - Run a simulation and show the signals.
+7. **report** button - Report design utilization and max speed.
+8. **upload** button - Program the attached FPGA board.
+
 ![VSCode screenshot](media/apio-vscode-animation.gif)
 
-Apio is a lightweight, open-source, command-line FPGA toolchain for Verilog and SystemVerilog development. It requires no complex toolchains, licenses, or makefiles and works seamlessly on **Linux**, **Windows**, and **macOS**.
 
 ---
 
 ## Getting Started
 
-1. **Install the Apio IDE extension**  
+1. **Install the Apio IDE extension**
    I the Extension tab of VSCode, search for the extension `fpgawars.apio` (Apio FPGA) and install it.
 
-2. **Open the Apio Demo project**  
+2. **Open the Apio Demo project**
    Select `TOOLS → examples → demo project`
 
-3. **Build the project**  
-   Use the **Apio status bar buttons** to lint, build, test, simulate, etc.  
-   Explore the full command list in the **Apio** sidebar tab.
+3. **Build the project**
+   Use the **Apio status bar buttons** to lint, build, test, simulate, etc.
+
+4. Explore the full command list in the **Apio sidebar**.
 
 ---
 
@@ -59,5 +77,3 @@ _Happy FPGA hacking!_
 [linux-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/linux.png
 [macosx-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/macosx.png
 [windows-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/windows.png
-
-
