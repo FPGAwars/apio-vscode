@@ -16,7 +16,6 @@ on:
 
 jobs:
   test:
-
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-latest, windows-latest]
@@ -36,6 +35,11 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: "package.json" # Detects from engines.node
+
+      # Node version management. Scripts like lint.sh expect it.
+      - name: Install nvm
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
       - name: Run lint
         run: |
