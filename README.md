@@ -9,7 +9,7 @@
 
 ---
 
-Apio Ide is an easy to install and use Visual Studio Code extension that provides the full FPGA design capabilities within an IDE. For a quick start, visit the [Getting started with Apio](https://fpgawars.github.io/apio/docs/quick-start) guide.
+Apio IDE is an easy to install and use Visual Studio Code extension that provides the full FPGA design capabilities within an IDE. For a quick start, visit the [Getting started with Apio](https://fpgawars.github.io/apio/docs/quick-start) guide.
 
 ## Description
 
@@ -59,5 +59,3 @@ _Happy FPGA hacking!_
 [linux-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/linux.png
 [macosx-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/macosx.png
 [windows-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/windows.png
-
-
