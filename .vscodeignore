@@ -11,9 +11,7 @@ eslint.config.mjs
 scripts
 .run.sh
 
-# This image is served in README.md from the github repo so 
-# no need to include in the package.
-media/screenshot1.png
+# These assets are used in README.md and are served by vscode from the
+# apio-vscode github repo directly so no need to include in the .vsix package.
+media/sim-gtkwave.png
 media/apio-vscode-animation.gif
-
-
