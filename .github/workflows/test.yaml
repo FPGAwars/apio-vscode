@@ -37,9 +37,17 @@ jobs:
           node-version-file: "package.json" # Detects from engines.node
 
       # Node version management. Scripts like lint.sh expect it.
-      - name: Install nvm
+      # Any use of nvm which is a bash script require sourcing it
+      # as done below.
+      - name: Install and configure nvm
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+          # Source nvm in this step and export for subsequent steps
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          # Verify installation
           nvm --version
 
       - name: Run lint
