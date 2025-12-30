@@ -23,4 +23,7 @@ npx vsce package
 # List the output file.
 ls -al apio-*.vsix
 
+# List files.
+# unzip -l apio-*.vsix
+
 
