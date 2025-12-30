@@ -45,7 +45,7 @@ function init() {
     constants.APIO_RELEASE_TAG +
     "/";
   const ext = platforms.isWindows() ? "zip" : "tgz";
-  const packageFileName = `apio-${platformId}-${yyyymmdd}-bundle.${ext}`;
+  const packageFileName = `apio-cli-${platformId}-${yyyymmdd}-bundle.${ext}`;
   _downloadSrcUrl = baseUrl + packageFileName;
   _downloadDstFilePath = path.join(utils.apioHomeDir(), packageFileName);
 }
