@@ -18,7 +18,7 @@ nvm use 22
 
 npm ci --foreground-scripts --legacy-peer-deps
 
-npx vsce package 
+npx vsce package
 
 # List the output file.
 ls -al apio-*.vsix
