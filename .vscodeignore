@@ -1,17 +1,10 @@
+.DS_Store
 .git
+.github
 .gitignore
 .vscode
 .vscode-test
 *.vsix
-install-locally.sh
-clear-apio-extension.sh
-.DS_Store
-.github
 eslint.config.mjs
 scripts
 .run.sh
-
-# These assets are used in README.md and are served by vscode from the
-# apio-vscode github repo directly so no need to include in the .vsix package.
-media/sim-gtkwave.png
-media/apio-vscode-animation.gif
