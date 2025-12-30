@@ -16,7 +16,6 @@ on:
 
 jobs:
   test:
-
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-latest, windows-latest]
@@ -37,8 +36,18 @@ jobs:
         with:
           node-version-file: "package.json" # Detects from engines.node
 
+      # Install the node version management. 
+      # This sets a script at ~/.nvm/nvm.sh that need to be sourced
+      # by any bash instance to define the 'nvm' command.
+      - name: Install and configure nvm
+        run: |
+          set -x
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          find ~/.nvm
+
       - name: Run lint
         run: |
+          set -x
           ./scripts/lint.sh
 
       - name: Init test environment

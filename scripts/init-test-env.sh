@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Run this once to setup the test env. Otherwise tests will not work.
 
 # Exit on error.
 set -e
+
+# Avoid a conflict when running under github.
+unset npm_config_prefix
 
 # Load nvm (standard location)
 export NVM_DIR="$HOME/.nvm"

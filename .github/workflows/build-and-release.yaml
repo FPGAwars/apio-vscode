@@ -159,18 +159,6 @@ jobs:
         with:
           release-tag: ${{ env.RELEASE_TAG }}
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2.2.2
-        with:
-          tag_name: ${{env.RELEASE_TAG}}
-          name: ${{env.RELEASE_TAG}}
-          body_path: RELEASE-BODY.txt
-          preserve_order: true
-          prerelease: true
-          fail_on_unmatched_files: true
-          files: |
-            apio-vscode-${{env.PACKAGE_TAG}}.vsix
-
       - name: Create GitHub pre-release
         uses: fpgawars/apio-workflows/.github/actions/create-pre-release@main
         with:

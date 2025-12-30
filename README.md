@@ -1,9 +1,9 @@
-![][apio-ide-banner]
+![](media/apio-ide-banner.png)
 
-[![License][license-image]][license-url]
+[![license](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![vscode-extension](https://img.shields.io/badge/Visual%20Studio%20Code-Extension-007ACC?logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=fpgawars.apio)
 
-![][linux-logo]&nbsp;&nbsp;&nbsp;![][macosx-logo]&nbsp;&nbsp;&nbsp;![][windows-logo]&nbsp;&nbsp;&nbsp;
+![linux](media/linux-logo.png)&nbsp;&nbsp;&nbsp;![macos](media/macosx-logo.png)&nbsp;&nbsp;&nbsp;![windows](media/windows-logo.png)
 
 [![vscode-build](https://img.shields.io/github/actions/workflow/status/fpgawars/apio-vscode/build-and-release.yaml?label=vscode-build)](https://github.com/fpgawars/apio-vscode/actions/workflows/build-and-release.yaml)
 [![vscode-test](https://img.shields.io/github/actions/workflow/status/fpgawars/apio-vscode/test.yaml?label=vscode-test)](https://github.com/fpgawars/apio-vscode/actions/workflows/test.yaml)
@@ -18,7 +18,6 @@ Simulation example:
 
 ![GTKWave screenshot](media/sim-gtkwave.png)
 
-
 ## Description
 
 Apio IDE is an easy to install extension that brings the full FPGA design functionality of Apio CLI to the Microsoft Visual Studio IDE. It’s simple to install, no toolchains, licenses, or makefiles required, and works across Linux, Windows, and macOS. Apio IDE is 100% open source, and free to use.
@@ -32,14 +31,13 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 1. **Apio icon** - Expose the Apio menu tree.
 2. **examples > demo project** menu entry - Create a demo project.
 3. **apio.ini** file - Review the Apio project file.
-4. **main.v** file   - Review the source code.
+4. **main.v** file - Review the source code.
 5. **test** button - Run the automatic project tests.
 6. **sim** button - Run a simulation and show the signals.
 7. **report** button - Report design utilization and max speed.
 8. **upload** button - Program the attached FPGA board.
 
 ![VSCode screenshot](media/apio-vscode-animation.gif)
-
 
 ---
 
@@ -70,11 +68,3 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 
 _Happy FPGA hacking!_
 
-<!-- Badges and URLs -->
-
-[apio-ide-banner]: https://raw.githubusercontent.com/FPGAwars/apio-vscode/refs/heads/main/media/apio-ide-banner.png
-[license-image]: http://img.shields.io/:license-gpl-blue.svg
-[license-url]: (http://opensource.org/licenses/GPL-2.0)
-[linux-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/linux.png
-[macosx-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/macosx.png
-[windows-logo]: https://raw.githubusercontent.com/FPGAwars/Apio-wiki/refs/heads/main/wiki/Logos/windows.png
