@@ -14,8 +14,8 @@ const util = require("util");
 const assert = require("assert");
 
 // Local imports
-const main = require("../main.js");
-const utils = require("../utils.js");
+const main = require("../src/main.js");
+const utils = require("../src/utils.js");
 
 // Convert exec() to promise form.
 const exec = util.promisify(childProcess.exec);

@@ -12,5 +12,6 @@ set -e
 
 ./scripts/init-test-env.sh
 
-npm run lint
+# Run the 'lint' target in packages.json.
+npm run lint 
 

@@ -34,7 +34,7 @@
     "onStartupFinished",
     "workspaceContains:apio.ini"
   ],
-  "main": "./main.js",
+  "main": "./src/main.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
