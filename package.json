@@ -4,7 +4,7 @@
   "description": "One-click build for FPGA projects",
   "version": "0.1.5",
   "publisher": "fpgawars",
-  "icon": "icon.png",
+  "icon": "media/market-icon.png",
   "engines": {
     "vscode": "^1.85.0",
     "node": "22.x"
