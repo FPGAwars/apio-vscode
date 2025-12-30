@@ -1,5 +1,6 @@
 <!--
-This README page layout and content is optimized for the VSCode Market rather than for the github repo.
+This README page layout and content is optimized for the VSCode Marketplace
+rather than for the github repo. A title or banner are not needed since the marketplace auto generates a banner with the extension name and icon.
 -->
 
 [![license](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
