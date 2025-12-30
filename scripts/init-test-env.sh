@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Run this once to setup the test env. Otherwise tests will not work.
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# IMPORTANT: Run scripts/init-test-env.sh once before running the tests.
+
 # Bash script to run VS Code extension tests using npx vscode-test
 # Usage:
 #   ./scripts/test.sh                 # Runs with 'stable' (latest stable VS Code)

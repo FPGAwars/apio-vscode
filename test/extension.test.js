@@ -1,7 +1,9 @@
 // To run the test interactively in VS Code, run ./scripts/init-test-env.sh
 // and use the extension ms-vscode.extension-test-runner to run the test
-// interactively, with or without debug. Alternatively, run using ./scripts/test.sh.
-
+// interactively, with or without debug.
+//
+// Alternatively, run in batch mode using using ./scripts/test.sh.
+//
 // NOTE: We don't know how to test commands such as 'demo project' and 'get examples'
 // which switch the workspace. This causes the test to fail.
 
@@ -14,8 +16,8 @@ const util = require("util");
 const assert = require("assert");
 
 // Local imports
-const main = require("../main.js");
-const utils = require("../utils.js");
+const main = require("../src/main.js");
+const utils = require("../src/utils.js");
 
 // Convert exec() to promise form.
 const exec = util.promisify(childProcess.exec);
