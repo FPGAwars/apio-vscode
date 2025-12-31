@@ -64,7 +64,7 @@ jobs:
 
           const fs = require('fs');
           const path = require('path');
-          const constants = require(path.join(workspace, 'constants.js'));
+          const constants = require(path.join(workspace, 'src', 'constants.js'));
           const pkg = require(path.join(workspace, 'package.json'));
 
           const envPath = process.env.GITHUB_ENV;

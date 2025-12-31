@@ -1,12 +1,12 @@
-![](media/apio-ide-banner.png)
+<!--
+This README page layout and content is optimized for the VSCode Marketplace
+rather than for the github repo. A title or banner are not needed since the marketplace auto generates a banner with the extension name and icon.
+-->
 
 [![license](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![vscode-extension](https://img.shields.io/badge/Visual%20Studio%20Code-Extension-007ACC?logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=fpgawars.apio)
 
 ![linux](media/linux-logo.png)&nbsp;&nbsp;&nbsp;![macos](media/macosx-logo.png)&nbsp;&nbsp;&nbsp;![windows](media/windows-logo.png)
-
-[![vscode-build](https://img.shields.io/github/actions/workflow/status/fpgawars/apio-vscode/build-and-release.yaml?label=vscode-build)](https://github.com/fpgawars/apio-vscode/actions/workflows/build-and-release.yaml)
-[![vscode-test](https://img.shields.io/github/actions/workflow/status/fpgawars/apio-vscode/test.yaml?label=vscode-test)](https://github.com/fpgawars/apio-vscode/actions/workflows/test.yaml)
 
 ---
 
@@ -67,4 +67,3 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 ---
 
 _Happy FPGA hacking!_
-
