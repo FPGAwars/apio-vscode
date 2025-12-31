@@ -85,19 +85,19 @@ jobs:
           # Generate build-info.json
           cat > build-info.json <<EOF
           {
-            "package-name":  "apio-vscode",
+            "package-name":  "apio-ide",
             "description" : "Apio extension for Visual Studio Code",
             "source-repo":  "${{github.repository}}",
             "source-sha":   "${{ github.sha }}",
             "source-branch": "${{ github.ref_name }}",
-            "package-version": "$VSCODE_EXTENSION_VERSION",
+            "apio-ide-version": "$VSCODE_EXTENSION_VERSION",
+            "apio-ide-release-tag": "${RELEASE_TAG}"
             "apio-cli-release-repo": "$APIO_CLI_RELEASE_REPO",
             "apio-cli-release-tag" : "$APIO_CLI_RELEASE_TAG",
             "build-time":  "$(date +'%Y-%m-%d %H:%M:%S %Z')",
             "builder-workflow":  "${{ github.workflow }}",
             "workflow-run-id":  "${{github.run_id}}",
             "workflow-run-number": "${{github.run_number}}",
-            "release-tag": "${RELEASE_TAG}"
           }
           EOF
 
@@ -175,8 +175,8 @@ jobs:
           to be functional.
 
           ### Installation
-          See the [Apio IDE installation guide](https://fpgawars.github.io/apio/docs/installing-apio-ide),
-          as additional information.
+          See the [Apio IDE installation guide](https://fpgawars.github.io/apio/docs/installing-apio-ide), \
+          for additional information.
 
           ### Build info
 
