@@ -36,13 +36,13 @@ function init() {
   );
 
   // Determine download information.
-  const yyyymmdd = constants.APIO_RELEASE_TAG.replaceAll("-", "");
+  const yyyymmdd = constants.APIO_CLI_RELEASE_TAG.replaceAll("-", "");
   const platformId = platforms.getPlatformId();
   const baseUrl =
     "https://github.com/" +
-    constants.APIO_RELEASE_GITHUB_REPO +
+    constants.APIO_CLI_RELEASE_REPO +
     "/releases/download/" +
-    constants.APIO_RELEASE_TAG +
+    constants.APIO_CLI_RELEASE_TAG +
     "/";
   const ext = platforms.isWindows() ? "zip" : "tgz";
   const packageFileName = `apio-cli-${platformId}-${yyyymmdd}-bundle.${ext}`;

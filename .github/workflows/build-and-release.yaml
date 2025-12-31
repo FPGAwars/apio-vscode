@@ -18,8 +18,8 @@ env:
   RELEASE_TAG: ""
   PACKAGE_TAG: ""
   VSCODE_EXTENSION_VERSION: ""
-  APIO_RELEASE_GITHUB_REPO: ""
-  APIO_RELEASE_TAG: ""
+  APIO_CLI_RELEASE_REPO: ""
+  APIO_CLI_RELEASE_TAG: ""
 
 jobs:
   # ----- Parameters collection job
@@ -72,11 +72,11 @@ jobs:
           console.log(`VSCODE_EXTENSION_VERSION=${pkg.version}`)
           fs.appendFileSync(envPath, `VSCODE_EXTENSION_VERSION=${pkg.version}\n`);
 
-          console.log(`APIO_RELEASE_GITHUB_REPO=${constants.APIO_RELEASE_GITHUB_REPO}`)
-          fs.appendFileSync(envPath, `APIO_RELEASE_GITHUB_REPO=${constants.APIO_RELEASE_GITHUB_REPO}\n`);
+          console.log(`APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}\n`);
 
-          console.log(`APIO_RELEASE_TAG=${constants.APIO_RELEASE_TAG}`)
-          fs.appendFileSync(envPath, `APIO_RELEASE_TAG=${constants.APIO_RELEASE_TAG}\n`);
+          console.log(`APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}\n`);
         shell: node {0}
 
       # Create the build info file that we will include in the package.
@@ -85,19 +85,19 @@ jobs:
           # Generate build-info.json
           cat > build-info.json <<EOF
           {
-            "package-name":  "apio-vscode",
+            "package-name":  "apio-ide",
             "description" : "Apio extension for Visual Studio Code",
             "source-repo":  "${{github.repository}}",
             "source-sha":   "${{ github.sha }}",
             "source-branch": "${{ github.ref_name }}",
-            "package-version": "$VSCODE_EXTENSION_VERSION",
-            "apio-release-repo": "$APIO_RELEASE_GITHUB_REPO",
-            "apio-release-tag" : "$APIO_RELEASE_TAG",
+            "apio-ide-version": "$VSCODE_EXTENSION_VERSION",
+            "apio-ide-release-tag": "${RELEASE_TAG}",
+            "apio-cli-release-repo": "$APIO_CLI_RELEASE_REPO",
+            "apio-cli-release-tag" : "$APIO_CLI_RELEASE_TAG",
             "build-time":  "$(date +'%Y-%m-%d %H:%M:%S %Z')",
             "builder-workflow":  "${{ github.workflow }}",
             "workflow-run-id":  "${{github.run_id}}",
-            "workflow-run-number": "${{github.run_number}}",
-            "release-tag": "${RELEASE_TAG}"
+            "workflow-run-number": "${{github.run_number}}"
           }
           EOF
 
@@ -127,26 +127,63 @@ jobs:
           input-json: build-info.json
           output-text: build-info.txt
 
-      # Add notes for the release page.
-      - name: Create the release text
+      # Summary for the workflow run page.
+      - name: Prepare workflow run summary
         run: |
-          cat  > RELEASE-BODY.txt <<EOF
-          This is the daily build of the Apio VSCode extension.
-
-          > This repository keeps only the last 5 pre-releases so to preserve
-          > a release, check off its's pre-release [] checkbox.
-
-          **IMPORTANT**: This extension releases is hard coded to fetch the apio binary from
-          [Apio CLI release $APIO_RELEASE_TAG](https://github.com/$APIO_RELEASE_GITHUB_REPO/releases/tag/$APIO_RELEASE_TAG) \
-          which must exist for this VS Code extension
-          to be functional.
+          cat  > RUN-SUMMARY.txt <<EOF
 
           Build info:
           \`\`\`
           $(cat build-info.txt)
           \`\`\`
 
-          [Installation instructions](https://fpgawars.github.io/apio/docs/quick-start)
+          - [Apio IDE cutoff commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+          - [Apio CLI release](https://github.com/${APIO_CLI_RELEASE_REPO}/commit/${APIO_CLI_RELEASE_TAG})
+
+          - [Generated release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
+          EOF
+
+          ls -al
+          cat -n RUN-SUMMARY.txt
+
+      - name: Post workflow run summary
+        run: |
+          cat RUN-SUMMARY.txt >> $GITHUB_STEP_SUMMARY
+
+      # Add notes for the release page.
+      - name: Create the release text
+        run: |
+          cat  > RELEASE-BODY.txt <<EOF
+
+          > ### Pre-release note
+          >
+          > This daily release was created as a pre-release and
+          > will be deleted after 5 days unless if it's marked as a stable release. To make
+          > this a  stable release, do the following:
+          > * Open the release for editing.
+          > * Turn off the `Set as a pre-release` checkbox below.
+          > * (optional) Turn on the `Set as the latest release` checkbox.
+          > * Remove this pre-release note.
+          > * (optional) Add release notes.
+          > * Click `Update Release` button to save your changes.
+
+          ### Dependency note
+          This Apio IDE release is hard coded to fetch the Apio binary from
+          [Apio CLI release $APIO_CLI_RELEASE_TAG](https://github.com/$APIO_CLI_RELEASE_REPO/releases/tag/$APIO_CLI_RELEASE_TAG) \
+          which must exist for this VS Code extension
+          to be functional.
+
+          ### Installation
+          See the [Apio IDE installation guide](https://fpgawars.github.io/apio/docs/installing-apio-ide), \
+          for additional information.
+
+          ### Build info
+
+          \`\`\`
+          $(cat build-info.txt)
+          \`\`\`
+
           EOF
 
           cat -n RELEASE-BODY.txt
