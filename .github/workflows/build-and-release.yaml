@@ -18,8 +18,8 @@ env:
   RELEASE_TAG: ""
   PACKAGE_TAG: ""
   VSCODE_EXTENSION_VERSION: ""
-  APIO_RELEASE_REPO: ""
-  APIO_RELEASE_TAG: ""
+  APIO_CLI_RELEASE_REPO: ""
+  APIO_CLI_RELEASE_TAG: ""
 
 jobs:
   # ----- Parameters collection job
@@ -72,11 +72,11 @@ jobs:
           console.log(`VSCODE_EXTENSION_VERSION=${pkg.version}`)
           fs.appendFileSync(envPath, `VSCODE_EXTENSION_VERSION=${pkg.version}\n`);
 
-          console.log(`APIO_RELEASE_REPO=${constants.APIO_RELEASE_REPO}`)
-          fs.appendFileSync(envPath, `APIO_RELEASE_REPO=${constants.APIO_RELEASE_REPO}\n`);
+          console.log(`APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}\n`);
 
-          console.log(`APIO_RELEASE_TAG=${constants.APIO_RELEASE_TAG}`)
-          fs.appendFileSync(envPath, `APIO_RELEASE_TAG=${constants.APIO_RELEASE_TAG}\n`);
+          console.log(`APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}\n`);
         shell: node {0}
 
       # Create the build info file that we will include in the package.
@@ -91,8 +91,8 @@ jobs:
             "source-sha":   "${{ github.sha }}",
             "source-branch": "${{ github.ref_name }}",
             "package-version": "$VSCODE_EXTENSION_VERSION",
-            "apio-release-repo": "$APIO_RELEASE_REPO",
-            "apio-release-tag" : "$APIO_RELEASE_TAG",
+            "apio-cli-release-repo": "$APIO_CLI_RELEASE_REPO",
+            "apio-cli-release-tag" : "$APIO_CLI_RELEASE_TAG",
             "build-time":  "$(date +'%Y-%m-%d %H:%M:%S %Z')",
             "builder-workflow":  "${{ github.workflow }}",
             "workflow-run-id":  "${{github.run_id}}",
@@ -139,7 +139,7 @@ jobs:
 
           - [Apio IDE cutoff commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
 
-          - [Apio CLI release](https://github.com/${APIO_RELEASE_REPO}/commit/${APIO_RELEASE_TAG})
+          - [Apio CLI release](https://github.com/${APIO_CLI_RELEASE_REPO}/commit/${APIO_CLI_RELEASE_TAG})
 
           - [Generated release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
           EOF
@@ -170,7 +170,7 @@ jobs:
 
           ### Dependency note
           This Apio IDE release is hard coded to fetch the Apio binary from
-          [Apio CLI release $APIO_RELEASE_TAG](https://github.com/$APIO_RELEASE_REPO/releases/tag/$APIO_RELEASE_TAG) \
+          [Apio CLI release $APIO_CLI_RELEASE_TAG](https://github.com/$APIO_CLI_RELEASE_REPO/releases/tag/$APIO_CLI_RELEASE_TAG) \
           which must exist for this VS Code extension
           to be functional.
 
