@@ -20,10 +20,12 @@ npm ci --foreground-scripts --legacy-peer-deps
 
 npx vsce package
 
+# List files.
+unzip -l apio-*.vsix
+
+echo
+
 # List the output file.
 ls -al apio-*.vsix
-
-# List files.
-# unzip -l apio-*.vsix
 
 

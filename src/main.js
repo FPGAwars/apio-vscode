@@ -47,8 +47,8 @@ This Apio extension does not support the platform *${platformId}*
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-[Open](command:workbench.action.files.openFolder) your existing Apio project,  
-[play](command:apio.demoProject) with the Apio demo project, or 
+[Open](command:workbench.action.files.openFolder) your existing Apio project, \
+[play](command:apio.demoProject) with the Apio demo project, or \
 [read](https://fpgawars.github.io/apio/docs/quick-start/#__tabbed_1_1) the Getting Started guide.
 `.trim();
 

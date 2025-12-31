@@ -8,3 +8,5 @@
 eslint.config.mjs
 scripts
 .run.sh
+docs
+mkdocs.yml

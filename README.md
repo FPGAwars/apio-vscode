@@ -28,14 +28,6 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 
 ## Sample Apio IDE session
 
-1. **Apio icon** - Expose the Apio menu tree.
-2. **examples > demo project** menu entry - Create a demo project.
-3. **apio.ini** file - Review the Apio project file.
-4. **main.v** file - Review the source code.
-5. **test** button - Run the automatic project tests.
-6. **sim** button - Run a simulation and show the signals.
-7. **report** button - Report design utilization and max speed.
-8. **upload** button - Program the attached FPGA board.
 
 ![VSCode screenshot](media/apio-vscode-animation.gif)
 
@@ -63,6 +55,66 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 - [Apio IDE github repository](https://github.com/fpgawars/apio-vscode)
 - [Apio IDE on the VS Code market](https://marketplace.visualstudio.com/items?itemName=fpgawars.apio)
 - [Apio IDE daily build](https://github.com/fpgawars/apio-vscode/releases)
+
+---
+
+## Sample screens and commands
+
+**The no-project screen.** - The Apio extension offers to open a project or to create one.
+![](media/screenshot-no-project.png)
+
+<br>
+
+**Creating a project from an example.** - The `get example...` command provides a form to select the board, example, and output directory of a new example project.
+![](media/screenshot-get-example.png)
+
+<br>
+
+**Building the project** - The `build` command builds the project and reports of any errors it found.
+![](media/screenshot-build.png)
+
+<br>
+
+**Building the project using the quick access buttons** - The Apio buttons in the status bar provides quick access to selected Apio IDE menu commands.
+![](media/screenshot-build-button.png)
+
+<br>
+
+**Linting the project** - The `lint` command checks the project for additional errors and style violations.
+![](media/screenshot-lint.png)
+
+<br>
+
+**Verifying utilization and speed** - The `report` summarizes the FPGA cells utilization and the maximal clock speed that the design can sustain.
+![](media/screenshot-report.png)
+
+<br>
+
+**Running the project tests** - The `test` command runs all the project testbenchs in batch mode and fails if any of them fails on an assertion.
+![](media/screenshot-test.png)
+
+<br>
+
+**Running interactive simulation** - The `sim` command runs a single testbench and shows it signals for debugging.**
+![](media/screenshot-sim.png)
+
+<br>
+
+**Programming the FPGA board** - The `upload` command builds the projects and upload it to an attached FPGA board.
+![](media/screenshot-upload.png)
+
+<br>
+
+**Selecting the active project env** - In Apio project that define multiple build 'envs' (targets), clicking the env field in the status bar allows to the select the active env.
+![](media/screenshot-env-selector.png)
+
+<br>
+
+**Invoking Apio CLI commands** - The `apio shell` command provides an interactive shell with full access to Apio CLI's commands.
+![](media/screenshot_shell.png)
+
+
+
 
 ---
 
