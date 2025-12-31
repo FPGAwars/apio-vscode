@@ -91,13 +91,13 @@ jobs:
             "source-sha":   "${{ github.sha }}",
             "source-branch": "${{ github.ref_name }}",
             "apio-ide-version": "$VSCODE_EXTENSION_VERSION",
-            "apio-ide-release-tag": "${RELEASE_TAG}"
+            "apio-ide-release-tag": "${RELEASE_TAG}",
             "apio-cli-release-repo": "$APIO_CLI_RELEASE_REPO",
             "apio-cli-release-tag" : "$APIO_CLI_RELEASE_TAG",
             "build-time":  "$(date +'%Y-%m-%d %H:%M:%S %Z')",
             "builder-workflow":  "${{ github.workflow }}",
             "workflow-run-id":  "${{github.run_id}}",
-            "workflow-run-number": "${{github.run_number}}",
+            "workflow-run-number": "${{github.run_number}}"
           }
           EOF
 
