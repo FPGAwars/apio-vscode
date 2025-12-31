@@ -142,7 +142,7 @@ jobs:
           - [Generated Apio IDE release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
 
           - [Linked Apio CLI release](https://github.com/${APIO_CLI_RELEASE_REPO}/releases/tag/${APIO_CLI_RELEASE_TAG}) \
-          (required at runtime)
+          (Must exist for this Apio IDE release to work)
 
           EOF
 
