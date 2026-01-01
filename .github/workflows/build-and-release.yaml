@@ -164,21 +164,22 @@ jobs:
           > will be deleted after 5 days unless if it's marked as a stable release. To make
           > this a  stable release, do the following:
           > * Open the release for editing.
-          > * Turn off the `Set as a pre-release` checkbox below.
-          > * (optional) Turn on the `Set as the latest release` checkbox.
+          > * Turn off the \`Set as a pre-release\` checkbox below.
+          > * (optional) Turn on the \`Set as the latest release\` checkbox.
           > * Remove this pre-release note.
           > * (optional) Add release notes.
-          > * Click `Update Release` button to save your changes.
+          > * Click \`Update Release\` button to save your changes.
 
           ### Dependency note
-          This Apio IDE release is hard coded to fetch the Apio binary from
+          This Apio IDE release is hard coded to fetch the Apio binary from \
           [Apio CLI release $APIO_CLI_RELEASE_TAG](https://github.com/$APIO_CLI_RELEASE_REPO/releases/tag/$APIO_CLI_RELEASE_TAG) \
-          which must exist for this VS Code extension
-          to be functional.
+          which must exist for this VS Code extension to be functional.
 
           ### Installation
-          See the [Apio IDE installation guide](https://fpgawars.github.io/apio/docs/installing-apio-ide), \
-          for additional information.
+          This VS Code extension is typically installed directly from the VS Code Marketplace \
+          [where it's published](https://marketplace.visualstudio.com/items?itemName=fpgawars.apio). \
+          To side load the .vsix file from here use the VS Code \
+          \`Install from VSIX\` command in the extensions menu.
 
           ### Build info
 
