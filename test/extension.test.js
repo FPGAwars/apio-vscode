@@ -127,7 +127,7 @@ suite("Integration tests", () => {
     await vscode.extensions.getExtension("fpgawars.apio").activate();
 
     // Force installation of apio binary and it's packages.
-    await vscode.commands.executeCommand("apio.packagesUpdate");
+    await vscode.commands.executeCommand("apio.packagesInstall");
     await briefDelay();
   });
 
