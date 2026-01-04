@@ -1,5 +1,11 @@
 
 
+## [0.1.6]
+
+### Changed
+- The option 'top-module' is now required in apio.ini. In prefious version it
+  was optional with default value 'main'.  
+
 ## [0.1.5]
 
 ### Cleanup
