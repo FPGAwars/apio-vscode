@@ -28,7 +28,6 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 
 ## Sample Apio IDE session
 
-
 ![VSCode screenshot](media/apio-vscode-animation.gif)
 
 ---
@@ -95,7 +94,7 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 
 <br>
 
-**Running interactive simulation** - The `sim` command runs a single testbench and shows it signals for debugging.**
+**Running interactive simulation** - The `sim` command runs a single testbench and shows it signals for debugging.\*\*
 ![](media/screenshot-sim.png)
 
 <br>
@@ -113,8 +112,13 @@ Apio IDE currently supports over 80 FPGA boards, custom boards can be easily add
 **Invoking Apio CLI commands** - The `apio shell` command provides an interactive shell with full access to Apio CLI's commands.
 ![](media/screenshot_shell.png)
 
+---
 
+## License
 
+The Apio project itself is licensed under the GNU General Public License version 3.0 (GPL-3.0).
+Pre-built packages may include third-party tools and components, which are subject to their
+respective license terms.
 
 ---
 
