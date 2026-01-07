@@ -40,7 +40,8 @@ const ENV_DEFAULT = "(default)";
 const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) =>
   `#### Unsupported platform
 
-This Apio extension does not support the platform *${platformId}*
+The platform *${platformId}* is currently not supported. Please \
+[file a feature request](https://github.com/fpgawars/apio/issues).
 `.trim();
 
 // Markdown notice to show when there is no open apio project.
