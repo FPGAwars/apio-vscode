@@ -18,7 +18,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-latest, macos-15-intel, windows-latest]
         vscode-version: ["1.85.0", "stable"]
 
     runs-on: ${{ matrix.os }}
