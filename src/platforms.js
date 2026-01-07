@@ -21,6 +21,7 @@ const process = require("process");
 // (pyinstaller) Apio release bundle.
 const SUPPORTED_PLATFORMS_IDS = [
   "darwin-arm64",
+  "darwin-x86-64",
   "linux-x86-64",
   "windows-amd64",
 ];

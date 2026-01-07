@@ -3,6 +3,8 @@
 ## [0.1.6]
 
 ### Changed
+- Added support for legacy MacOS/Intel (x86-64)
+
 - The option 'top-module' is now required in apio.ini. In prefious version it
   was optional with default value 'main'.  
 
