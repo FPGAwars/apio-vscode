@@ -2,7 +2,7 @@
 
 # Refresh the versions of npm modules used by this package.
 # This updates package-lock.json which we check into github
-# and it guides the build-and-release.yaml workflow.
+# and it guides the build-pre-release.yaml workflow.
 
 # Exit on first error
 set -e

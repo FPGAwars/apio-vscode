@@ -3,7 +3,7 @@ This README page layout and content is optimized for the VSCode Marketplace
 rather than for the github repo. A title or banner are not needed since the marketplace auto generates a banner with the extension name and icon.
 -->
 
-[![license](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![license](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://github.com/fpgawars/apio-vscode/blob/main/LICENSE)
 [![vscode-extension](https://img.shields.io/badge/Visual%20Studio%20Code-Extension-007ACC?logo=visual-studio-code&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=fpgawars.apio)
 
 ![linux](media/linux-logo.png)&nbsp;&nbsp;&nbsp;![macos](media/macosx-logo.png)&nbsp;&nbsp;&nbsp;![windows](media/windows-logo.png)
