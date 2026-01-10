@@ -10,6 +10,11 @@ const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const utils = require("./utils.js");
 
+// A global vscode apio flag name to indicate to activate() to
+// open apio.ini after creating a new project, e.g. demo or an
+// apio example.
+const JUST_CREATED_PROJECT_FLAG = "apio.justCreatedProject";
+
 /**
  * Executes a list of shell commands sequentially using a single VS Code task.
  * Waits for completion and returns true if any command failed (non-zero exit code).
@@ -156,6 +161,35 @@ async function execCommandsInATask(
   });
 }
 
+// Conditionally open apio.ini. This happens only if we just
+// created a new apio project from the get example wizard which temporarily
+// sets the apio.justCreatedProject flag.
+async function maybeOpenNewProject(context, wsInfo) {
+  if (context.globalState.get(JUST_CREATED_PROJECT_FLAG)) {
+    // Clear the global flag, regardless if we used it or not.
+    context.globalState.update(JUST_CREATED_PROJECT_FLAG, undefined);
+
+    if (wsInfo.apioIniExists) {
+      // Open apio.ini in the editor.
+      const apioIniUri = vscode.Uri.file(wsInfo.apioIniPath);
+      vscode.window
+        .showTextDocument(apioIniUri, {
+          viewColumn: vscode.ViewColumn.Active,
+          preview: false,
+          preserveFocus: false,
+        })
+        .then(
+          () => {
+            apioLog.msg("New project, apio.ini opened automatically");
+          },
+          (err) => {
+            apioLog.msg(`Failed to open apio.ini: ${err}`);
+          }
+        );
+    }
+  }
+}
+
 // Populate the given directory with given example and open the project
 // with VSCode. If everything goes well, the function does not return as
 // VSCode switches to the new workspace.
@@ -216,35 +250,44 @@ async function openProjectFromExample(
     // call back with ok status to allow a brief success indication to the user.
     callback(true, "Success! Opening project.");
 
+    // Uri of the new project's folder.
+    const destinationUri = vscode.Uri.file(folder);
+
+    // Brief wait to allow VS Code to detect newly created folder contents
+    for (let i = 0; i < 10; i++) {
+      try {
+        const entries = await vscode.workspace.fs.readDirectory(destinationUri);
+        if (entries.length > 0) {
+          apioLog.msg(`New project folder is ready, attempts=${i + 1}`);
+          break;
+        }
+      } catch {
+        // silent - continue waiting
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
     // Signal to the apio activate() that will be called on the new
     // workspace to automatically open apio.ini.
     await context.globalState.update("apio.justCreatedProject", true);
 
-    // Switch to the new workspace. This will start a new instance of
-    // this extension.
-    setTimeout(async () => {
-      // Determine if the demo project is already the current workspace,
-      // in case we run the 'demo project' command while a demo project
-      // is already open.
-      const wsInfo = utils.getWorkspaceInfo();
+    // Determine if vscode will issue a workspace change or not.
+    const isWsChange = utils.willCauseWorkspaceChange(destinationUri);
+    apioLog.msg(`isWsChange = ${isWsChange}`);
 
-      const sameFolder = wsInfo.wsDirPath && folder == wsInfo.wsDirPath;
-
-      if (sameFolder) {
-        // Current and destination workspace folders are the same one, simply
-        // reload the current workspace to invoke activate()
-        await vscode.commands.executeCommand("workbench.action.reloadWindow");
-      } else {
-        // Here when the current workspace is not the demo folder so we switch
-        // to the demo folder. Doing so when the folders are the same results
-        // in awkward user experience because activate() is no invoked.
-        await vscode.commands.executeCommand(
-          "vscode.openFolder",
-          vscode.Uri.file(folder),
-          { forceNewWindow: false, forceReuseWindow: true }
-        );
-      }
-    }, 1200);
+    if (isWsChange) {
+      // Open the demo project folder. This will cause a workspace switch
+      // per the check above, and will invoke activate().
+      await vscode.commands.executeCommand(
+        "vscode.openFolder",
+        destinationUri,
+        { forceNewWindow: false, forceReuseWindow: true }
+      );
+    } else {
+      // VSCode would not consider it as workspace change so reload the window to trigger
+      // activate().
+      await vscode.commands.executeCommand("workbench.action.reloadWindow");
+    }
 
     // Here when error.
   } catch (err) {
@@ -256,4 +299,5 @@ async function openProjectFromExample(
 module.exports = {
   execCommandsInATask,
   openProjectFromExample,
+  maybeOpenNewProject,
 };

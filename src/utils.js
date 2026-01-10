@@ -6,9 +6,11 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const assert = require("node:assert");
+const { performance } = require("perf_hooks");
 
 // Local imports
 const platforms = require("./platforms.js");
+const apioLog = require("./apio-log.js");
 
 // Scans apio.ini and return list of env names.
 function extractApioIniEnvs(apioIniFilePath) {
@@ -157,6 +159,90 @@ async function prepareEmptyApioDemoDir() {
   return demoDir;
 }
 
+/**
+ * Determines whether opening the given destinationUri with vscode.openFolder
+ * will most likely cause a workspace switch / window reload.
+ *
+ * Returns true  → switch/reload is expected (different workspace)
+ * Returns false → no switch expected (same workspace, command usually does nothing)
+ *
+ * Important: This function assumes a **single-folder workspace**.
+ *            For multi-root workspaces the logic needs to be extended.
+ *
+ * @param {vscode.Uri} destinationUri - The target folder URI you want to open
+ * @returns {Promise<boolean>} true = will cause workspace change
+ */
+function willCauseWorkspaceChange(destinationUri) {
+  apioLog.msg("willCauseWorkspaceChange() called.");
+  // No current workspace → opening any folder will cause a change
+  if (
+    !vscode.workspace.workspaceFolders ||
+    vscode.workspace.workspaceFolders.length === 0
+  ) {
+    apioLog.msg("No open folders -> same");
+    return true;
+  }
+
+  // For simplicity we assume single-folder workspace (most common case)
+  const n = vscode.workspace.workspaceFolders.length;
+  if (vscode.workspace.workspaceFolders.length !== 1) {
+    // For multi-root → usually no full reload, but treat as change conservatively
+    apioLog.msg(`num folders = ${n} -> true`);
+    return true;
+  }
+
+  const currentFolder = vscode.workspace.workspaceFolders[0];
+  const currentUri = currentFolder.uri;
+
+  // VS Code normalizes fsPath (especially on Windows: drive letter → lowercase)
+  // This matches VS Code internal behavior when deciding whether to reload
+  function normalize(uri) {
+    let fsPath = uri.fsPath;
+
+    // Extra safety: resolve + normalize separators (helps with trailing slashes etc.)
+    fsPath = path.resolve(fsPath).replace(/\\/g, "/");
+
+    // On Windows VS Code internally lowercases drive letter in fsPath
+    // We replicate this conservative behavior
+    if (process.platform === "win32") {
+      return fsPath.toLowerCase();
+    }
+
+    return fsPath;
+  }
+
+  const normalizedCurrent = normalize(currentUri);
+  const normalizedTarget = normalize(destinationUri);
+
+  apioLog.msg(`normalizedCurrent: ${normalizedCurrent}`);
+  apioLog.msg(`normalizedTarget: ${normalizedTarget}`);
+
+  const isSame = normalizedCurrent === normalizedTarget;
+  apioLog.msg(`isSame: ${isSame}`);
+
+  return !isSame;
+}
+
+/**
+ * Creates a named timing measurement object.
+ * Call .done() to stop the timer and log the duration via apioLog.msg().
+ *
+ * Usage:
+ *   const finishFetch = timing('Fetching example');
+ *   // ... your operation ...
+ *   finishFetch.done();          // → logs: Fetching example: 342.15 ms
+ */
+function timing(label) {
+  const start = performance.now();
+
+  return {
+    done: () => {
+      const duration = performance.now() - start;
+      apioLog.msg(`${label}: ${duration.toFixed(2)} ms`);
+    },
+  };
+}
+
 // Exported for require().
 module.exports = {
   extractApioIniEnvs,
@@ -172,4 +258,6 @@ module.exports = {
   WorkspaceInfo,
   getWorkspaceInfo,
   prepareEmptyApioDemoDir,
+  willCauseWorkspaceChange,
+  timing,
 };
