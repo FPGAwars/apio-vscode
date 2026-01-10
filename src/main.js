@@ -157,21 +157,6 @@ function registerDemoProjectCommand(context) {
 
       const demoDir = await utils.prepareEmptyApioDemoDir();
 
-      // Get temp demo dir
-      // const demoDir = utils.apioDemoDir();
-
-      // Remove old demo dir, if exists.
-      // await fs.promises
-      //   .rm(demoDir, { recursive: true, force: true })
-      //   .catch(() => {});
-
-      // Action callback, throws an error if demo project creation failed.
-      function callback(ok, text) {
-        if (!ok) {
-          throw Error(text);
-        }
-      }
-
       // Populate the demo directory with the given example and open it in VSCode.
       // Does not return if successful since VSCode leaves this workspace.
       await tasks.openProjectFromExample(
@@ -179,7 +164,9 @@ function registerDemoProjectCommand(context) {
         "alhambra-ii",
         "getting-started",
         demoDir,
-        callback
+        (callback = (ok, text) => {
+          if (!ok) throw Error(text);
+        })
       );
     }
   );
@@ -453,40 +440,12 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
 // Performs the dynamic configurations of the extension such as
 // showing or hiding views and buttons. Calls once from activate()
 // and then each time apio.ini changes.
-function configure(context) {
+function configure() {
   apioLog.msg("configure() called.");
 
   // Get the current state of the workspace.
   const wsInfo = utils.getWorkspaceInfo();
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
-
-  // Conditionally open apio.ini. This happens only if we just
-  // created a new apio project from the get example wizard which temporarily
-  // sets the apio.justCreatedProject flag.
-  if (
-    wsInfo.apioIniExists &&
-    context.globalState.get("apio.justCreatedProject")
-  ) {
-    // Open apio.ini in the editor.
-    const apioIniUri = vscode.Uri.file(wsInfo.apioIniPath);
-    vscode.window
-      .showTextDocument(apioIniUri, {
-        viewColumn: vscode.ViewColumn.Active,
-        preview: false,
-        preserveFocus: false,
-      })
-      .then(
-        () => {
-          apioLog.msg("New project, apio.ini opened automatically");
-        },
-        (err) => {
-          apioLog.msg(`Failed to open apio.ini: ${err}`);
-        }
-      );
-  }
-
-  // Clear the global flag, regardless if we used it or not.
-  context.globalState.update("apio.justCreatedProject", undefined);
 
   // If apio project found then hide the notice view, else show
   // the no-project notice.
@@ -550,6 +509,8 @@ function activate(context) {
   // Init Apio log output channel.
   apioLog.init(context);
   apioLog.msg("activate() started.");
+
+  const activateFuncTiming = utils.timing("Activate() function");
 
   // Determine if the underlying host is supported. This depends on the
   // availability of platform_id in apio build releases.
@@ -620,6 +581,8 @@ function activate(context) {
   // Register the commands and the views from the command
   // trees definitions.
   {
+    const treeViewsTiming = utils.timing("Tree views registrations");
+
     _registerTreeView(
       context,
       commands.PROJECT_TREE,
@@ -643,6 +606,8 @@ function activate(context) {
       preCmds,
       "apio.sidebar.help"
     );
+
+    treeViewsTiming.done();
   }
 
   // Construct the status bar 'Apio:' label
@@ -695,7 +660,7 @@ function activate(context) {
 
   // Perform the dynamic configuration. This function is called
   // again latter each time apio.ini changes.
-  configure(context);
+  configure();
 
   // Register the apio.ini watcher. This will trigger additional
   // calls to configure when apio.ini changes.
@@ -703,7 +668,13 @@ function activate(context) {
     registerApioIniWatcher(context, wsInfo.wsDirPath);
   }
 
+  // Conditionally open apio.ini. This happens only if we just
+  // created a new apio project from the get example wizard which temporarily
+  // sets the apio.justCreatedProject flag.
+  tasks.maybeOpenNewProject(context, wsInfo);
+
   // All done.
+  activateFuncTiming.done();
   apioLog.msg("activate() completed.");
 }
 
@@ -724,19 +695,19 @@ function registerApioIniWatcher(context, wsDirPath) {
   // Called when apio.ini created.
   async function onApioIniCreate() {
     apioLog.msg("onApioIniCreate() called");
-    configure(context);
+    configure();
   }
 
   // Called when apio.ini changed.
   async function onApioIniChange() {
     apioLog.msg("onApioIniChange() called");
-    configure(context);
+    configure();
   }
 
   // Called when apio.ini deleted.
   async function onApioIniDelete() {
     apioLog.msg("onApioIniDelete() called");
-    configure(context);
+    configure();
   }
 
   watcher.onDidCreate(onApioIniCreate, context.subscriptions);
