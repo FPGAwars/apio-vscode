@@ -48,8 +48,8 @@ The platform *${platformId}* is currently not supported. Please \
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-[Open](command:workbench.action.files.openFolder) your existing Apio project or \
-[play](command:apio.demoProject) with the Apio demo project.
+Open your [existing Apio project](command:workbench.action.files.openFolder), \
+or explore a temporary [Apio demo project](command:apio.demoProject).
 `.trim();
 
 // Convert an object to a dump string.
