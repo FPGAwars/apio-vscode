@@ -48,9 +48,8 @@ The platform *${platformId}* is currently not supported. Please \
 const NO_APIO_PROJECT_NOTICE = `
 #### No Apio project
 
-[Open](command:workbench.action.files.openFolder) your existing Apio project, \
-[play](command:apio.demoProject) with the Apio demo project, or \
-[read](https://fpgawars.github.io/apio/docs/quick-start/#__tabbed_1_1) the Getting Started guide.
+[Open](command:workbench.action.files.openFolder) your existing Apio project or \
+[play](command:apio.demoProject) with the Apio demo project.
 `.trim();
 
 // Convert an object to a dump string.
@@ -483,10 +482,10 @@ function configure() {
   // depending if apio.ini currently exists.
   for (const element of statusBarElements) {
     if (wsInfo.apioIniExists) {
-      apioLog.msg(`showing: ${typeof element}`);
+      apioLog.msg(`showing status bar element`);
       element.show();
     } else {
-      apioLog.msg(`hiding: ${typeof element}`);
+      apioLog.msg(`hiding status bar element`);
       element.hide();
     }
   }
@@ -515,6 +514,7 @@ function activate(context) {
   // Determine if the underlying host is supported. This depends on the
   // availability of platform_id in apio build releases.
   const platformId = platforms.getPlatformId();
+  apioLog.msg(`Platform id: ${platformId}`);
   if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
     apioLog.msg(`Platform not supported: ${platformId}`);
     notice.showMarkdown(PLATFORM_NOT_SUPPORTED_NOTICE(platformId));
