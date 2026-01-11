@@ -232,12 +232,12 @@ suite("Integration tests", () => {
     await briefDelay();
 
     // Check generated files
-    assert(await fileExistsInWorkspace("_build/default/hardware.json"));
-    assert(await fileExistsInWorkspace("_build/default/hardware.pnr"));
-    assert(await fileExistsInWorkspace("_build/default/hardware.asc"));
-    assert(await fileExistsInWorkspace("_build/default/hardware.bin"));
-    assert(await fileExistsInWorkspace("_build/default/main_tb.out"));
-    assert(await fileExistsInWorkspace("_build/default/main_tb.vcd"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/hardware.json"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/hardware.pnr"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/hardware.asc"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/hardware.bin"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.out"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.vcd"));
 
     // Issue clean command
     await vscode.commands.executeCommand("apio.clean");
