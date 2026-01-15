@@ -1,5 +1,15 @@
 
 
+## [0.1.7]
+
+### Changed
+
+- The `sim` command now creates automatically a `.gtkw` default file to have
+  GTKWave showing the testbench signals when it opens. This selection of
+  signals and their display setting can then be changed in GTKWave and
+  saved a a user created `.gtkw` file. See more details in the documentation
+  of the `sim` command at <https://fpgawars.github.io/apio/docs/cmd-apio-sim>.
+
 ## [0.1.6]
 
 ### Changed
