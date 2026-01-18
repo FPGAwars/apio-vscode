@@ -10,6 +10,9 @@
   saved a a user created `.gtkw` file. See more details in the documentation
   of the `sim` command at <https://fpgawars.github.io/apio/docs/cmd-apio-sim>.
 
+- Added a command `report (detached)` that prints additional information such
+  as critical nets.
+
 ## [0.1.6]
 
 ### Changed
