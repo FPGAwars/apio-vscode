@@ -78,6 +78,12 @@ const PROJECT_TREE = [
         btn: { icon: "$(report)", position: 6 },
       },
       {
+        title: "report (verbose)",
+        tooltip: "Verbose report of utilization and speed",
+        id: "apio.reportVerbose",
+        action: { cmds: ["{apio-bin} report --verbose {env-flag}"] },
+      },
+      {
         title: "graph",
         tooltip: "Show the design as a graph",
         id: "apio.graph",
