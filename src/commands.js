@@ -98,6 +98,35 @@ const PROJECT_TREE = [
 // is open or that the project file apio.ini exist.
 const TOOLS_TREE = [
   {
+    title: "misc",
+    children: [
+      {
+        title: "apio shell...",
+        tooltip: "Open a shell with 'apio' access",
+        id: "apio.shell",
+        // No action, implemented independently.
+      },
+      {
+        title: "apio version",
+        tooltip: "Show Apio version",
+        id: "apio.version",
+        action: { cmds: ["{apio-bin} --version"] },
+      },
+      {
+        title: "system info",
+        tooltip: "Show Apio installation info",
+        id: "apio.infoSystem",
+        action: { cmds: ["{apio-bin} info system"] },
+      },
+      {
+        title: "user preferences",
+        tooltip: "List current user preferences",
+        id: "apio.preferencesList",
+        action: { cmds: ["{apio-bin} preferences -l"] },
+      },
+    ],
+  },
+  {
     title: "examples",
     children: [
       {
@@ -119,12 +148,12 @@ const TOOLS_TREE = [
         action: {
           cmds: [
             `{apio-bin} api get-examples -f -o ${utils.apioTmpChild(
-              "examples.json"
+              "examples.json",
             )}`,
           ],
           completionMsgssss: [
             "The Apio examples list was retrieved successfully.",
-            'Please complete and submit the Create Apio Example Project form.',
+            "Please complete and submit the Create Apio Example Project form.",
           ],
           cmdId: "apio.projectFromExample",
         },
@@ -250,35 +279,6 @@ const TOOLS_TREE = [
         tooltip: "Force packages reinstallation",
         id: "apio.packagesInstallForce",
         action: { cmds: ["{apio-bin} packages install --force -v"] },
-      },
-    ],
-  },
-  {
-    title: "misc",
-    children: [
-      {
-        title: "apio shell...",
-        tooltip: "Open a shell with 'apio' access",
-        id: "apio.shell",
-        // No action, implemented independently.
-      },
-      {
-        title: "apio version",
-        tooltip: "Show Apio version",
-        id: "apio.version",
-        action: { cmds: ["{apio-bin} --version"] },
-      },
-      {
-        title: "system info",
-        tooltip: "Show Apio installation info",
-        id: "apio.infoSystem",
-        action: { cmds: ["{apio-bin} info system"] },
-      },
-      {
-        title: "user preferences",
-        tooltip: "List current user preferences",
-        id: "apio.preferencesList",
-        action: { cmds: ["{apio-bin} preferences -l"] },
       },
     ],
   },
