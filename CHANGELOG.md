@@ -23,7 +23,7 @@
   on the currently active environment.
 
 - Apio now defines the macro `SYNTHESIZE` that allows to simulate modules that
-  use blackbox primitive cells. <https://zapta.github.io/apio/docs/apio-macros>.
+  use blackbox primitive cells. <https://fpgawars.github.io/apio/docs/apio-macros>.
 
 ## [0.1.6]
 
