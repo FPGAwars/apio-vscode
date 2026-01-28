@@ -45,6 +45,12 @@ const PROJECT_TREE = [
         btn: { icon: "$(check-all)", position: 2 },
       },
       {
+        title: "lint nosynth",
+        tooltip: "Lint without the SYNTHESIS macro",
+        id: "apio.lintNoSynth",
+        action: { cmds: ["{apio-bin} lint --nosynth {env-flag}"] },
+      },
+      {
         title: "format",
         tooltip: "Format the project source files",
         id: "apio.format",
