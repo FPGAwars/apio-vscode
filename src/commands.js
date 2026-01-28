@@ -45,6 +45,12 @@ const PROJECT_TREE = [
         btn: { icon: "$(check-all)", position: 2 },
       },
       {
+        title: "lint no synth",
+        tooltip: "Lint without the SYNTHESIS macro",
+        id: "apio.lintNoSynth",
+        action: { cmds: ["{apio-bin} lint --nosynth {env-flag}"] },
+      },
+      {
         title: "format",
         tooltip: "Format the project source files",
         id: "apio.format",
@@ -52,23 +58,29 @@ const PROJECT_TREE = [
       },
       {
         title: "sim",
-        tooltip: "Run the testbench simulator",
+        tooltip: "Simulate the default testbench",
         id: "apio.sim",
         action: { cmds: ["{apio-bin} sim {env-flag}"] },
         btn: { icon: "$(debug-alt)", position: 5 },
       },
       {
-        title: "sim (detached)",
+        title: "sim detached",
         tooltip: "Run sim with detached viewer",
         id: "apio.simDetached",
         action: { cmds: ["{apio-bin} sim --detach {env-flag}"] },
       },
       {
-        title: "test",
-        tooltip: "Run automatic tests",
-        id: "apio.test",
+        title: "test all",
+        tooltip: "Test all testbenches",
+        id: "apio.testAll",
         action: { cmds: ["{apio-bin} test"] },
         btn: { icon: "$(beaker)", position: 4 },
+      },
+      {
+        title: "test default",
+        tooltip: "Test default testbench",
+        id: "apio.testDefault",
+        action: { cmds: ["{apio-bin} test --default"] },
       },
       {
         title: "report",
@@ -78,7 +90,7 @@ const PROJECT_TREE = [
         btn: { icon: "$(report)", position: 6 },
       },
       {
-        title: "report (verbose)",
+        title: "report verbose",
         tooltip: "Verbose report of utilization and speed",
         id: "apio.reportVerbose",
         action: { cmds: ["{apio-bin} report --verbose {env-flag}"] },

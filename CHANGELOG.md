@@ -4,6 +4,11 @@
 
 ### Changed
 
+- Added a menu command to test only the default testbench, similar to the
+  behavior of the sim command which tests the `default-testbench` defined
+  in `apio.ini`, or the existing testbench if the project has exactly one
+  testbench.
+
 - The `sim` command now creates automatically a `.gtkw` default file to have
   GTKWave showing the testbench signals when it opens. This selection of
   signals and their display setting can then be changed in GTKWave and
@@ -12,6 +17,13 @@
 
 - Added a command `report (detached)` that prints additional information such
   as critical nets.
+
+- Now exiting with an error if a testbench contains `$dumpfile(...)` (used to
+  be a warning). Apio sets automatically the location of the dumpfiles based
+  on the currently active environment.
+
+- Apio now defines the macro `SYNTHESIZE` that allows to simulate modules that
+  use blackbox primitive cells. <https://fpgawars.github.io/apio/docs/apio-macros>.
 
 ## [0.1.6]
 
