@@ -22,6 +22,9 @@
   be a warning). Apio sets automatically the location of the dumpfiles based
   on the currently active environment.
 
+- Apio now defines the macro `SYNTHESIZE` that allows to simulate modules that
+  use blackbox primitive cells. <https://zapta.github.io/apio/docs/apio-macros>.
+
 ## [0.1.6]
 
 ### Changed
