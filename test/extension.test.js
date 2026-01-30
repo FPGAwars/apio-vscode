@@ -228,7 +228,7 @@ suite("Integration tests", () => {
     await briefDelay();
 
     // Issue test command
-    await vscode.commands.executeCommand("apio.test");
+    await vscode.commands.executeCommand("apio.testAll");
     await briefDelay();
 
     // Check generated files

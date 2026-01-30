@@ -163,9 +163,9 @@ const TOOLS_TREE = [
               "examples.json",
             )}`,
           ],
-          completionMsgssss: [
+          completionMsgs: [
             "The Apio examples list was retrieved successfully.",
-            "Please complete and submit the Create Apio Example Project form.",
+            "Please complete and submit the Create Apio Example Project form above.",
           ],
           cmdId: "apio.projectFromExample",
         },
