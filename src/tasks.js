@@ -48,8 +48,15 @@ async function execCommandsInATask(
 
   // 3. Create the batch file.
   const okMessage = completionMsgs || ["Task completed successfully."];
+  // For custom completion messages we use info color since we don't know
+  // their nature. Could also add a style attribution to the action
+  // specification in commands.js to provide more control.
+  const okStyle = (completionMsgs)? "INFO" : "OK";
   const failMessage = "Task failed.";
   const titleMessage = `${title}`;
+
+  // The path to the apio bin so we can invoke 'apio api echo ...'.
+  const apioBin = utils.apioBinaryPath();
 
   let shell;
   let shellArgs;
@@ -66,7 +73,7 @@ async function execCommandsInATask(
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
       `  echo.`,
-      `  echo ${failMessage}`,
+      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
       preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
@@ -80,7 +87,7 @@ async function execCommandsInATask(
       " ",
       `echo.`,
       // `echo ${okMessage}`,
-      ...okMessage.map((s) => `echo ${s}`),
+      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, true)),
       "exit /b 0",
     ];
@@ -100,7 +107,7 @@ async function execCommandsInATask(
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
-      `  echo "${failMessage}"`,
+      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
       preserveExitCode ? `  exit $ERR` : `  exit 0`,
       `fi`,
     ]);
@@ -113,7 +120,7 @@ async function execCommandsInATask(
       " ",
       "echo",
       // `echo "${okMessage}"`,
-      ...okMessage.map((s) => `echo "${s}"`),
+      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
