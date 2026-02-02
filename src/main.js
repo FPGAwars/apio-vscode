@@ -436,6 +436,66 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
   context.subscriptions.push(viewContainer);
 }
 
+/**
+ * Shared handler for both Apio test and sim commands.
+ * Receives the mode ('test' or 'sim') as the first argument.
+ * @param {string} mode - Either 'test' or 'sim'
+ * @param {vscode.Uri} [explorerUri] - Uri from explorer context menu (optional)
+ */
+async function fileContextHandler(mode, explorerUri) {
+  let targetUri;
+
+  // Determine target file
+  if (explorerUri instanceof vscode.Uri) {
+    targetUri = explorerUri;
+  } else {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      targetUri = activeEditor.document.uri;
+    }
+  }
+
+  if (!targetUri) {
+    vscode.window.showWarningMessage("No file selected or no active editor.");
+    return;
+  }
+
+  const workspaceFolder = vscode.workspace.getWorkspaceFolder(targetUri);
+
+  if (!workspaceFolder) {
+    vscode.window.showInformationMessage(
+      `File path (outside workspace): ${targetUri.fsPath}`,
+    );
+    return;
+  }
+
+  const relativePath = vscode.workspace.asRelativePath(targetUri);
+
+  // Use the mode to differentiate behavior
+  // const action = mode === "test" ? "test" : "simulation";
+  vscode.window.showInformationMessage(`Apio ${mode}: ${relativePath}`);
+
+  // Later you can replace the line above with real logic, for example:
+  // if (mode === 'test') {
+  //   runApioTest(relativePath);
+  // } else {
+  //   runApioSim(relativePath);
+  // }
+}
+
+// Register the handlers for the file context operations
+function _registerFileContextHandlers(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("apio.testContext", (uri) =>
+      fileContextHandler("test", uri),
+    ),
+
+    vscode.commands.registerCommand("apio.simContext", (uri) =>
+      fileContextHandler("sim", uri),
+    ),
+  );
+}
+
 // Performs the dynamic configurations of the extension such as
 // showing or hiding views and buttons. Calls once from activate()
 // and then each time apio.ini changes.
@@ -665,6 +725,9 @@ function activate(context) {
       ),
     );
   }
+
+  // Register the file context commands handlers.
+  _registerFileContextHandlers(context);
 
   // Perform the dynamic configuration. This function is called
   // again latter each time apio.ini changes.
