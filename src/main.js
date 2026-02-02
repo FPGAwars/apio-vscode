@@ -23,6 +23,7 @@ const vscode = require("vscode");
 const path = require("path");
 
 // Local imports.
+const constants = require("./constants.js");
 const commands = require("./commands.js");
 const downloader = require("./downloader.js");
 const platforms = require("./platforms.js");
@@ -31,9 +32,10 @@ const notice = require("./notice-view.js");
 const utils = require("./utils.js");
 const wizard = require("./get-example-wizard.js");
 const tasks = require("./tasks.js");
+const actions = require("./actions.js");
 
-// Place holder for the default apio env.
-const ENV_DEFAULT = "(default)";
+// // Place holder for the default apio env.
+// const APIO_ENV_DEFAULT = "(default)";
 
 // Parametric notice to show when the platform is not supported.
 // Define once
@@ -59,7 +61,7 @@ function pretty(obj) {
 
 // For apio env selector.
 let statusBarEnvSelector;
-let currentEnv = ENV_DEFAULT;
+let currentApioEnv = actions.APIO_ENV_DEFAULT;
 
 // This is a summary of the config operation which is updated each time we reconfigure the
 // extension. For now used for testing only.
@@ -240,7 +242,8 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          actionLaunchWrapper(
+          actions.getActionLauncher(
+            currentApioEnv,
             taskTitle,
             taskCmds,
             taskCompletionMsgs,
@@ -318,102 +321,12 @@ class ApioTreeProvider {
   }
 }
 
-// A function to execute an action. Action can have commands anr/or url.
-// Cmds include the pre commands but may contain placeholders that need
-// to be expanded.
-async function launchAction(
-  taskTitle,
-  taskCmds,
-  taskCompletionMsgs,
-  urlToOpen,
-  cmdIdToInvoke,
-) {
-  // Handle the optional commands.
-  if (taskCmds != null) {
-    // Determine the value of the {env-flag} placeholder. It's derived
-    // from the user's env selection at the status bar.
-    let envFlag = "";
-    if (currentEnv && currentEnv != ENV_DEFAULT) {
-      envFlag = `-e ${currentEnv}`;
-    }
-
-    // Expand the placeholders.
-    taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
-    taskCmds = taskCmds.map((cmd) =>
-      cmd.replace("{apio-bin}", utils.apioBinaryPath()),
-    );
-
-    // Execute the commands and wait for completion.
-    const aborted = await tasks.execCommandsInATask(
-      taskTitle,
-      taskCmds,
-      taskCompletionMsgs,
-      false, // preserveExitCode
-    );
-
-    if (aborted) {
-      apioLog.msg("Terminal commands aborted or timeout.");
-      return;
-    }
-  }
-
-  // Handle url aspect of the action. Launch in a browser if exists.
-  if (urlToOpen != null) {
-    apioLog.msg(`Opening URL: ${urlToOpen}`);
-    vscode.env.openExternal(vscode.Uri.parse(urlToOpen));
-  }
-
-  // Handle command id aspect of the action, if exists. This is
-  // for example how we launch the get example wizard.
-  if (cmdIdToInvoke) {
-    apioLog.msg(`Launching command: ${cmdIdToInvoke}`);
-    vscode.commands.executeCommand(cmdIdToInvoke);
-  }
-}
-
-// A wrapper that first download the apio binary if needed and
-// only then invoked execAction
-function actionLaunchWrapper(
-  taskTitle,
-  taskCmds,
-  taskCompletionMsgs,
-  urlToOpen,
-  cmdIdToInvoke,
-) {
-  // This wrapper is called when the user invokes the command. It
-  // downloads and installs apio if needed and then executes
-  // the command.
-  async function _launchWrapper() {
-    apioLog.msg("-----");
-
-    // Make sure the apio binary exists. If not, download and install it.
-    await downloader.ensureApioBinary();
-
-    // Execute the command. Note that this is asynchronous such that
-    // the execution of the commands may continues after this returns.
-    try {
-      await launchAction(
-        taskTitle,
-        taskCmds,
-        taskCompletionMsgs,
-        urlToOpen,
-        cmdIdToInvoke,
-      );
-    } catch (err) {
-      console.error("[APIO] Failed to start the command:", err);
-      vscode.window.showErrorMessage("Apio failed to launch the command.");
-    }
-  }
-
-  return _launchWrapper;
-}
-
 // Update the display of the env selector.
 function updateEnvSelector() {
   statusBarEnvSelector.text =
-    currentEnv && currentEnv != ENV_DEFAULT
-      ? `[env:${currentEnv}]`
-      : ENV_DEFAULT;
+    currentApioEnv && currentApioEnv != constants.APIO_ENV_DEFAULT
+      ? `[env:${currentApioEnv}]`
+      : constants.APIO_ENV_DEFAULT;
   statusBarEnvSelector.tooltip = "APIO: Select apio.ini env";
 }
 
@@ -426,7 +339,7 @@ function envSelectionClickHandler(context, apioIniPath) {
     const envs = utils.extractApioIniEnvs(apioIniPath);
 
     // Prepend to the list the (default) menu entry.
-    envs.unshift(ENV_DEFAULT);
+    envs.unshift(constants.APIO_ENV_DEFAULT);
 
     // Ask the user to select from the list.
     let selected = await vscode.window.showQuickPick(envs, {
@@ -435,13 +348,13 @@ function envSelectionClickHandler(context, apioIniPath) {
 
     if (selected !== undefined) {
       // Update the current env var with the selection.
-      currentEnv = selected || ENV_DEFAULT;
+      currentApioEnv = selected || constants.APIO_ENV_DEFAULT;
 
       // Update the env field in the status bar.
       updateEnvSelector();
 
       // Persist the default for future invocations vscode and this project.
-      await context.workspaceState.update("apio.activeEnv", currentEnv);
+      await context.workspaceState.update("apio.activeEnv", currentApioEnv);
     }
   }
 
@@ -497,7 +410,8 @@ async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
   taskCmds = taskCmds.map((cmd) => cmd.replace("{context-path}", contextPath));
 
   // Launch the commands as a task.
-  launcher = actionLaunchWrapper(
+  launcher = actions.getActionLauncher(
+    currentApioEnv,
     (taskTitle = taskTitle),
     (taskCmds = taskCmds),
     (taskCompletionMsgs = null),
@@ -737,7 +651,7 @@ function activate(context) {
 
   // Load saved env or use default "". This way we restore the user
   // selection from previous invocation of this workspace.
-  currentEnv = context.workspaceState.get("apio.activeEnv") || "";
+  currentApioEnv = context.workspaceState.get("apio.activeEnv") || "";
 
   // Create the apio env selection field.
   {
