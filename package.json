@@ -76,6 +76,44 @@
           "when": "apio.sidebar.help.enabled"
         }
       ]
+    },
+    "commands": [
+      {
+        "command": "apio.simContext",
+        "title": "Apio sim",
+        "enablement": "apio.apioIniExists"
+      },
+      {
+        "command": "apio.testContext",
+        "title": "Apio test",
+        "enablement": "apio.apioIniExists"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "apio.simContext",
+          "group": "2_workspace@10",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+        },
+        {
+          "command": "apio.testContext",
+          "group": "2_workspace@10",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "apio.simContext",
+          "group": "1_apio@5",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+        },
+        {
+          "command": "apio.testContext",
+          "group": "1_apio@5",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+        }
+      ]
     }
   },
   "scripts": {

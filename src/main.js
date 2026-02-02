@@ -100,7 +100,7 @@ function registerApioShellCommand(context, preCmds) {
   const disposable = vscode.commands.registerCommand("apio.shell", async () => {
     // 1. Dispose ALL terminals named "Apio"
     const apioTerminals = vscode.window.terminals.filter(
-      (t) => t.name === TERMINAL_NAME
+      (t) => t.name === TERMINAL_NAME,
     );
     for (const term of apioTerminals) {
       term.dispose();
@@ -165,9 +165,9 @@ function registerDemoProjectCommand(context) {
         demoDir,
         (callback = (ok, text) => {
           if (!ok) throw Error(text);
-        })
+        }),
       );
-    }
+    },
   );
 
   context.subscriptions.push(disposable);
@@ -192,7 +192,7 @@ function traverseAndConvertTree(nodes) {
         {
           command: node.id,
           title: node.title,
-        }
+        },
       );
       result.push(item);
     }
@@ -221,27 +221,33 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       // Note that we don't expand the -e env flag placeholder since the
       // user can select a different env by the time the action will be
       // selected.
-      const cmds =
+      const taskCmds =
         node.action?.cmds != null ? preCmds.concat(node.action.cmds) : null;
 
       // Optional text to show on successful completions of the commands.
-      const completionMsgs = node.action?.completionMsgs;
+      const taskCompletionMsgs = node.action?.completionMsgs;
 
       // Extract optional url. Null of doesn't exist.
-      const url = node.action?.url;
+      const urlToInvoke = node.action?.url;
 
       // Extract command id. Null if doesn't exit.
-      const cmdId = node.action?.cmdId;
+      const cmdIdToInvoke = node.action?.cmdId;
 
       // Construct the node title string
-      nodeTitle = "🔹 " + nodeTitles.join(" ‣ ");
+      taskTitle = nodeTitles.join(" / ").toUpperCase();
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          actionLaunchWrapper(nodeTitle, cmds, url, cmdId, completionMsgs)
-        )
+          actionLaunchWrapper(
+            taskTitle,
+            taskCmds,
+            taskCompletionMsgs,
+            urlToInvoke,
+            cmdIdToInvoke,
+          ),
+        ),
       );
     }
   }
@@ -260,11 +266,11 @@ function traverseAndRegisterTreeButtons(context, nodesList) {
       if ("btn" in node) {
         const priority = 100 - node.btn.position;
         apioLog.msg(
-          `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`
+          `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`,
         );
         const btn = vscode.window.createStatusBarItem(
           vscode.StatusBarAlignment.Left,
-          priority
+          priority,
         );
 
         btn.command = node.id;
@@ -292,7 +298,7 @@ class ApioTreeProvider {
         element.label,
         element.tooltip | "No group tooltip",
         vscode.TreeItemCollapsibleState.Collapsed,
-        null
+        null,
       );
     }
     return element;
@@ -315,9 +321,15 @@ class ApioTreeProvider {
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
-async function launchAction(title, cmds, url, cmdId, completionMsgs) {
+async function launchAction(
+  taskTitle,
+  taskCmds,
+  taskCompletionMsgs,
+  urlToOpen,
+  cmdIdToInvoke,
+) {
   // Handle the optional commands.
-  if (cmds != null) {
+  if (taskCmds != null) {
     // Determine the value of the {env-flag} placeholder. It's derived
     // from the user's env selection at the status bar.
     let envFlag = "";
@@ -326,15 +338,17 @@ async function launchAction(title, cmds, url, cmdId, completionMsgs) {
     }
 
     // Expand the placeholders.
-    cmds = cmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
-    cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
+    taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+    taskCmds = taskCmds.map((cmd) =>
+      cmd.replace("{apio-bin}", utils.apioBinaryPath()),
+    );
 
     // Execute the commands and wait for completion.
     const aborted = await tasks.execCommandsInATask(
-      title,
-      cmds,
+      taskTitle,
+      taskCmds,
+      taskCompletionMsgs,
       false, // preserveExitCode
-      completionMsgs
     );
 
     if (aborted) {
@@ -344,22 +358,28 @@ async function launchAction(title, cmds, url, cmdId, completionMsgs) {
   }
 
   // Handle url aspect of the action. Launch in a browser if exists.
-  if (url != null) {
-    apioLog.msg(`Opening URL: ${url}`);
-    vscode.env.openExternal(vscode.Uri.parse(url));
+  if (urlToOpen != null) {
+    apioLog.msg(`Opening URL: ${urlToOpen}`);
+    vscode.env.openExternal(vscode.Uri.parse(urlToOpen));
   }
 
   // Handle command id aspect of the action, if exists. This is
   // for example how we launch the get example wizard.
-  if (cmdId) {
-    apioLog.msg(`Launching command: ${cmdId}`);
-    vscode.commands.executeCommand(cmdId);
+  if (cmdIdToInvoke) {
+    apioLog.msg(`Launching command: ${cmdIdToInvoke}`);
+    vscode.commands.executeCommand(cmdIdToInvoke);
   }
 }
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(title, cmds, url, cmdId, completionMsgs) {
+function actionLaunchWrapper(
+  taskTitle,
+  taskCmds,
+  taskCompletionMsgs,
+  urlToOpen,
+  cmdIdToInvoke,
+) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
@@ -372,7 +392,13 @@ function actionLaunchWrapper(title, cmds, url, cmdId, completionMsgs) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      await launchAction(title, cmds, url, cmdId, completionMsgs);
+      await launchAction(
+        taskTitle,
+        taskCmds,
+        taskCompletionMsgs,
+        urlToOpen,
+        cmdIdToInvoke,
+      );
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -431,9 +457,78 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
   // Register three entries with its view.
   const viewContainer = vscode.window.registerTreeDataProvider(
     viewId,
-    new ApioTreeProvider(tree)
+    new ApioTreeProvider(tree),
   );
   context.subscriptions.push(viewContainer);
+}
+
+// A callback for handling commands invocations from vscode context
+// right click menu.
+async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
+  let targetUri;
+
+  apioLog.msg("fileContextHandler() invoked");
+  apioLog.msg(`contextUri=${contextUri}`);
+
+  // Determine the target URI.
+  if (contextUri instanceof vscode.Uri) {
+    // We got the uri from the explorer.
+    targetUri = contextUri;
+  } else {
+    // Otherwise, the invocation from the editor editor.
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      targetUri = activeEditor.document.uri;
+    }
+  }
+
+  // Error if we didn't figure out the.
+  if (!targetUri) {
+    vscode.window.showWarningMessage("No file selected or no active editor.");
+    return;
+  }
+
+  // Convert the uri to a path relative to the workspace.
+  const contextPath = vscode.workspace.asRelativePath(targetUri);
+
+  // Expand the {context-path} placeholder in the task title and
+  // in the commands.
+  taskTitle = taskTitle.replace("{context-path}", contextPath);
+  taskCmds = taskCmds.map((cmd) => cmd.replace("{context-path}", contextPath));
+
+  // Launch the commands as a task.
+  launcher = actionLaunchWrapper(
+    (taskTitle = taskTitle),
+    (taskCmds = taskCmds),
+    (taskCompletionMsgs = null),
+    (urlToOpen = null),
+    (cmdIdToInvoke = null),
+  );
+
+  await launcher();
+}
+
+// Register the handlers for the file context operations
+function _registerFileContextHandlers(context, preCmds) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("apio.testContext", (contextUri) =>
+      contextCmdHandler(
+        "CONTEXT / TEST",
+        [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
+        contextUri,
+      ),
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("apio.simContext", (contextUri) =>
+      contextCmdHandler(
+        "CONTEXT / SIM",
+        [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],
+        contextUri,
+      ),
+    ),
+  );
 }
 
 // Performs the dynamic configurations of the extension such as
@@ -445,6 +540,14 @@ function configure() {
   // Get the current state of the workspace.
   const wsInfo = utils.getWorkspaceInfo();
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
+
+  // Export the flag apioIniExists to the vscode context.
+  apioLog.msg(`Context: apio.projectDetected = ${wsInfo.apioIniExists}`);
+  vscode.commands.executeCommand(
+    "setContext",
+    "apio.apioIniExists",
+    wsInfo.apioIniExists,
+  );
 
   // If apio project found then hide the notice view, else show
   // the no-project notice.
@@ -459,7 +562,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.project.enabled",
-    wsInfo.apioIniExists
+    wsInfo.apioIniExists,
   );
 
   // The TOOLS view is always enabled. We use the flag
@@ -467,7 +570,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.tools.enabled",
-    true
+    true,
   );
 
   // The HELP view is always enabled. We use the flag
@@ -475,7 +578,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.help.enabled",
-    true
+    true,
   );
 
   // Enable or disable the status bar elements in statusBarElements
@@ -588,7 +691,7 @@ function activate(context) {
       commands.PROJECT_TREE,
       "PROJECT",
       preCmds,
-      "apio.sidebar.project"
+      "apio.sidebar.project",
     );
 
     _registerTreeView(
@@ -596,7 +699,7 @@ function activate(context) {
       commands.TOOLS_TREE,
       "TOOLS",
       preCmds,
-      "apio.sidebar.tools"
+      "apio.sidebar.tools",
     );
 
     _registerTreeView(
@@ -604,7 +707,7 @@ function activate(context) {
       commands.HELP_TREE,
       "HELP",
       preCmds,
-      "apio.sidebar.help"
+      "apio.sidebar.help",
     );
 
     treeViewsTiming.done();
@@ -614,7 +717,7 @@ function activate(context) {
   {
     const apioLabel = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      100
+      100,
     );
     apioLabel.text = "Apio:";
     apioLabel.tooltip = "Apio quick tools";
@@ -640,7 +743,7 @@ function activate(context) {
   {
     statusBarEnvSelector = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      90
+      90,
     );
 
     updateEnvSelector();
@@ -653,10 +756,13 @@ function activate(context) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         "apio.selectEnv",
-        envSelectionClickHandler(context, wsInfo.apioIniPath)
-      )
+        envSelectionClickHandler(context, wsInfo.apioIniPath),
+      ),
     );
   }
+
+  // Register the file context commands handlers.
+  _registerFileContextHandlers(context, preCmds);
 
   // Perform the dynamic configuration. This function is called
   // again latter each time apio.ini changes.
