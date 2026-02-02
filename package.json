@@ -79,27 +79,39 @@
     },
     "commands": [
       {
-        "command": "apio.testContext",
-        "title": "Apio test",
+        "command": "apio.simContext",
+        "title": "Apio sim",
         "enablement": "apio.apioIniExists"
       },
       {
-        "command": "apio.simContext",
-        "title": "Apio sim",
+        "command": "apio.testContext",
+        "title": "Apio test",
         "enablement": "apio.apioIniExists"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "apio.testContext",
+          "command": "apio.simContext",
           "group": "2_workspace@10",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
         {
-          "command": "apio.simContext",
+          "command": "apio.testContext",
           "group": "2_workspace@10",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "apio.simContext",
+          "group": "2_workspace@10",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+        },
+        {
+          "command": "apio.testContext",
+          "group": "2_workspace@10",
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
         }
       ]
     }
