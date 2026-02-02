@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Added right-click context menu command that allows to test or simulate
+  the selected testbench.
+
 - Added a menu command to test only the default testbench, similar to the
   behavior of the sim command which tests the `default-testbench` defined
   in `apio.ini`, or the existing testbench if the project has exactly one

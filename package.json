@@ -105,12 +105,12 @@
       "editor/context": [
         {
           "command": "apio.simContext",
-          "group": "2_workspace@10",
+          "group": "1_apio@5",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
         },
         {
           "command": "apio.testContext",
-          "group": "2_workspace@10",
+          "group": "1_apio@5",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
         }
       ]

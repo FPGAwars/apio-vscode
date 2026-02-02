@@ -234,7 +234,7 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       const cmdId = node.action?.cmdId;
 
       // Construct the node title string
-      taskTitle = nodeTitles.join(" ‣ ").toUpperCase();
+      taskTitle = nodeTitles.join(" / ").toUpperCase();
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
@@ -436,62 +436,71 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
   context.subscriptions.push(viewContainer);
 }
 
-/**
- * Shared handler for both Apio test and sim commands.
- * Receives the mode ('test' or 'sim') as the first argument.
- * @param {string} mode - Either 'test' or 'sim'
- * @param {vscode.Uri} [explorerUri] - Uri from explorer context menu (optional)
- */
-async function fileContextHandler(mode, explorerUri) {
+// A callback for handling commands invocations from vscode context
+// right click menu.
+async function contextCmdHandler(taskTitle, cmds, contextUri) {
   let targetUri;
 
-  // Determine target file
-  if (explorerUri instanceof vscode.Uri) {
-    targetUri = explorerUri;
+  apioLog.msg("fileContextHandler() invoked");
+  apioLog.msg(`contextUri=${contextUri}`);
+
+  // Determine the target URI.
+  if (contextUri instanceof vscode.Uri) {
+    // We got the uri from the explorer.
+    targetUri = contextUri;
   } else {
+    // Otherwise, the invocation from the editor editor.
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
       targetUri = activeEditor.document.uri;
     }
   }
 
+  // Error if we didn't figure out the.
   if (!targetUri) {
     vscode.window.showWarningMessage("No file selected or no active editor.");
     return;
   }
 
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(targetUri);
+  // Convert the uri to a path relative to the workspace.
+  const contextPath = vscode.workspace.asRelativePath(targetUri);
 
-  if (!workspaceFolder) {
-    vscode.window.showInformationMessage(
-      `File path (outside workspace): ${targetUri.fsPath}`,
-    );
-    return;
-  }
+  // Expand the {context-path} placeholder in the task title and
+  // in the commands.
+  taskTitle = taskTitle.replace("{context-path}", contextPath);
+  cmds = cmds.map((cmd) => cmd.replace("{context-path}", contextPath));
 
-  const relativePath = vscode.workspace.asRelativePath(targetUri);
+  // Launch the commands as a task.
+  launcher = actionLaunchWrapper(
+    (taskTitle = taskTitle),
+    (cmds = cmds),
+    (url = null),
+    (cmdId = null),
+    (completionMsgs = null),
+  );
 
-  // Use the mode to differentiate behavior
-  // const action = mode === "test" ? "test" : "simulation";
-  vscode.window.showInformationMessage(`Apio ${mode}: ${relativePath}`);
-
-  // Later you can replace the line above with real logic, for example:
-  // if (mode === 'test') {
-  //   runApioTest(relativePath);
-  // } else {
-  //   runApioSim(relativePath);
-  // }
+  await launcher();
 }
 
 // Register the handlers for the file context operations
-function _registerFileContextHandlers(context) {
+function _registerFileContextHandlers(context, preCmds) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("apio.testContext", (uri) =>
-      fileContextHandler("test", uri),
+    vscode.commands.registerCommand("apio.testContext", (contextUri) =>
+      contextCmdHandler(
+        "CONTEXT / TEST",
+        [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
+        contextUri,
+      ),
     ),
+  );
 
-    vscode.commands.registerCommand("apio.simContext", (uri) =>
-      fileContextHandler("sim", uri),
+  context.subscriptions.push(
+    vscode.commands.registerCommand("apio.simContext", (contextUri) =>
+      contextCmdHandler(
+        "CONTEXT / SIM",
+        [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],
+        contextUri,
+      ),
     ),
   );
 }
@@ -727,7 +736,7 @@ function activate(context) {
   }
 
   // Register the file context commands handlers.
-  _registerFileContextHandlers(context);
+  _registerFileContextHandlers(context, preCmds);
 
   // Perform the dynamic configuration. This function is called
   // again latter each time apio.ini changes.
