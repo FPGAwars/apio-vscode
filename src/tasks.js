@@ -27,10 +27,10 @@ const JUST_CREATED_PROJECT_FLAG = "apio.justCreatedProject";
  * @returns {Promise<boolean>} true = failed or aborted → stop further actions, false = all succeeded
  */
 async function execCommandsInATask(
-  title,
+  taskTitle,
   cmds,
   preserveExitCode,
-  completionMsgs
+  completionMsgs,
 ) {
   const taskName = "Apio Run";
 
@@ -51,9 +51,9 @@ async function execCommandsInATask(
   // For custom completion messages we use info color since we don't know
   // their nature. Could also add a style attribution to the action
   // specification in commands.js to provide more control.
-  const okStyle = (completionMsgs)? "INFO" : "OK";
+  const okStyle = completionMsgs ? "INFO" : "OK";
   const failMessage = "Task failed.";
-  const titleMessage = `${title}`;
+  const titleMessage = `${taskTitle}`;
 
   // The path to the apio bin so we can invoke 'apio api echo ...'.
   const apioBin = utils.apioBinaryPath();
@@ -81,7 +81,7 @@ async function execCommandsInATask(
       "@echo off",
       "setlocal",
       "verify >nul",
-      `echo ${titleMessage}`,
+      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
       `echo.`,
       ...cmdsLines,
       " ",
@@ -114,7 +114,7 @@ async function execCommandsInATask(
     // Combine all the lines.
     const lines = [
       "#!/usr/bin/env bash",
-      `echo "${titleMessage}"`,
+      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
       "echo",
       ...cmdsLines,
       " ",
@@ -137,7 +137,7 @@ async function execCommandsInATask(
     vscode.TaskScope.Workspace,
     taskName,
     "apio",
-    new vscode.ShellExecution(shell, shellArgs)
+    new vscode.ShellExecution(shell, shellArgs),
   );
 
   task.presentationOptions = {
@@ -160,7 +160,7 @@ async function execCommandsInATask(
 
       const failed = e.exitCode !== 0;
       apioLog.msg(
-        `[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`
+        `[Apio Task] Finished with exit code ${e.exitCode ?? "unknown"}`,
       );
 
       resolve(failed);
@@ -191,7 +191,7 @@ async function maybeOpenNewProject(context, wsInfo) {
           },
           (err) => {
             apioLog.msg(`Failed to open apio.ini: ${err}`);
-          }
+          },
         );
     }
   }
@@ -209,7 +209,7 @@ async function openProjectFromExample(
   board,
   example,
   folder,
-  callback
+  callback,
 ) {
   try {
     // Folder path should be absolute.
@@ -247,7 +247,7 @@ async function openProjectFromExample(
       `Create project`,
       commands,
       true, // preserveExitCode
-      ["Project created successfully, opening it..."] // completionMsgs
+      ["Project created successfully, opening it..."], // completionMsgs
     );
     if (aborted) {
       throw Error("Failed to fetch example");
@@ -288,7 +288,7 @@ async function openProjectFromExample(
       await vscode.commands.executeCommand(
         "vscode.openFolder",
         destinationUri,
-        { forceNewWindow: false, forceReuseWindow: true }
+        { forceNewWindow: false, forceReuseWindow: true },
       );
     } else {
       // VSCode would not consider it as workspace change so reload the window to trigger

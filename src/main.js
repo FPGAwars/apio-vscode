@@ -100,7 +100,7 @@ function registerApioShellCommand(context, preCmds) {
   const disposable = vscode.commands.registerCommand("apio.shell", async () => {
     // 1. Dispose ALL terminals named "Apio"
     const apioTerminals = vscode.window.terminals.filter(
-      (t) => t.name === TERMINAL_NAME
+      (t) => t.name === TERMINAL_NAME,
     );
     for (const term of apioTerminals) {
       term.dispose();
@@ -165,9 +165,9 @@ function registerDemoProjectCommand(context) {
         demoDir,
         (callback = (ok, text) => {
           if (!ok) throw Error(text);
-        })
+        }),
       );
-    }
+    },
   );
 
   context.subscriptions.push(disposable);
@@ -192,7 +192,7 @@ function traverseAndConvertTree(nodes) {
         {
           command: node.id,
           title: node.title,
-        }
+        },
       );
       result.push(item);
     }
@@ -234,14 +234,14 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       const cmdId = node.action?.cmdId;
 
       // Construct the node title string
-      nodeTitle = "🔹 " + nodeTitles.join(" ‣ ");
+      taskTitle = nodeTitles.join(" ‣ ").toUpperCase();
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          actionLaunchWrapper(nodeTitle, cmds, url, cmdId, completionMsgs)
-        )
+          actionLaunchWrapper(taskTitle, cmds, url, cmdId, completionMsgs),
+        ),
       );
     }
   }
@@ -260,11 +260,11 @@ function traverseAndRegisterTreeButtons(context, nodesList) {
       if ("btn" in node) {
         const priority = 100 - node.btn.position;
         apioLog.msg(
-          `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`
+          `Registering button ${node.id}, position ${node.btn.position}, priority ${priority}`,
         );
         const btn = vscode.window.createStatusBarItem(
           vscode.StatusBarAlignment.Left,
-          priority
+          priority,
         );
 
         btn.command = node.id;
@@ -292,7 +292,7 @@ class ApioTreeProvider {
         element.label,
         element.tooltip | "No group tooltip",
         vscode.TreeItemCollapsibleState.Collapsed,
-        null
+        null,
       );
     }
     return element;
@@ -315,7 +315,7 @@ class ApioTreeProvider {
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
-async function launchAction(title, cmds, url, cmdId, completionMsgs) {
+async function launchAction(taskTitle, cmds, url, cmdId, completionMsgs) {
   // Handle the optional commands.
   if (cmds != null) {
     // Determine the value of the {env-flag} placeholder. It's derived
@@ -331,10 +331,10 @@ async function launchAction(title, cmds, url, cmdId, completionMsgs) {
 
     // Execute the commands and wait for completion.
     const aborted = await tasks.execCommandsInATask(
-      title,
+      taskTitle,
       cmds,
       false, // preserveExitCode
-      completionMsgs
+      completionMsgs,
     );
 
     if (aborted) {
@@ -359,7 +359,7 @@ async function launchAction(title, cmds, url, cmdId, completionMsgs) {
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(title, cmds, url, cmdId, completionMsgs) {
+function actionLaunchWrapper(taskTitle, cmds, url, cmdId, completionMsgs) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
@@ -372,7 +372,7 @@ function actionLaunchWrapper(title, cmds, url, cmdId, completionMsgs) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      await launchAction(title, cmds, url, cmdId, completionMsgs);
+      await launchAction(taskTitle, cmds, url, cmdId, completionMsgs);
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -431,7 +431,7 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
   // Register three entries with its view.
   const viewContainer = vscode.window.registerTreeDataProvider(
     viewId,
-    new ApioTreeProvider(tree)
+    new ApioTreeProvider(tree),
   );
   context.subscriptions.push(viewContainer);
 }
@@ -459,7 +459,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.project.enabled",
-    wsInfo.apioIniExists
+    wsInfo.apioIniExists,
   );
 
   // The TOOLS view is always enabled. We use the flag
@@ -467,7 +467,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.tools.enabled",
-    true
+    true,
   );
 
   // The HELP view is always enabled. We use the flag
@@ -475,7 +475,7 @@ function configure() {
   vscode.commands.executeCommand(
     "setContext",
     "apio.sidebar.help.enabled",
-    true
+    true,
   );
 
   // Enable or disable the status bar elements in statusBarElements
@@ -588,7 +588,7 @@ function activate(context) {
       commands.PROJECT_TREE,
       "PROJECT",
       preCmds,
-      "apio.sidebar.project"
+      "apio.sidebar.project",
     );
 
     _registerTreeView(
@@ -596,7 +596,7 @@ function activate(context) {
       commands.TOOLS_TREE,
       "TOOLS",
       preCmds,
-      "apio.sidebar.tools"
+      "apio.sidebar.tools",
     );
 
     _registerTreeView(
@@ -604,7 +604,7 @@ function activate(context) {
       commands.HELP_TREE,
       "HELP",
       preCmds,
-      "apio.sidebar.help"
+      "apio.sidebar.help",
     );
 
     treeViewsTiming.done();
@@ -614,7 +614,7 @@ function activate(context) {
   {
     const apioLabel = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      100
+      100,
     );
     apioLabel.text = "Apio:";
     apioLabel.tooltip = "Apio quick tools";
@@ -640,7 +640,7 @@ function activate(context) {
   {
     statusBarEnvSelector = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      90
+      90,
     );
 
     updateEnvSelector();
@@ -653,8 +653,8 @@ function activate(context) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         "apio.selectEnv",
-        envSelectionClickHandler(context, wsInfo.apioIniPath)
-      )
+        envSelectionClickHandler(context, wsInfo.apioIniPath),
+      ),
     );
   }
 
