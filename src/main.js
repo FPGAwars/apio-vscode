@@ -20,7 +20,6 @@
 
 // Standard imports
 const vscode = require("vscode");
-const path = require("path");
 
 // Local imports.
 const commands = require("./commands.js");
@@ -35,6 +34,7 @@ const actions = require("./actions.js");
 const envSelector = require("./env-selector.js");
 const contextCmds = require("./context-cmds.js");
 const shellCmd = require("./shell-cmd.js");
+const demoCmd = require("./demo-cmd.js");
 
 // // Place holder for the default apio env.
 // const APIO_ENV_DEFAULT = "(default)";
@@ -85,36 +85,6 @@ class ApioTreeGroup {
     this.tooltip = tooltip;
     this.children = children;
   }
-}
-
-/**
- * Registers the command "apio.demoProject"
- */
-function registerDemoProjectCommand(context) {
-  // Register the command handler.
-  const disposable = vscode.commands.registerCommand(
-    "apio.demoProject",
-    async () => {
-      // Make sure the apio binary exists. If not, download and install it.
-      await downloader.ensureApioBinary();
-
-      const demoDir = await utils.prepareEmptyApioDemoDir();
-
-      // Populate the demo directory with the given example and open it in VSCode.
-      // Does not return if successful since VSCode leaves this workspace.
-      await tasks.openProjectFromExample(
-        context,
-        "alhambra-ii",
-        "getting-started",
-        demoDir,
-        (callback = (ok, text) => {
-          if (!ok) throw Error(text);
-        }),
-      );
-    },
-  );
-
-  context.subscriptions.push(disposable);
 }
 
 // Recursively traverse the definition tree and return it using
@@ -410,7 +380,7 @@ function activate(context) {
   shellCmd.registerApioShellCommand(context, preCmds);
 
   // Register the demo project command
-  registerDemoProjectCommand(context);
+  demoCmd.registerDemoProjectCommand(context);
 
   // Compute tasks pre-commands.
   preCmds = [];
