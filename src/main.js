@@ -446,6 +446,14 @@ function configure() {
   const wsInfo = utils.getWorkspaceInfo();
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
 
+  // Export the flag apioIniExists to the vscode context.
+  apioLog.msg(`Context: apio.projectDetected = ${wsInfo.apioIniExists}`);
+  vscode.commands.executeCommand(
+    "setContext",
+    "apio.apioIniExists",
+    wsInfo.apioIniExists,
+  );
+
   // If apio project found then hide the notice view, else show
   // the no-project notice.
   if (wsInfo.apioIniExists) {
