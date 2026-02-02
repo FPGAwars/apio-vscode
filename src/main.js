@@ -221,17 +221,17 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       // Note that we don't expand the -e env flag placeholder since the
       // user can select a different env by the time the action will be
       // selected.
-      const cmds =
+      const taskCmds =
         node.action?.cmds != null ? preCmds.concat(node.action.cmds) : null;
 
       // Optional text to show on successful completions of the commands.
-      const completionMsgs = node.action?.completionMsgs;
+      const taskCompletionMsgs = node.action?.completionMsgs;
 
       // Extract optional url. Null of doesn't exist.
-      const url = node.action?.url;
+      const urlToInvoke = node.action?.url;
 
       // Extract command id. Null if doesn't exit.
-      const cmdId = node.action?.cmdId;
+      const cmdIdToInvoke = node.action?.cmdId;
 
       // Construct the node title string
       taskTitle = nodeTitles.join(" / ").toUpperCase();
@@ -240,7 +240,13 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       context.subscriptions.push(
         vscode.commands.registerCommand(
           node.id,
-          actionLaunchWrapper(taskTitle, cmds, url, cmdId, completionMsgs),
+          actionLaunchWrapper(
+            taskTitle,
+            taskCmds,
+            taskCompletionMsgs,
+            urlToInvoke,
+            cmdIdToInvoke,
+          ),
         ),
       );
     }
@@ -315,9 +321,15 @@ class ApioTreeProvider {
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
-async function launchAction(taskTitle, cmds, url, cmdId, completionMsgs) {
+async function launchAction(
+  taskTitle,
+  taskCmds,
+  taskCompletionMsgs,
+  urlToOpen,
+  cmdIdToInvoke,
+) {
   // Handle the optional commands.
-  if (cmds != null) {
+  if (taskCmds != null) {
     // Determine the value of the {env-flag} placeholder. It's derived
     // from the user's env selection at the status bar.
     let envFlag = "";
@@ -326,15 +338,17 @@ async function launchAction(taskTitle, cmds, url, cmdId, completionMsgs) {
     }
 
     // Expand the placeholders.
-    cmds = cmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
-    cmds = cmds.map((cmd) => cmd.replace("{apio-bin}", utils.apioBinaryPath()));
+    taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+    taskCmds = taskCmds.map((cmd) =>
+      cmd.replace("{apio-bin}", utils.apioBinaryPath()),
+    );
 
     // Execute the commands and wait for completion.
     const aborted = await tasks.execCommandsInATask(
       taskTitle,
-      cmds,
+      taskCmds,
+      taskCompletionMsgs,
       false, // preserveExitCode
-      completionMsgs,
     );
 
     if (aborted) {
@@ -344,22 +358,28 @@ async function launchAction(taskTitle, cmds, url, cmdId, completionMsgs) {
   }
 
   // Handle url aspect of the action. Launch in a browser if exists.
-  if (url != null) {
-    apioLog.msg(`Opening URL: ${url}`);
-    vscode.env.openExternal(vscode.Uri.parse(url));
+  if (urlToOpen != null) {
+    apioLog.msg(`Opening URL: ${urlToOpen}`);
+    vscode.env.openExternal(vscode.Uri.parse(urlToOpen));
   }
 
   // Handle command id aspect of the action, if exists. This is
   // for example how we launch the get example wizard.
-  if (cmdId) {
-    apioLog.msg(`Launching command: ${cmdId}`);
-    vscode.commands.executeCommand(cmdId);
+  if (cmdIdToInvoke) {
+    apioLog.msg(`Launching command: ${cmdIdToInvoke}`);
+    vscode.commands.executeCommand(cmdIdToInvoke);
   }
 }
 
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
-function actionLaunchWrapper(taskTitle, cmds, url, cmdId, completionMsgs) {
+function actionLaunchWrapper(
+  taskTitle,
+  taskCmds,
+  taskCompletionMsgs,
+  urlToOpen,
+  cmdIdToInvoke,
+) {
   // This wrapper is called when the user invokes the command. It
   // downloads and installs apio if needed and then executes
   // the command.
@@ -372,7 +392,13 @@ function actionLaunchWrapper(taskTitle, cmds, url, cmdId, completionMsgs) {
     // Execute the command. Note that this is asynchronous such that
     // the execution of the commands may continues after this returns.
     try {
-      await launchAction(taskTitle, cmds, url, cmdId, completionMsgs);
+      await launchAction(
+        taskTitle,
+        taskCmds,
+        taskCompletionMsgs,
+        urlToOpen,
+        cmdIdToInvoke,
+      );
     } catch (err) {
       console.error("[APIO] Failed to start the command:", err);
       vscode.window.showErrorMessage("Apio failed to launch the command.");
@@ -438,7 +464,7 @@ function _registerTreeView(context, tree, title, preCmds, viewId) {
 
 // A callback for handling commands invocations from vscode context
 // right click menu.
-async function contextCmdHandler(taskTitle, cmds, contextUri) {
+async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
   let targetUri;
 
   apioLog.msg("fileContextHandler() invoked");
@@ -468,15 +494,15 @@ async function contextCmdHandler(taskTitle, cmds, contextUri) {
   // Expand the {context-path} placeholder in the task title and
   // in the commands.
   taskTitle = taskTitle.replace("{context-path}", contextPath);
-  cmds = cmds.map((cmd) => cmd.replace("{context-path}", contextPath));
+  taskCmds = taskCmds.map((cmd) => cmd.replace("{context-path}", contextPath));
 
   // Launch the commands as a task.
   launcher = actionLaunchWrapper(
     (taskTitle = taskTitle),
-    (cmds = cmds),
-    (url = null),
-    (cmdId = null),
-    (completionMsgs = null),
+    (taskCmds = taskCmds),
+    (taskCompletionMsgs = null),
+    (urlToOpen = null),
+    (cmdIdToInvoke = null),
   );
 
   await launcher();

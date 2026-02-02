@@ -19,7 +19,7 @@ const JUST_CREATED_PROJECT_FLAG = "apio.justCreatedProject";
  * Executes a list of shell commands sequentially using a single VS Code task.
  * Waits for completion and returns true if any command failed (non-zero exit code).
  *
- * @param {string[]} cmds - Array of shell commands to run one after another
+ * @param {string[]} taskCmds - Array of shell commands to run one after another
  * @param {bool} preserveExitCode - if true, the batch file exists with an error code
  *   if any of its commands fails, otherwise it returns with zero despite the error.
  *   We use 'false' for regular apio commands to suppress the additional vscode
@@ -28,9 +28,9 @@ const JUST_CREATED_PROJECT_FLAG = "apio.justCreatedProject";
  */
 async function execCommandsInATask(
   taskTitle,
-  cmds,
+  taskCmds,
+  taskCompletionMsgs,
   preserveExitCode,
-  completionMsgs,
 ) {
   const taskName = "Apio Run";
 
@@ -47,11 +47,11 @@ async function execCommandsInATask(
   }
 
   // 3. Create the batch file.
-  const okMessage = completionMsgs || ["Task completed successfully."];
+  const okMessage = taskCompletionMsgs || ["Task completed successfully."];
   // For custom completion messages we use info color since we don't know
   // their nature. Could also add a style attribution to the action
   // specification in commands.js to provide more control.
-  const okStyle = completionMsgs ? "INFO" : "OK";
+  const okStyle = taskCompletionMsgs ? "INFO" : "OK";
   const failMessage = "Task failed.";
   const titleMessage = `${taskTitle}`;
 
@@ -66,7 +66,7 @@ async function execCommandsInATask(
     shell = "cmd.exe";
     shellArgs = ["/c", batchFile];
     // Construct the task batch file task.cmd.
-    const cmdsLines = cmds.flatMap((cmd) => [
+    const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
       `echo $ ${cmd}`,
       `${cmd}`,
@@ -100,7 +100,7 @@ async function execCommandsInATask(
     // Construct the task batch file task.bash.
     //
     // Generate for each command.
-    const cmdsLines = cmds.flatMap((cmd) => [
+    const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
       `echo '$ ${cmd}'`,
       `${cmd}`,
@@ -239,15 +239,15 @@ async function openProjectFromExample(
     const exampleId = board + "/" + example;
 
     // Run 'apio examples fetch board/example' in the demo folder.
-    const commands = [
+    const taskCmds = [
       `cd ${folder}`,
       `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
     ];
     const aborted = await execCommandsInATask(
       `Create project`,
-      commands,
+      taskCmds,
+      ["Project created successfully, opening it..."], // taskCompletionMsgs
       true, // preserveExitCode
-      ["Project created successfully, opening it..."], // completionMsgs
     );
     if (aborted) {
       throw Error("Failed to fetch example");
