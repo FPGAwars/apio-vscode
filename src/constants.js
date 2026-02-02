@@ -14,14 +14,8 @@ const APIO_CLI_RELEASE_REPO = "fpgawars/apio";
 //
 const APIO_CLI_RELEASE_TAG = "2026-01-30";
 
-// Place holder for the default apio env. This is the value that
-// is displayed to the user in the apio env selector to indicate
-// 'use default apio env'.
-const APIO_ENV_DEFAULT = "(default)";
-
 // Export for require()
 module.exports = {
   APIO_CLI_RELEASE_REPO,
   APIO_CLI_RELEASE_TAG,
-  APIO_ENV_DEFAULT,
 };

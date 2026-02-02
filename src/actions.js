@@ -4,7 +4,7 @@
 const vscode = require("vscode");
 
 // Local imports.
-const constants = require("./constants.js");
+const envSelector = require("./env-selector.js");
 const downloader = require("./downloader.js");
 const tasks = require("./tasks.js");
 const apioLog = require("./apio-log.js");
@@ -14,7 +14,6 @@ const utils = require("./utils.js");
 // Cmds include the pre commands but may contain placeholders that need
 // to be expanded.
 async function _launchAction(
-  currentApioEnv,
   taskTitle,
   taskCmds,
   taskCompletionMsgs,
@@ -23,15 +22,13 @@ async function _launchAction(
 ) {
   // Handle the optional commands.
   if (taskCmds != null) {
-    // Determine the value of the {env-flag} placeholder. It's derived
-    // from the user's env selection at the status bar.
-    let envFlag = "";
-    if (currentApioEnv && currentApioEnv != constants.APIO_ENV_DEFAULT) {
-      envFlag = `-e ${currentApioEnv}`;
-    }
+    // Get the optional apio --env flag for current apio env.
+    apioEnvFlag = envSelector.getApioEnvFlag();
+
+
 
     // Expand the placeholders.
-    taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", envFlag));
+    taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", apioEnvFlag));
     taskCmds = taskCmds.map((cmd) =>
       cmd.replace("{apio-bin}", utils.apioBinaryPath()),
     );
@@ -67,7 +64,6 @@ async function _launchAction(
 // A wrapper that first download the apio binary if needed and
 // only then invoked execAction
 function getActionLauncher(
-  currentApioEnv,
   taskTitle,
   taskCmds,
   taskCompletionMsgs,
@@ -87,7 +83,6 @@ function getActionLauncher(
     // the execution of the commands may continues after this returns.
     try {
       await _launchAction(
-        currentApioEnv,
         taskTitle,
         taskCmds,
         taskCompletionMsgs,

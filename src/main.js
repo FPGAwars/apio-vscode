@@ -23,7 +23,6 @@ const vscode = require("vscode");
 const path = require("path");
 
 // Local imports.
-const constants = require("./constants.js");
 const commands = require("./commands.js");
 const downloader = require("./downloader.js");
 const platforms = require("./platforms.js");
@@ -33,6 +32,7 @@ const utils = require("./utils.js");
 const wizard = require("./get-example-wizard.js");
 const tasks = require("./tasks.js");
 const actions = require("./actions.js");
+const envSelector = require("./env-selector.js");
 
 // // Place holder for the default apio env.
 // const APIO_ENV_DEFAULT = "(default)";
@@ -58,10 +58,6 @@ or explore a temporary [Apio demo project](command:apio.demoProject).
 function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
-
-// For apio env selector.
-let statusBarEnvSelector;
-let currentApioEnv = actions.APIO_ENV_DEFAULT;
 
 // This is a summary of the config operation which is updated each time we reconfigure the
 // extension. For now used for testing only.
@@ -243,7 +239,6 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
         vscode.commands.registerCommand(
           node.id,
           actions.getActionLauncher(
-            currentApioEnv,
             taskTitle,
             taskCmds,
             taskCompletionMsgs,
@@ -321,46 +316,6 @@ class ApioTreeProvider {
   }
 }
 
-// Update the display of the env selector.
-function updateEnvSelector() {
-  statusBarEnvSelector.text =
-    currentApioEnv && currentApioEnv != constants.APIO_ENV_DEFAULT
-      ? `[env:${currentApioEnv}]`
-      : constants.APIO_ENV_DEFAULT;
-  statusBarEnvSelector.tooltip = "APIO: Select apio.ini env";
-}
-
-// Handle that is triggered when the user clicks on the env
-// selection field in the status bar.
-function envSelectionClickHandler(context, apioIniPath) {
-  // The actual handler.
-  async function _handler() {
-    // Scan the apio.ini file and get a list of all of its envs.
-    const envs = utils.extractApioIniEnvs(apioIniPath);
-
-    // Prepend to the list the (default) menu entry.
-    envs.unshift(constants.APIO_ENV_DEFAULT);
-
-    // Ask the user to select from the list.
-    let selected = await vscode.window.showQuickPick(envs, {
-      placeHolder: "Select apio.ini environment",
-    });
-
-    if (selected !== undefined) {
-      // Update the current env var with the selection.
-      currentApioEnv = selected || constants.APIO_ENV_DEFAULT;
-
-      // Update the env field in the status bar.
-      updateEnvSelector();
-
-      // Persist the default for future invocations vscode and this project.
-      await context.workspaceState.update("apio.activeEnv", currentApioEnv);
-    }
-  }
-
-  return _handler;
-}
-
 // Register a tree view. Title is a string representing the tree
 // view in the title path of the command tasks.
 function _registerTreeView(context, tree, title, preCmds, viewId) {
@@ -411,7 +366,6 @@ async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
 
   // Launch the commands as a task.
   launcher = actions.getActionLauncher(
-    currentApioEnv,
     (taskTitle = taskTitle),
     (taskCmds = taskCmds),
     (taskCompletionMsgs = null),
@@ -497,14 +451,18 @@ function configure() {
 
   // Enable or disable the status bar elements in statusBarElements
   // depending if apio.ini currently exists.
-  for (const element of statusBarElements) {
-    if (wsInfo.apioIniExists) {
-      apioLog.msg(`showing status bar element`);
+  if (wsInfo.apioIniExists) {
+    apioLog.msg("Showing apio status bar.");
+    for (const element of statusBarElements) {
       element.show();
-    } else {
-      apioLog.msg(`hiding status bar element`);
+    }
+    envSelector.show();
+  } else {
+    apioLog.msg("Hiding apio status bar.");
+    for (const element of statusBarElements) {
       element.hide();
     }
+    envSelector.hide();
   }
 
   // Update the config summary
@@ -649,31 +607,8 @@ function activate(context) {
     traverseAndRegisterTreeButtons(context, tree);
   }
 
-  // Load saved env or use default "". This way we restore the user
-  // selection from previous invocation of this workspace.
-  currentApioEnv = context.workspaceState.get("apio.activeEnv") || "";
-
-  // Create the apio env selection field.
-  {
-    statusBarEnvSelector = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      90,
-    );
-
-    updateEnvSelector();
-
-    statusBarEnvSelector.command = "apio.selectEnv";
-    context.subscriptions.push(statusBarEnvSelector);
-    statusBarElements.push(statusBarEnvSelector);
-
-    // Register command: click → show QuickPick
-    context.subscriptions.push(
-      vscode.commands.registerCommand(
-        "apio.selectEnv",
-        envSelectionClickHandler(context, wsInfo.apioIniPath),
-      ),
-    );
-  }
+  // Create and register the status bar apio env selector.
+  envSelector.registerApioEnvSelector(context, wsInfo, 90);
 
   // Register the file context commands handlers.
   _registerFileContextHandlers(context, preCmds);
