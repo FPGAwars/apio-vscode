@@ -4,12 +4,13 @@
 
 ### Changed
 
-- Added right-click context menu command that allows to test or simulate
-  the selected testbench.
+- Added right-click context menu commands for `apio format`, `apio sim`, and
+  `apio test`. The context menu works in the VS Code explorer and in the
+  editor.
 
-- Added a menu command to test only the default testbench, similar to the
-  behavior of the sim command which tests the `default-testbench` defined
-  in `apio.ini`, or the existing testbench if the project has exactly one
+- Added a menu command to test only the default testbench, 
+  similar to the behavior of the sim command which tests the `default-testbench`
+  defined in `apio.ini`, or the existing testbench if the project has exactly one
   testbench.
 
 - The `sim` command now creates automatically a `.gtkw` default file to have
@@ -18,7 +19,7 @@
   saved a a user created `.gtkw` file. See more details in the documentation
   of the `sim` command at <https://fpgawars.github.io/apio/docs/cmd-apio-sim>.
 
-- Added a command `report (detached)` that prints additional information such
+- Added a command `report verbose` that prints additional information such
   as critical nets.
 
 - Now exiting with an error if a testbench contains `$dumpfile(...)` (used to
