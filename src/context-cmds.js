@@ -57,7 +57,7 @@ async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
 // Register the handlers for the file context operations
 function registerFileContextHandlers(context, preCmds) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("apio.testContext", (contextUri) =>
+    vscode.commands.registerCommand("apio.context.test", (contextUri) =>
       contextCmdHandler(
         "CONTEXT / TEST",
         [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
@@ -67,7 +67,7 @@ function registerFileContextHandlers(context, preCmds) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("apio.simContext", (contextUri) =>
+    vscode.commands.registerCommand("apio.context.sim", (contextUri) =>
       contextCmdHandler(
         "CONTEXT / SIM",
         [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],

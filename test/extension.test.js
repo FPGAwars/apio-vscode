@@ -269,7 +269,7 @@ suite("Integration tests", () => {
     await briefDelay();
 
     // Execute the context-specific test command
-    await vscode.commands.executeCommand("apio.testContext");
+    await vscode.commands.executeCommand("apio.context.test");
     await briefDelay();
 
     // Check that simulation artifacts were generated for this testbench
@@ -294,7 +294,7 @@ suite("Integration tests", () => {
     // Execute the context-specific test command with the testbench uri.
     const testbenchAbsPath = path.join(workspaceDirPath(), "main_tb.v");
     const testbenchUri = vscode.Uri.file(testbenchAbsPath);
-    await vscode.commands.executeCommand("apio.testContext", testbenchUri);
+    await vscode.commands.executeCommand("apio.context.test", testbenchUri);
     await briefDelay();
 
     // Check that simulation artifacts were generated for this testbench
