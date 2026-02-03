@@ -76,7 +76,7 @@ async function execAsync(command) {
 
 function workspaceDirPath() {
   const result = path.normalize(
-    path.resolve(__dirname, "..", ".vscode-test", "workspace")
+    path.resolve(__dirname, "..", ".vscode-test", "workspace"),
   );
   return result;
 }
@@ -248,4 +248,60 @@ suite("Integration tests", () => {
 
     // Test done ok.
   });
+
+  // Test the context-aware test command. Context is an active editor.
+  test("test-context-cmd-editor", async function () {
+    // Epilog
+    console.log("test-context-cmd-editor started");
+    this.timeout(10 * 60 * 1000); // 10 min timeout, especially for Windows
+
+    // The test setup leave the workspace empty.
+    assert(!(await fileExistsInWorkspace("apio.ini")));
+
+    // Populate the workspace with a project that contains a testbench
+    await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
+    assert(await fileExistsInWorkspace("apio.ini"));
+
+    // Open the testbench in the editor
+    const testbenchAbsPath = path.join(workspaceDirPath(), "main_tb.v");
+    const testbenchUri = vscode.Uri.file(testbenchAbsPath);
+    await vscode.window.showTextDocument(testbenchUri);
+    await briefDelay();
+
+    // Execute the context-specific test command
+    await vscode.commands.executeCommand("apio.context.test");
+    await briefDelay();
+
+    // Check that simulation artifacts were generated for this testbench
+    // Adjust paths/names according to what your project actually produces
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.out"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.vcd"));
+  });
+
+  // Test the context-aware test command. Context is explorer uri.
+  test("test-context-cmd-explorer", async function () {
+    // Epilog
+    console.log("test-context-cmd-explorer started");
+    this.timeout(10 * 60 * 1000); // 10 min timeout, especially for Windows
+
+    // The test setup leave the workspace empty.
+    assert(!(await fileExistsInWorkspace("apio.ini")));
+
+    // Populate the workspace with a project that contains a testbench
+    await populateEmptyWorkspaceFromExample("alhambra-ii/getting-started");
+    assert(await fileExistsInWorkspace("apio.ini"));
+
+    // Execute the context-specific test command with the testbench uri.
+    const testbenchAbsPath = path.join(workspaceDirPath(), "main_tb.v");
+    const testbenchUri = vscode.Uri.file(testbenchAbsPath);
+    await vscode.commands.executeCommand("apio.context.test", testbenchUri);
+    await briefDelay();
+
+    // Check that simulation artifacts were generated for this testbench
+    // Adjust paths/names according to what your project actually produces
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.out"));
+    assert(await fileExistsInWorkspace("_build/blink-slow/main_tb.vcd"));
+  });
+
+  // --- end of suite.
 });
