@@ -78,11 +78,7 @@
       ]
     },
     "commands": [
-      {
-        "command": "apio.context.format",
-        "title": "Apio format",
-        "enablement": "apio.apioIniExists"
-      },
+
       {
         "command": "apio.context.sim",
         "title": "Apio sim",
@@ -92,41 +88,46 @@
         "command": "apio.context.test",
         "title": "Apio test",
         "enablement": "apio.apioIniExists"
+      },      {
+        "command": "apio.context.format",
+        "title": "Apio format",
+        "enablement": "apio.apioIniExists"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "apio.context.format",
-          "group": "2_workspace@10",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
-        },
-        {
           "command": "apio.context.sim",
-          "group": "2_workspace@10",
+          "group": "2_workspace@1",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
-          "group": "2_workspace@10",
+          "group": "2_workspace@2",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+        },
+                {
+          "command": "apio.context.format",
+          "group": "2_workspace@3",
+          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
         }
       ],
       "editor/context": [
-        {
-          "command": "apio.context.format",
-          "group": "1_apio@5",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && resourceScheme == file"
-        },
+
         {
           "command": "apio.context.sim",
-          "group": "1_apio@5",
+          "group": "1_apio@1",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
-          "group": "1_apio@5",
+          "group": "1_apio@2",
           "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+        },
+                {
+          "command": "apio.context.format",
+          "group": "1_apio@3",
+          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && resourceScheme == file"
         }
       ]
     }

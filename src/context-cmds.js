@@ -59,11 +59,6 @@ function registerFileContextHandlers(context, preCmds) {
   // Per context command cmdId, taskTitle, and taskCmds.
   const contextCmds = [
     [
-      "apio.context.format",
-      "CONTEXT / FORMAT",
-      [...preCmds, `{apio-bin} format "{context-path}" {env-flag}`],
-    ],
-    [
       "apio.context.sim",
       "CONTEXT / SIM",
       [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],
@@ -72,6 +67,11 @@ function registerFileContextHandlers(context, preCmds) {
       "apio.context.test",
       "CONTEXT / TEST",
       [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
+    ],
+    [
+      "apio.context.format",
+      "CONTEXT / FORMAT",
+      [...preCmds, `{apio-bin} format "{context-path}" {env-flag}`],
     ],
   ];
 
