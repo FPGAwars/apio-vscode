@@ -1,0 +1,74 @@
+{
+  "scopeName": "source.ecp5-lpf",
+  "name": "ECP5 LPF Constraint File",
+  "fileTypes": ["lpf"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.ecp5-lpf",
+          "begin": "#",
+          "end": "$",
+          "patterns": [
+            {
+              "name": "comment.line.todo.ecp5-lpf",
+              "match": "\\b(TODO|FIXME|XXX)\\b"
+            }
+          ]
+        }
+      ]
+    },
+
+    "keywords": {
+      "name": "keyword.control.ecp5-lpf",
+      "match": "\\b(LOCATE|COMP|IO_TYPE|PIN|FREQUENCY|PULL_MODE|DRIVE)\\b"
+    },
+
+    "attributes": {
+      "name": "support.type.property-name.ecp5-lpf",
+      "match": "\\b(LVCMOS33|LVCMOS25|LVCMOS18|SLEW|FAST|SLOW|PULLUP|PULLDOWN|NONE|INPUT|OUTPUT|BIDIR)\\b"
+    },
+
+    "strings": {
+      "name": "string.quoted.double.ecp5-lpf",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.ecp5-lpf",
+          "match": "\\\\."
+        }
+      ]
+    },
+
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.hex.ecp5-lpf",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.decimal.ecp5-lpf",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    }
+  }
+}

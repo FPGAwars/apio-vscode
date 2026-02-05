@@ -1,0 +1,82 @@
+{
+  "scopeName": "source.gowin-cst",
+  "name": "Gowin Constraint File",
+  "fileTypes": ["cst"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.gowin-cst",
+          "begin": "//",
+          "end": "$",
+          "patterns": [
+            {
+              "name": "comment.line.todo.gowin-cst",
+              "match": "\\b(TODO|FIXME|XXX)\\b"
+            }
+          ]
+        }
+      ]
+    },
+
+    "keywords": {
+      "name": "keyword.control.gowin-cst",
+      "match": "\\b(IO_LOC|IO_PORT|CLOCK_LOC|BUFGP|BUFG|BUFGMUX|BUFGCE)\\b"
+    },
+
+    "attributes": {
+      "name": "support.type.property-name.gowin-cst",
+      "match": "\\b(PULL_MODE|DRIVE|IO_TYPE|SLEW_RATE|DIFF_DIR|DIFF_RESISTOR)\\b"
+    },
+
+    "strings": {
+      "name": "string.quoted.double.gowin-cst",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.gowin-cst",
+          "match": "\\\\."
+        }
+      ]
+    },
+
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.hex.gowin-cst",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.decimal.gowin-cst",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+
+    "operators": {
+      "name": "keyword.operator.assignment.gowin-cst",
+      "match": "(?<=\\b(IO_TYPE|PULL_MODE|DRIVE|SLEW_RATE|DIFF_DIR|DIFF_RESISTOR)\\s*=)\\s*[^\\s;]+"
+    }
+  }
+}
