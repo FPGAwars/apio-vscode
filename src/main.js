@@ -148,7 +148,7 @@ function traverseAndRegisterCommands(context, nodes, titles, preCmds) {
       const cmdIdToInvoke = node.action?.cmdId;
 
       // Construct the node title string
-      taskTitle = nodeTitles.join(" / ").toUpperCase();
+      taskTitle = nodeTitles.join(" / ");
 
       // Register the callback to execute the action once selected.
       context.subscriptions.push(
@@ -408,7 +408,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.PROJECT_TREE,
-      "PROJECT",
+      "Project",
       preCmds,
       "apio.sidebar.project",
     );
@@ -416,7 +416,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.TOOLS_TREE,
-      "TOOLS",
+      "Tools",
       preCmds,
       "apio.sidebar.tools",
     );
@@ -424,7 +424,7 @@ function activate(context) {
     _registerTreeView(
       context,
       commands.HELP_TREE,
-      "HELP",
+      "Help",
       preCmds,
       "apio.sidebar.help",
     );
