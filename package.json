@@ -99,17 +99,17 @@
         {
           "command": "apio.context.sim",
           "group": "2_workspace@1",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
           "group": "2_workspace@2",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
                 {
           "command": "apio.context.format",
           "group": "2_workspace@3",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && !explorerResourceIsFolder && resourceScheme == file"
         }
       ],
       "editor/context": [
@@ -117,17 +117,17 @@
         {
           "command": "apio.context.sim",
           "group": "1_apio@1",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
           "group": "1_apio@2",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && resourceScheme == file"
         },
                 {
           "command": "apio.context.format",
           "group": "1_apio@3",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && resourceScheme == file"
         }
       ]
     }
