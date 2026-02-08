@@ -1,0 +1,74 @@
+{
+  "scopeName": "source.ice40-pcf",
+  "name": "iCE40 PCF Constraint File",
+  "fileTypes": ["pcf"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.ice40-pcf",
+          "begin": "#",
+          "end": "$",
+          "patterns": [
+            {
+              "name": "comment.line.todo.ice40-pcf",
+              "match": "\\b(TODO|FIXME|XXX)\\b"
+            }
+          ]
+        }
+      ]
+    },
+
+    "keywords": {
+      "name": "keyword.control.ice40-pcf",
+      "match": "\\b(set_location|locate|set_io|place|constrain|clock|freq)\\b"
+    },
+
+    "attributes": {
+      "name": "support.type.property-name.ice40-pcf",
+      "match": "\\b(PULLUP|PULLDOWN|DRIVE|IO_TYPE|SLEW)\\b"
+    },
+
+    "strings": {
+      "name": "string.quoted.double.ice40-pcf",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.ice40-pcf",
+          "match": "\\\\."
+        }
+      ]
+    },
+
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.integer.hex.ice40-pcf",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.decimal.ice40-pcf",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    }
+  }
+}

@@ -78,7 +78,6 @@
       ]
     },
     "commands": [
-
       {
         "command": "apio.context.sim",
         "title": "Apio sim",
@@ -88,7 +87,8 @@
         "command": "apio.context.test",
         "title": "Apio test",
         "enablement": "apio.apioIniExists"
-      },      {
+      },
+      {
         "command": "apio.context.format",
         "title": "Apio format",
         "enablement": "apio.apioIniExists"
@@ -99,38 +99,92 @@
         {
           "command": "apio.context.sim",
           "group": "2_workspace@1",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
           "group": "2_workspace@2",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
-                {
+        {
           "command": "apio.context.format",
           "group": "2_workspace@3",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && !explorerResourceIsFolder && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && !explorerResourceIsFolder && resourceScheme == file"
         }
       ],
       "editor/context": [
-
         {
           "command": "apio.context.sim",
           "group": "1_apio@1",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && resourceScheme == file"
         },
         {
           "command": "apio.context.test",
           "group": "1_apio@2",
-          "when": "apio.apioIniExists && resourceFilename =~ /_tb\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && resourceScheme == file"
         },
-                {
+        {
           "command": "apio.context.format",
           "group": "1_apio@3",
-          "when": "apio.apioIniExists && resourceFilename =~ /\\.[s]?v$/ && resourceScheme == file"
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && resourceScheme == file"
         }
       ]
-    }
+    },
+    "languages": [
+      {
+        "id": "gowin-cst",
+        "aliases": [
+          "Gowin Constraint",
+          "gowin-cst",
+          "CST"
+        ],
+        "extensions": [
+          ".cst"
+        ],
+        "configuration": "./languages/gowin-cst/language-configuration.json"
+      },
+      {
+        "id": "ice40-pcf",
+        "aliases": [
+          "iCE40 PCF",
+          "ice40-pcf",
+          "PCF"
+        ],
+        "extensions": [
+          ".pcf"
+        ],
+        "configuration": "./languages/ice40-pcf/language-configuration.json"
+      },
+      {
+        "id": "ecp5-lpf",
+        "aliases": [
+          "ECP5 LPF",
+          "ecp5-lpf",
+          "LPF"
+        ],
+        "extensions": [
+          ".lpf"
+        ],
+        "configuration": "./languages/ecp5-lpf/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gowin-cst",
+        "scopeName": "source.gowin-cst",
+        "path": "./languages/gowin-cst/gowin-cst.tmLanguage.json"
+      },
+      {
+        "language": "ice40-pcf",
+        "scopeName": "source.ice40-pcf",
+        "path": "./languages/ice40-pcf/ice40-pcf.tmLanguage.json"
+      },
+      {
+        "language": "ecp5-lpf",
+        "scopeName": "source.ecp5-lpf",
+        "path": "./languages/ecp5-lpf/ecp5-lpf.tmLanguage.json"
+      }
+    ]
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",

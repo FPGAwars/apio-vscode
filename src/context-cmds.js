@@ -60,17 +60,17 @@ function registerFileContextHandlers(context, preCmds) {
   const contextCmds = [
     [
       "apio.context.sim",
-      "CONTEXT / SIM",
+      "Context / sim",
       [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],
     ],
     [
       "apio.context.test",
-      "CONTEXT / TEST",
+      "Context / test",
       [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
     ],
     [
       "apio.context.format",
-      "CONTEXT / FORMAT",
+      "Context / format",
       [...preCmds, `{apio-bin} format "{context-path}" {env-flag}`],
     ],
   ];

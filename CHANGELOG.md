@@ -29,6 +29,13 @@
 - Apio now defines the macro `SYNTHESIZE` that allows to simulate modules that
   use blackbox primitive cells. <https://fpgawars.github.io/apio/docs/apio-macros>.
 
+- The project file `apio.ini` now supports the new option `gtkwave-extra-options`
+  that allows to customize the invocation of of the signal viewer `gtkwave`
+  by the `apio sim` command.
+
+- Added language support for .pvf, .lpf and .cst FPGA constaint files. This
+  include things such as syntax coloring and block comment/uncomment.
+
 ## [0.1.6]
 
 ### Changed
