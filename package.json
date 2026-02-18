@@ -89,6 +89,11 @@
         "enablement": "apio.apioIniExists"
       },
       {
+        "command": "apio.context.lint",
+        "title": "Apio lint",
+        "enablement": "apio.apioIniExists"
+      },
+      {
         "command": "apio.context.format",
         "title": "Apio format",
         "enablement": "apio.apioIniExists"
@@ -107,8 +112,13 @@
           "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && !explorerResourceIsFolder && resourceScheme == file"
         },
         {
-          "command": "apio.context.format",
+          "command": "apio.context.lint",
           "group": "2_workspace@3",
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && !explorerResourceIsFolder && resourceScheme == file"
+        },
+        {
+          "command": "apio.context.format",
+          "group": "2_workspace@4",
           "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && !explorerResourceIsFolder && resourceScheme == file"
         }
       ],
@@ -124,8 +134,13 @@
           "when": "apio.apioIniExists && resourceFilename =~ /_tb[.](v|sv)$/ && resourceScheme == file"
         },
         {
-          "command": "apio.context.format",
+          "command": "apio.context.lint",
           "group": "1_apio@3",
+          "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && resourceScheme == file"
+        },
+        {
+          "command": "apio.context.format",
+          "group": "1_apio@4",
           "when": "apio.apioIniExists && resourceFilename =~ /[.](v|sv|vh|svh)$/ && resourceScheme == file"
         }
       ]

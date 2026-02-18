@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Added right-click context menu commands for `apio format`, `apio sim`, and
+- Added right-click context menu commands for `apio format`, `apio sim`, `apio lint`, and
   `apio test`. The context menu works in the VS Code explorer and in the
   editor.
 

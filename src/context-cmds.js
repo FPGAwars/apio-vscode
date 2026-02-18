@@ -69,6 +69,11 @@ function registerFileContextHandlers(context, preCmds) {
       [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
     ],
     [
+      "apio.context.lint",
+      "Context / lint",
+      [...preCmds, `{apio-bin} lint "{context-path}" {env-flag}`],
+    ],
+    [
       "apio.context.format",
       "Context / format",
       [...preCmds, `{apio-bin} format "{context-path}" {env-flag}`],
