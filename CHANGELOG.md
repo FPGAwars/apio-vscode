@@ -8,7 +8,7 @@
   `apio test`. The context menu works in the VS Code explorer and in the
   editor.
 
-- Added a menu command to test only the default testbench, 
+- Added a menu command to test only the default testbench,
   similar to the behavior of the sim command which tests the `default-testbench`
   defined in `apio.ini`, or the existing testbench if the project has exactly one
   testbench.
@@ -23,7 +23,7 @@
   as critical nets.
 
 - Now exiting with an error if a testbench contains `$dumpfile(...)` (used to
-  be a warning). Apio sets automatically the location of the dumpfiles based
+  be a warning). Apio sets automatically the location of the dumpfile based
   on the currently active environment.
 
 - Apio now defines the macro `SYNTHESIZE` that allows to simulate modules that
@@ -33,11 +33,11 @@
   that allows to customize the invocation of of the signal viewer `gtkwave`
   by the `apio sim` command.
 
-- Added language support for .pvf, .lpf and .cst FPGA constaint files. This
+- Added language support for .pvf, .lpf and .cst FPGA constraint files. This
   include things such as syntax coloring and block comment/uncomment.
 
 - The project file `apio.ini` now supports the option `verilator-extra-options`
-  which allows to add flags to the verilator commands that `apio lint` 
+  which allows to add flags to the verilator commands that `apio lint`
   launches.
 
 
@@ -46,8 +46,8 @@
 ### Changed
 - Added support for legacy MacOS/Intel (x86-64)
 
-- The option 'top-module' is now required in apio.ini. In prefious version it
-  was optional with default value 'main'.  
+- The option 'top-module' is now required in apio.ini. In previous version it
+  was optional with default value 'main'.
 
 ## [0.1.5]
 
