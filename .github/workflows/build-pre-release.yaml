@@ -139,10 +139,10 @@ jobs:
 
           - [Apio IDE cutoff commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
 
-          - [Generated Apio IDE pre-release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
-
           - [Linked Apio CLI release](https://github.com/${APIO_CLI_RELEASE_REPO}/releases/tag/${APIO_CLI_RELEASE_TAG}) \
           (Must exist for this Apio IDE release to work)
+
+          - [Generated Apio IDE pre-release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
 
           EOF
 
