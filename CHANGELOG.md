@@ -36,6 +36,11 @@
 - Added language support for .pvf, .lpf and .cst FPGA constaint files. This
   include things such as syntax coloring and block comment/uncomment.
 
+- The project file `apio.ini` now supports the option `verilator-extra-options`
+  which allows to add flags to the verilator commands that `apio lint` 
+  launches.
+
+
 ## [0.1.6]
 
 ### Changed
