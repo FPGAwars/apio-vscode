@@ -136,7 +136,7 @@ async function prepareEmptyApioDemoDir() {
   // Safety assertion to prevent operations on unexpected paths
   assert(
     demoDir.includes("apio-demo"),
-    `Expected Apio demo directory to contain "apio-dir" in its path for safety, but got: ${demoDir}`
+    `Expected Apio demo directory to contain "apio-dir" in its path for safety, but got: ${demoDir}`,
   );
 
   await fs.promises.mkdir(demoDir, { recursive: true });
