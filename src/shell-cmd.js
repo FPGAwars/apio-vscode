@@ -1,11 +1,12 @@
 // Handles the apio-shell command.
 
 const vscode = require("vscode");
-const path = require("path");
 
 // Local imports
 const downloader = require("./downloader.js");
 const utils = require("./utils.js");
+const platforms = require("./platforms.js");
+const apioLog = require("./apio-log.js");
 
 /**
  * Registers the command "apio.shell"
@@ -14,8 +15,27 @@ const utils = require("./utils.js");
  * - Executes the preCmds
  * - Leaves the terminal open for interactive use
  */
-function registerApioShellCommand(context, preCmds) {
+function registerApioShellCommand(context, wsInfo) {
   const TERMINAL_NAME = "Apio Shell";
+
+  // Construct the shell startup commands.
+  let preCmds = [];
+  {
+    if (platforms.isWindows()) {
+      // For windows (CMD and Powershell)
+      preCmds.push("cls");
+      preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
+      if (wsInfo.wsDirPath) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+      preCmds.push("apio -h");
+    } else {
+      // For macOS and Linux (bash)
+      preCmds.push("printf '\\ec'"); // cls
+      preCmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
+      if (wsInfo.wsDirPath) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+      preCmds.push("apio -h");
+    }
+    apioLog.msg(`Shell preCmds: ${preCmds}`);
+  }
 
   const disposable = vscode.commands.registerCommand("apio.shell", async () => {
     // 1. Dispose ALL terminals named "Apio"
@@ -32,23 +52,10 @@ function registerApioShellCommand(context, preCmds) {
       await new Promise((r) => setTimeout(r, 100));
     }
 
-    // Construct the PATH of the shell, with apio bin in front.
-    // NOTE: Ideally we would like to have apioBinDir at the front but if we put it in
-    // the front, VS Code moves it to the end, so we put it in the end for clarity.
-    const newPath = process.env.PATH + path.delimiter + utils.apioBinDir();
+    // Create a brand-new terminal
+    const terminal = vscode.window.createTerminal({ name: TERMINAL_NAME });
 
-    // Create brand-new terminal
-    const terminal = vscode.window.createTerminal({
-      name: TERMINAL_NAME,
-      env: {
-        ...process.env,
-        // NOTE: We could pass here just apioBinDir() and vscode would prefix it
-        // with the inherited base path but according to Grok it's safer this way
-        // in case the terminal integration in vscode is disabled manually.
-        PATH: newPath,
-      },
-    });
-
+    // Make the terminal visible.
     terminal.show();
 
     // Make sure the apio binary exists. If not, download and install it.

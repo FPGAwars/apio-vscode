@@ -358,26 +358,8 @@ function activate(context) {
   // -- which generates a json file with the examples data.
   wizard.registerGetExampleWizard(context);
 
-  // Compute the apio shell pre-commands. We don't set the PATH
-  // because it's set later when invoking the terminal.
-  let preCmds = [];
-  {
-    if (platforms.isWindows()) {
-      // For windows (CMD and Powershell)
-      preCmds.push("cls");
-      if (wsInfo.wsDirPath) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
-      preCmds.push("apio -h");
-    } else {
-      // For macOS and Linux (bash)
-      preCmds.push("printf '\\ec'");
-      if (wsInfo.wsDirPath) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
-      preCmds.push("apio -h");
-    }
-    apioLog.msg(`Shell preCmds: ${preCmds}`);
-  }
-
   // Register the shell command.
-  shellCmd.registerApioShellCommand(context, preCmds);
+  shellCmd.registerApioShellCommand(context, wsInfo);
 
   // Register the demo project command
   demoCmd.registerDemoProjectCommand(context);
