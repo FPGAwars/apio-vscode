@@ -1,7 +1,6 @@
 // Handles the apio-shell command.
 
 const vscode = require("vscode");
-const path = require("path");
 const fs = require("fs");
 
 // Local imports
@@ -20,42 +19,16 @@ const apioLog = require("./apio-log.js");
 function registerApioShellCommand(context, wsInfo) {
   const TERMINAL_NAME = "Apio Shell";
 
-  // Used for windows only.
-  const cmdFilePath = path.join(utils.apioTmpDir(), "shell-init.cmd");
-  const ps1FilePath = path.join(utils.apioTmpDir(), "shell-init.ps1");
-
   const disposable = vscode.commands.registerCommand("apio.shell", async () => {
-    // if windows, create the shell initialization script for CMD and PS1.
-    if (platforms.isWindows()) {
-      const cmdLines = [
-        ":: Automatically generated initialization VSCode 'apio shell'.",
-        "@echo off",
-        `echo Initializing for CMD`,
-        `echo set "PATH=${utils.apioBinDir()};%%PATH%%"`,
-        `set "PATH=${utils.apioBinDir()};%PATH%"`,
-      ];
-      utils.writeFileFromLines(cmdFilePath, cmdLines);
-
-      const ps1Lines = [
-        "# Automatically generated initialization for VSCode 'apio shell'",
-        `Write-Host "Initializing for PowerShell"`,
-        `Write-Host '$env:PATH = "${utils.apioBinDir()};$env:PATH"'`,
-        `$env:PATH = "${utils.apioBinDir()};$env:PATH"`,
-      ];
-      utils.writeFileFromLines(ps1FilePath, ps1Lines);
-    }
-
-
     // Construct commands to send to the terminal.
     wsDirExists = wsInfo.wsDirPath && fs.existsSync(wsInfo.wsDirPath);
 
     let preCmds = [];
     {
       if (platforms.isWindows()) {
-        // For windows, CMD and PS1.
+        // For windows, (no Powershell, we force CMD below.).
         preCmds.push("cls");
-        // This select the cmd or ps1 startup init file.
-        preCmds.push(`call "${cmdFilePath}" || . "${ps1FilePath}"`);
+        preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
         if (wsDirExists) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
         preCmds.push("apio -h");
       } else {
@@ -82,15 +55,24 @@ function registerApioShellCommand(context, wsInfo) {
       await new Promise((r) => setTimeout(r, 100));
     }
 
-    // Create a brand-new terminal
-    const terminal = vscode.window.createTerminal({
+    // Determine terminal options.
+    let terminalOptions = {
       name: TERMINAL_NAME,
       // This is just a safe initial cwd before .bashrc and shell and
-      // preCmds overrides.
+      // preCmds overrides
       cwd: utils.userHomeDir(),
-    });
+    };
 
-    // Make the terminal visible.
+    if (platforms.isWindows()) {
+      // On windows we force CMD shell. Allowing also PowerShell got us
+      // into dead end because there is no common set PATH command
+      // for CMD and PowerShell and PowerShell by default doesn't
+      // allow to run scripts we generate.
+      terminalOptions.shellPath = "cmd.exe";
+    }
+
+    // Create the terminal and make it visible.
+    const terminal = vscode.window.createTerminal(terminalOptions);
     terminal.show();
 
     // Make sure the apio binary exists. If not, download and install it.
