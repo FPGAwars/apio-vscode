@@ -1,3 +1,10 @@
+## [0.1.8]
+
+### Changed
+
+- The command `apio sim` doesn't define anymore the macro `INTERACTIVE_SIM`. To
+  distinguish if a testbench is run by `apio sim` or `apio test` use the macro
+  `APIO_SIM` which has the values `1` and `0` respectivly.
 
 
 ## [0.1.7]
