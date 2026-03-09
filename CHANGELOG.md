@@ -6,6 +6,9 @@
   distinguish if a testbench is run by `apio sim` or `apio test` use the macro
   `APIO_SIM` which has the values `1` and `0` respectivly.
 
+- The values in the project file apio.ini can now contain pre-defined 
+  macros https://fpgawars.github.io/apio/docs/project-file/#value-macros .
+
 
 ## [0.1.7]
 
