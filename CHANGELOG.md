@@ -9,6 +9,11 @@
 - The values in the project file apio.ini can now contain pre-defined 
   macros https://fpgawars.github.io/apio/docs/project-file/#value-macros .
 
+- Restructured the FPGAs definition file fpgas.jsonc. This requires users
+  that custom FPGAs definition in their projects to adapt the format.
+
+- Fine tuned the parameters of Gowin build (e.g. add an optional `family` arg 
+  for the Gowin 20k FPGA).
 
 ## [0.1.7]
 
