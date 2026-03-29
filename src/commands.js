@@ -203,16 +203,16 @@ const TOOLS_TREE = [
   },
 
   {
-    title: "boards",
+    title: "definitions",
     children: [
       {
-        title: "list boards",
+        title: "boards",
         tooltip: "List supported FPGA boards",
         id: "apio.boards",
         action: { cmds: ["{apio-bin} boards"] },
       },
       {
-        title: "list FPGAs",
+        title: "FPGAs",
         tooltip: "List supported FPGAs",
         id: "apio.fpgas",
         action: { cmds: ["{apio-bin} fpgas"] },
@@ -246,13 +246,13 @@ const TOOLS_TREE = [
         title: "ftdi",
         children: [
           {
-            title: "install driver",
+            title: "install",
             tooltip: "Install FTDI driver for your board",
             id: "apio.driversInstallFtdi",
             action: { cmds: ["{apio-bin} drivers install ftdi"] },
           },
           {
-            title: "uninstall driver",
+            title: "uninstall",
             tooltip: "Uninstall the FTDI driver",
             id: "apio.driversUninstallFtdi",
             action: { cmds: ["{apio-bin} drivers uninstall ftdi"] },
@@ -263,13 +263,13 @@ const TOOLS_TREE = [
         title: "serial",
         children: [
           {
-            title: "install driver",
+            title: "install",
             tooltip: "Install serial driver for your board",
             id: "apio.driversInstallSerial",
             action: { cmds: ["{apio-bin} drivers install serial"] },
           },
           {
-            title: "uninstall driver",
+            title: "uninstall",
             tooltip: "Uninstall the serial driver",
             id: "apio.driversUninstallSerial",
             action: { cmds: ["{apio-bin} drivers uninstall serial"] },
