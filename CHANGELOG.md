@@ -15,8 +15,7 @@
 - Fine-tuned the parameters of Gowin build (e.g. add an optional `family` arg 
   for the Gowin 20k FPGA).
 
-- Added under the TOOL menu a `devices` section with the devices scanning
-  commands.
+- Minor tweaks and refactoring of the commands tree for clarity.
 
 - Added to the `openFPGAloader` programmer the option `--force-terminal-mode`
   for a more tidy progress meter and printout.

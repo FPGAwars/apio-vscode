@@ -206,13 +206,13 @@ const TOOLS_TREE = [
     title: "definitions",
     children: [
       {
-        title: "boards",
+        title: "list boards",
         tooltip: "List supported FPGA boards",
         id: "apio.boards",
         action: { cmds: ["{apio-bin} boards"] },
       },
       {
-        title: "FPGAs",
+        title: "list FPGAs",
         tooltip: "List supported FPGAs",
         id: "apio.fpgas",
         action: { cmds: ["{apio-bin} fpgas"] },
