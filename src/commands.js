@@ -221,17 +221,30 @@ const TOOLS_TREE = [
   },
 
   {
+    title: "devices",
+    children: [
+      {
+        title: "scan usb",
+        tooltip: "List USB devices",
+        id: "apio.devicesListUsb",
+        action: { cmds: ["{apio-bin} devices scan-usb"] },
+      },
+
+      {
+        title: "scan serial",
+        tooltip: "List serial devices",
+        id: "apio.devicesListSerial",
+        action: { cmds: ["{apio-bin} devices scan-serial"] },
+      },
+    ],
+  },
+
+  {
     title: "drivers",
     children: [
       {
-        title: "FTDI",
+        title: "ftdi",
         children: [
-          {
-            title: "list devices",
-            tooltip: "List USB devices",
-            id: "apio.devicesListUsb",
-            action: { cmds: ["{apio-bin} devices usb"] },
-          },
           {
             title: "install driver",
             tooltip: "Install FTDI driver for your board",
@@ -249,12 +262,6 @@ const TOOLS_TREE = [
       {
         title: "serial",
         children: [
-          {
-            title: "list devices",
-            tooltip: "List serial devices",
-            id: "apio.devicesListSerial",
-            action: { cmds: ["{apio-bin} devices serial"] },
-          },
           {
             title: "install driver",
             tooltip: "Install serial driver for your board",

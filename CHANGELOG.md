@@ -12,8 +12,15 @@
 - Restructured the FPGAs definition file fpgas.jsonc. This requires users
   that custom FPGAs definition in their projects to adapt the format.
 
-- Fine tuned the parameters of Gowin build (e.g. add an optional `family` arg 
+- Fine-tuned the parameters of Gowin build (e.g. add an optional `family` arg 
   for the Gowin 20k FPGA).
+
+- Added under the TOOL menu a `devices` section with the devices scanning
+  commands.
+
+- Added to the `openFPGAloader` programmer the option `--force-terminal-mode`
+  for a more tidy progress meter and printout.
+
 
 ## [0.1.7]
 
