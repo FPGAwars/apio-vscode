@@ -6,19 +6,21 @@
   distinguish if a testbench is run by `apio sim` or `apio test` use the macro
   `APIO_SIM` which has the values `1` and `0` respectivly.
 
-- The values in the project file apio.ini can now contain pre-defined 
+- The values in the project file apio.ini can now contain pre-defined
   macros https://fpgawars.github.io/apio/docs/project-file/#value-macros .
 
 - Restructured the FPGAs definition file fpgas.jsonc. This requires users
   that custom FPGAs definition in their projects to adapt the format.
+  see `~/.apio/packages/definitions.fpgas.jsonc` for examples.
 
 - Fine-tuned the parameters of Gowin build (e.g. add an optional `family` arg 
   for the Gowin 20k FPGA).
 
 - Minor tweaks and refactoring of the commands tree for clarity.
 
-- Added to the `openFPGAloader` programmer the option `--force-terminal-mode`
-  for a more tidy progress meter and printout.
+- Added to the `openFPGAloader` programmer definition the options `--force-terminal-mode`
+  and `--verify`. If you have in your project a custom `boards.jsonc` or `programmers.jsonc`
+  file, you may need to adjust them accordingly.
 
 
 ## [0.1.7]
