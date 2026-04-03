@@ -203,7 +203,7 @@ const TOOLS_TREE = [
   },
 
   {
-    title: "boards",
+    title: "definitions",
     children: [
       {
         title: "list boards",
@@ -221,25 +221,38 @@ const TOOLS_TREE = [
   },
 
   {
+    title: "devices",
+    children: [
+      {
+        title: "scan usb",
+        tooltip: "List USB devices",
+        id: "apio.devicesListUsb",
+        action: { cmds: ["{apio-bin} devices scan-usb"] },
+      },
+
+      {
+        title: "scan serial",
+        tooltip: "List serial devices",
+        id: "apio.devicesListSerial",
+        action: { cmds: ["{apio-bin} devices scan-serial"] },
+      },
+    ],
+  },
+
+  {
     title: "drivers",
     children: [
       {
-        title: "FTDI",
+        title: "ftdi",
         children: [
           {
-            title: "list devices",
-            tooltip: "List USB devices",
-            id: "apio.devicesListUsb",
-            action: { cmds: ["{apio-bin} devices usb"] },
-          },
-          {
-            title: "install driver",
+            title: "install",
             tooltip: "Install FTDI driver for your board",
             id: "apio.driversInstallFtdi",
             action: { cmds: ["{apio-bin} drivers install ftdi"] },
           },
           {
-            title: "uninstall driver",
+            title: "uninstall",
             tooltip: "Uninstall the FTDI driver",
             id: "apio.driversUninstallFtdi",
             action: { cmds: ["{apio-bin} drivers uninstall ftdi"] },
@@ -250,19 +263,13 @@ const TOOLS_TREE = [
         title: "serial",
         children: [
           {
-            title: "list devices",
-            tooltip: "List serial devices",
-            id: "apio.devicesListSerial",
-            action: { cmds: ["{apio-bin} devices serial"] },
-          },
-          {
-            title: "install driver",
+            title: "install",
             tooltip: "Install serial driver for your board",
             id: "apio.driversInstallSerial",
             action: { cmds: ["{apio-bin} drivers install serial"] },
           },
           {
-            title: "uninstall driver",
+            title: "uninstall",
             tooltip: "Uninstall the serial driver",
             id: "apio.driversUninstallSerial",
             action: { cmds: ["{apio-bin} drivers uninstall serial"] },
