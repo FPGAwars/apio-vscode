@@ -1,6 +1,7 @@
-## [0.1.8]
+## [0.1.9]
 
-### Changed
+
+## [0.1.8]
 
 - The command `apio sim` doesn't define anymore the macro `INTERACTIVE_SIM`. To
   distinguish if a testbench is run by `apio sim` or `apio test` use the macro
@@ -24,8 +25,6 @@
 
 
 ## [0.1.7]
-
-### Changed
 
 - Added right-click context menu commands for `apio format`, `apio sim`, `apio lint`, and
   `apio test`. The context menu works in the VS Code explorer and in the
@@ -66,7 +65,6 @@
 
 ## [0.1.6]
 
-### Changed
 - Added support for legacy MacOS/Intel (x86-64)
 
 - The option 'top-module' is now required in apio.ini. In previous version it
@@ -74,12 +72,10 @@
 
 ## [0.1.5]
 
-### Cleanup
 - Maintenance release. Streamlined the internal Apio build workflows.
 
 ## [0.1.4]
 
-### Changed
 - Custom `boards.jsonc`, `fpgas.jsonc`, and `programmers.jsonc` definition files are now
   merged with the standard definitions files instead of replacing them. This allows
   to use in the same project both standard and custom definitions. In case of a
