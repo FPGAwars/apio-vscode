@@ -11,15 +11,8 @@
 
 set -euo pipefail
 
-# Default version is 'stable' if no argument is provided
-VERSION="${1:-stable}"
-
-# Temporary: 1.131 currently breaks Electron spawn on darwin-arm64
-# See: https://github.com/microsoft/vscode-test/issues/...
-VERSION="1.130.0"
-
-# Build the command
-CMD="npx vscode-test --code-version $VERSION"
+# Construct the command
+CMD="npx vscode-test"
 
 # Execute the command
 echo "Running: $CMD"
