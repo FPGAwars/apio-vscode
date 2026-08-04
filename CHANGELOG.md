@@ -1,4 +1,5 @@
 ## [0.1.9]
+- Dropped support for legacy macOS/Intel. 
 
 
 ## [0.1.8]
