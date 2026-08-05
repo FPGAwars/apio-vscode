@@ -212,7 +212,7 @@
     "tar": "^6.2.0"
   },
   "engines": {
-    "vscode": "^1.85.0",
+    "vscode": "^1.125.0",
     "node": "22.x"
   },
   "devDependencies": {
