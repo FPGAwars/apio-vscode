@@ -2,13 +2,9 @@
   "name": "apio",
   "displayName": "Apio",
   "description": "One-click build for FPGA projects",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "publisher": "fpgawars",
   "icon": "media/market-icon.png",
-  "engines": {
-    "vscode": "^1.85.0",
-    "node": "22.x"
-  },
   "categories": [
     "Programming Languages",
     "Other"
@@ -215,13 +211,17 @@
     "extract-zip": "^2.0.1",
     "tar": "^6.2.0"
   },
+  "engines": {
+    "vscode": "^1.125.0",
+    "node": "22.x"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.125.0",
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2",
+    "@vscode/test-electron": "^3.1.0",
     "eslint": "^9.39.1",
     "globals": "^16.5.0"
   }

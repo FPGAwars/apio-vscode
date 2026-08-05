@@ -54,18 +54,17 @@ function getPlatformId() {
   // macOS
   if (platform === "darwin") {
     if (arch === "arm64") id = "darwin-arm64";
-    else if (arch === "x64") id = "darwin-x86-64";
   }
   // Linux
   else if (platform === "linux") {
-    if (arch === "arm64") id = "linux-aarch64";
-    else if (arch === "x64") id = "linux-x86-64";
+    if (arch === "x64") id = "linux-x86-64";
   }
   // Windows
   else if (platform === "win32") {
     if (arch === "x64") id = "windows-amd64";
   }
 
+  // Unknown platform -> fatal error.
   if (!id) {
     throw new Error(`Unsupported platform: ${platform}-${arch}`);
   }

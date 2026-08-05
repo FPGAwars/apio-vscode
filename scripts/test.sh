@@ -11,11 +11,8 @@
 
 set -euo pipefail
 
-# Default version is 'stable' if no argument is provided
-VERSION="${1:-stable}"
-
-# Build the command
-CMD="npx vscode-test --code-version $VERSION"
+# Construct the command
+CMD="npx vscode-test"
 
 # Execute the command
 echo "Running: $CMD"
