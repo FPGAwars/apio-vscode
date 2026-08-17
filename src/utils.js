@@ -48,6 +48,12 @@ function userHomeDir() {
 
 // Get apio home dir, this is an apio managed directory.
 function apioHomeDir() {
+  const envApioHome = process.env.APIO_HOME;
+
+  if (envApioHome) {
+    return path.normalize(path.resolve(envApioHome));
+  }
+
   return path.join(userHomeDir(), ".apio");
 }
 
