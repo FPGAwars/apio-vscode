@@ -12,7 +12,7 @@ const APIO_CLI_RELEASE_REPO = "fpgawars/apio";
 // Release tag (YYYY-MM-DD) – matches git tag and PyPI version
 // Change ONLY this line when you publish a new daily build.
 //
-const APIO_CLI_RELEASE_TAG = "2026-04-03";
+const APIO_CLI_RELEASE_TAG = "2026-08-17";
 
 // Export for require()
 module.exports = {

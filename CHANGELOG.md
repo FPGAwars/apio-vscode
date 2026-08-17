@@ -1,5 +1,20 @@
 ## [0.1.9]
-- Dropped support for legacy macOS/Intel. 
+- Added support for Xilinx FPGAs and boards (thanks to the Openxc7 project).
+
+- Dropped support of legacy macOS/Intel platform. Apio CLI and Apio IDE are now 
+  supported on the three major dev platforms: macOS arm64, Linux x86-64, 
+  and Window x86-64.
+
+- Deleted the `--gui` flag of the `apio build` command because it was not well
+  supported for all architectures by the underlying tools and its value is 
+  unclear. User can still use it when available by running the nextpnr with 
+  the `apio raw` command.
+
+- Added more boards and FPGAs definitions. Apio now supports more than 100 boards, 
+  94 FPGAs, and growing.
+
+- Added a project command `misc | project info` that provide key project information
+  such as the architecture and fpga used.
 
 
 ## [0.1.8]
