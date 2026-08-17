@@ -103,6 +103,17 @@ const PROJECT_TREE = [
       },
     ],
   },
+  {
+    title: "misc",
+    children: [
+      {
+        title: "project info",
+        tooltip: "Show project info",
+        id: "apio.info.project",
+        action: { cmds: ["{apio-bin} info project {env-flag}"] },
+      },
+    ],
+  },
 ];
 
 // Commands for the TOOLS view. Thee commands are used only
