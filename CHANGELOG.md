@@ -16,6 +16,11 @@
 - Added a project command `misc | project info` that provide key project information
   such as the architecture and fpga used.
 
+- Removed backward compatibility with old board names ('legacy-name' field in 
+  board definitions). The project file apio.ini is not expected to have the 
+  proper board id. Run the `TOOLS | definitions | list boards` for a list 
+  of the boards and their ids.
+
 
 ## [0.1.8]
 
