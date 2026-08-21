@@ -27,10 +27,10 @@ const PROJECT_TREE = [
       },
       {
         title: "clean",
-        tooltip: "Clean the build artifacts",
+        tooltip: "Clean all build artifacts",
         id: "apio.clean",
         action: { cmds: ["{apio-bin} clean"] },
-        btn: { icon: "$(trash)", position: 7 },
+        btn: { icon: "$(clear-all)", position: 7 },
       },
     ],
   },
