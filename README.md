@@ -24,7 +24,7 @@ Apio IDE is an easy to install extension that brings the full FPGA design functi
 
 Apio IDE supports every stage of the FPGA workflow, from simulating and testing, to building and programming the FPGA, using simple menu commands and buttons such as `test`, `build`, and `upload` that do what you expect them to do. Apio IDE also provides full access to Apio CLI commands via an integrated shell.
 
-Apio IDE currently supports over 100 FPGA boards, custom boards can be easily added, and it includes about 100 ready-to-use example projects. Apio CLI currently supports the ICE40, ECP5, Gowin, and Xilinx FPGA architectures.
+Apio IDE currently supports over 100 FPGA boards, custom boards can be easily added, and it includes about 100 ready-to-use example projects. Apio CLI currently supports the ICE40, ECP5, Gowin, and AMD/Xilinx 7 Series FPGA architectures.
 
 ## Sample Apio IDE session
 
