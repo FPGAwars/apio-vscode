@@ -3,7 +3,7 @@
 
 ## [0.1.9]
 
-- Added support for Xilinx FPGAs and boards (thanks to the Openxc7 project).
+- Added support for Xilinx 7 Series FPGAs and boards (thanks to the Openxc7 project).
 
 - Dropped support of legacy macOS/Intel platform. Apio CLI and Apio IDE are now 
   supported on the three major dev platforms: macOS arm64, Linux x86-64, 
