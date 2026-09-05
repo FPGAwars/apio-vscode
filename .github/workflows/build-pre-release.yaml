@@ -59,25 +59,30 @@ jobs:
           ls -al
 
       - name: Extract values and set environment variables
+        shell: node {0}
         run: |
           const workspace = process.env.GITHUB_WORKSPACE;
 
           const fs = require('fs');
           const path = require('path');
-          const constants = require(path.join(workspace, 'src', 'constants.js'));
           const pkg = require(path.join(workspace, 'package.json'));
 
           const envPath = process.env.GITHUB_ENV;
 
-          console.log(`VSCODE_EXTENSION_VERSION=${pkg.version}`)
-          fs.appendFileSync(envPath, `VSCODE_EXTENSION_VERSION=${pkg.version}\n`);
+          // Export vscode extension version.
+          version = pkg.version
+          console.log(`VSCODE_EXTENSION_VERSION=${version}`)
+          fs.appendFileSync(envPath, `VSCODE_EXTENSION_VERSION=${version}\n`);
 
-          console.log(`APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}`)
-          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_REPO=${constants.APIO_CLI_RELEASE_REPO}\n`);
+          // Export Apio CLI repo.
+          repo = pkg.appConstants.apioCliReleaseRepo
+          console.log(`APIO_CLI_RELEASE_REPO=${repo}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_REPO=${repo}\n`);
 
-          console.log(`APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}`)
-          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_TAG=${constants.APIO_CLI_RELEASE_TAG}\n`);
-        shell: node {0}
+          // Export Apio CLI release tag.
+          tag = pkg.appConstants.apioCliReleaseTag
+          console.log(`APIO_CLI_RELEASE_TAG=${tag}`)
+          fs.appendFileSync(envPath, `APIO_CLI_RELEASE_TAG=${tag}\n`);
 
       # Create the build info file that we will include in the package.
       - name: Create build info
