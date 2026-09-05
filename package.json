@@ -5,6 +5,10 @@
   "version": "0.1.10",
   "publisher": "fpgawars",
   "icon": "media/market-icon.png",
+  "appConstants" : {
+    "apioCliReleaseRepo": "fpgawars/apio",
+    "apioCliReleaseTag": "2026-08-20"
+  },
   "categories": [
     "Programming Languages",
     "Other"

@@ -15,7 +15,6 @@ const zipExtract = require("extract-zip");
 const tar = require("tar");
 
 // Local imports
-const constants = require("./constants.js");
 const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const jsonUtils = require("./json-utils.js");
@@ -28,21 +27,27 @@ let _downloadDstFilePath = null;
 
 // Initializes this module. Should be called once before any other
 // function of this module.
-function init() {
+function init(context) {
   // Should be called only once.
   assert(
     _downloadSrcUrl == null,
-    "downloader.init() should be called at most once."
+    "downloader.init() should be called at most once.",
   );
 
+  // Get the 'appConstants' section from package.json. Note that
+  // 'appConstants' it's a name we made up.
+  const appConsts = context.extension.packageJSON.appConstants;
+  repo = appConsts.apioCliReleaseRepo;
+  tag = appConsts.apioCliReleaseTag;
+
   // Determine download information.
-  const yyyymmdd = constants.APIO_CLI_RELEASE_TAG.replaceAll("-", "");
+  const yyyymmdd = tag.replaceAll("-", "");
   const platformId = platforms.getPlatformId();
   const baseUrl =
     "https://github.com/" +
-    constants.APIO_CLI_RELEASE_REPO +
+    repo +
     "/releases/download/" +
-    constants.APIO_CLI_RELEASE_TAG +
+    tag +
     "/";
   const ext = platforms.isWindows() ? "zip" : "tgz";
   const packageFileName = `apio-cli-${platformId}-${yyyymmdd}-bundle.${ext}`;
@@ -57,16 +62,16 @@ async function ensureApioBinary() {
     // Check if the apio binary exists.
     const binaryExists = await _testFsItem(
       utils.apioBinaryPath(),
-      fs.constants.X_OK | fs.constants.R_OK
+      fs.constants.X_OK | fs.constants.R_OK,
     );
     apioLog.msg(
-      `Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`
+      `Apio binary ${utils.apioBinaryPath()} exists = ${binaryExists}`,
     );
 
     // Check if the download metadata has a matching download url
     const metadataFilePath = path.join(
       utils.apioBinDir(),
-      downloadMetadataFileName
+      downloadMetadataFileName,
     );
     //  'metadata' is {} if file doesn't exist or any error.
     const metadataDict = await jsonUtils.readJson(metadataFilePath);

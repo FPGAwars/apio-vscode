@@ -351,7 +351,7 @@ function activate(context) {
   apioLog.msg(`Workspace info: ${pretty(wsInfo)}`);
 
   // Initialize the loader.
-  downloader.init();
+  downloader.init(context);
 
   // -- Register the get example wizard. We invoke it from
   // -- the 'get example' command after running 'apio api get-examples'
