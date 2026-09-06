@@ -87,8 +87,8 @@ jobs:
       # Create the build info file that we will include in the package.
       - name: Create build info
         run: |
-          # Generate build-info.json
-          cat > build-info.json <<EOF
+          # Generate BUILD-INFO.json
+          cat > BUILD-INFO.json <<EOF
           {
             "package-name":  "apio-ide",
             "description" : "Apio extension for Visual Studio Code",
@@ -106,12 +106,12 @@ jobs:
           }
           EOF
 
-          cat -n build-info.json
+          cat -n BUILD-INFO.json
 
       - name: Format build info json file in-place
         uses: fpgawars/apio-workflows/.github/actions/format-json-file@main
         with:
-          json-file: build-info.json
+          json-file: BUILD-INFO.json
 
       - name: Build the .vsix file
         run: |
@@ -129,7 +129,7 @@ jobs:
       - name: Convert json build info to text
         uses: fpgawars/apio-workflows/.github/actions/json-to-text@main
         with:
-          input-json: build-info.json
+          input-json: BUILD-INFO.json
           output-text: build-info.txt
 
       # Summary for the workflow run page.
@@ -212,3 +212,4 @@ jobs:
           # We intensionally list explicitly all the expected files.
           files: |
             apio-vscode-${{env.PACKAGE_TAG}}.vsix
+            BUILD-INFO.json
