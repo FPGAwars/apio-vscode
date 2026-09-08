@@ -31,6 +31,11 @@ jobs:
       contents: read # needed to download release assets
 
     steps:
+      - name: Validate release tag format
+        uses: fpgawars/apio-workflows/.github/actions/check-release-tag@main
+        with:
+          release-tag: ${{ inputs.release_tag }}
+
       - name: Download .vsix from the selected release
         uses: robinraju/release-downloader@v1.10
         with:
