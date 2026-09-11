@@ -1,5 +1,7 @@
 ## [0.1.10]
 
+- Extended the list of supported Xilinx devices.
+
 
 ## [0.1.9]
 
