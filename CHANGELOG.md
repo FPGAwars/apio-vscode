@@ -1,6 +1,10 @@
 ## [0.1.10]
 
-- Extended the list of supported Xilinx devices.
+- Extended the list of supported Xilinx devices and boards.
+
+- Fixed a Xilinx toolchain issue. Tying a signal to a constant that P&R cannot
+  connect to a real 0/1 source is now a build error. Previously
+  this produced a bitstream whose input floated high.
 
 
 ## [0.1.9]
