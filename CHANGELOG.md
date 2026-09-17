@@ -1,3 +1,6 @@
+## [0.1.11]
+
+
 ## [0.1.10]
 
 - Extended the list of supported Xilinx devices and boards.
@@ -6,31 +9,29 @@
   connect to a real 0/1 source is now a build error. Previously
   this produced a bitstream whose input floated high.
 
-
 ## [0.1.9]
 
 - Added support for AMD/Xilinx 7 Series FPGAs and boards (thanks to the Openxc7 project).
 
-- Dropped support of legacy macOS/Intel platform. Apio CLI and Apio IDE are now 
-  supported on the three major dev platforms: macOS arm64, Linux x86-64, 
+- Dropped support of legacy macOS/Intel platform. Apio CLI and Apio IDE are now
+  supported on the three major dev platforms: macOS arm64, Linux x86-64,
   and Window x86-64.
 
 - Deleted the `--gui` flag of the `apio build` command because it was not well
-  supported for all architectures by the underlying tools and its value is 
-  unclear. User can still use it when available by running the nextpnr with 
+  supported for all architectures by the underlying tools and its value is
+  unclear. User can still use it when available by running the nextpnr with
   the `apio raw` command.
 
-- Added more boards and FPGAs definitions. Apio now supports more than 100 boards, 
+- Added more boards and FPGAs definitions. Apio now supports more than 100 boards,
   94 FPGAs, and growing.
 
 - Added a project command `misc | project info` that provide key project information
   such as the architecture and fpga used.
 
-- Removed backward compatibility with old board names ('legacy-name' field in 
-  board definitions). The project file apio.ini is not expected to have the 
-  proper board id. Run the `TOOLS | definitions | list boards` for a list 
+- Removed backward compatibility with old board names ('legacy-name' field in
+  board definitions). The project file apio.ini is not expected to have the
+  proper board id. Run the `TOOLS | definitions | list boards` for a list
   of the boards and their ids.
-
 
 ## [0.1.8]
 
@@ -45,7 +46,7 @@
   that custom FPGAs definition in their projects to adapt the format.
   see `~/.apio/packages/definitions.fpgas.jsonc` for examples.
 
-- Fine-tuned the parameters of Gowin build (e.g. add an optional `family` arg 
+- Fine-tuned the parameters of Gowin build (e.g. add an optional `family` arg
   for the Gowin 20k FPGA).
 
 - Minor tweaks and refactoring of the commands tree for clarity.
@@ -53,7 +54,6 @@
 - Added to the `openFPGAloader` programmer definition the options `--force-terminal-mode`
   and `--verify`. If you have in your project a custom `boards.jsonc` or `programmers.jsonc`
   file, you may need to adjust them accordingly.
-
 
 ## [0.1.7]
 
@@ -93,7 +93,6 @@
   which allows to add flags to the verilator commands that `apio lint`
   launches.
 
-
 ## [0.1.6]
 
 - Added support for legacy MacOS/Intel (x86-64)
@@ -118,5 +117,3 @@
 ## [0.1.3]
 
 Initial version.
-
-

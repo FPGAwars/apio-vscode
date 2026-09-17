@@ -18,6 +18,7 @@
         "Icestudio",
         "makefiles",
         "mkdocs",
+        "nextpnr",
         "pinout",
         "pipefail",
         "prexists",
