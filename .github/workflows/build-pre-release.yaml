@@ -15,6 +15,9 @@ permissions:
 
 env:
   # prevents warnings in the vscode editor.
+  REPO: ""
+  REPO_BRANCH: ""
+  REPO_COMMIT: ""
   RELEASE_TAG: ""
   PACKAGE_TAG: ""
   VSCODE_EXTENSION_VERSION: ""
@@ -39,6 +42,15 @@ jobs:
         with:
           release-tag-var: RELEASE_TAG
           package-tag-var: PACKAGE_TAG
+
+      # We get here repo normalized to lowercase. E.g. fpgawars/apio.
+      - name: Get repo info
+        uses: fpgawars/apio-workflows/.github/actions/get-repo-info@main
+        with:
+          repo-dir: .
+          repo-var: REPO
+          branch-var: REPO_BRANCH
+          commit-var: REPO_COMMIT
 
       - name: Determine package file name
         run: |
@@ -92,9 +104,9 @@ jobs:
           {
             "package-name":  "apio-ide",
             "description" : "Apio extension for Visual Studio Code",
-            "source-repo":  "${{github.repository}}",
-            "source-sha":   "${{ github.sha }}",
-            "source-branch": "${{ github.ref_name }}",
+            "source-repo":  "$REPO",
+            "source-sha":   "$REPO_COMMIT",
+            "source-branch": "$REPO_BRANCH",
             "apio-ide-version": "$VSCODE_EXTENSION_VERSION",
             "apio-ide-release-tag": "${RELEASE_TAG}",
             "apio-cli-release-repo": "$APIO_CLI_RELEASE_REPO",
@@ -142,12 +154,12 @@ jobs:
           $(cat build-info.txt)
           \`\`\`
 
-          - [Apio IDE cutoff commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          - [Apio IDE cutoff commit](https://github.com/$REPO/commit/$REPO_COMMIT)
 
           - [Linked Apio CLI release](https://github.com/${APIO_CLI_RELEASE_REPO}/releases/tag/${APIO_CLI_RELEASE_TAG}) \
           (Must exist for this Apio IDE release to work)
 
-          - [Generated Apio IDE pre-release](https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG})
+          - [Generated Apio IDE pre-release](https://github.com/$REPO/releases/tag/${RELEASE_TAG})
 
           EOF
 
