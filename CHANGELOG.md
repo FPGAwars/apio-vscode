@@ -1,5 +1,6 @@
-## [0.1.11]
+## [0.1.12]
 
+- Maintenance release. No user facing changes.
 
 ## [0.1.10]
 

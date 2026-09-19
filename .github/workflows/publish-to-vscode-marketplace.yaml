@@ -36,6 +36,12 @@ jobs:
         with:
           release-tag: ${{ inputs.release_tag }}
 
+      - name: Check that the release is stable
+        uses: fpgawars/apio-workflows/.github/actions/check-release-is-stable@main
+        with:
+          release-repo: ${{ github.repository }}
+          release-tag: ${{ inputs.release_tag }}
+
       - name: Download .vsix from the selected release
         uses: robinraju/release-downloader@v1.10
         with:
