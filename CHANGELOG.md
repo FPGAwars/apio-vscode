@@ -1,6 +1,12 @@
-## [0.1.12]
+## [0.1.13]
 
-- Maintenance release. No user facing changes.
+- The legacy sim/test macro `VCD_OUTPUT` was removed. See more details
+  at https://github.com/FPGAwars/apio/issues/560
+
+- The legacy support for unnamed env in `apio.ini` was removed. If you have in
+  your `apio.ini` file the env `[env]`, change it to `[env:default]` or any
+  other name you like.
+
 
 ## [0.1.10]
 
