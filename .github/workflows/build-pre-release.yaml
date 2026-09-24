@@ -27,11 +27,11 @@ env:
 jobs:
   # ----- Parameters collection job
   build-pre-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: List repo files
         run: |
