@@ -7,7 +7,7 @@
   "icon": "media/market-icon.png",
   "appConstants" : {
     "apioCliReleaseRepo": "fpgawars/apio",
-    "apioCliReleaseTag": "2026-09-15"
+    "apioCliReleaseTag": "2026-09-29"
   },
   "categories": [
     "Programming Languages",
