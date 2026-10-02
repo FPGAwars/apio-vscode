@@ -7,6 +7,12 @@
   your `apio.ini` file the env `[env]`, change it to `[env:default]` or any
   other name you like.
 
+- Zadig version on window changed to 2.9 (was 2.8).
+
+- Switched to the latest implementation of OpenXC7 Xilinx place-and-route
+  which may have slightly different timing results. This implementation
+  is intended to be merged in the future into the official YosysHQ's 
+  oss-cad-suite packagte.
 
 ## [0.1.10]
 
