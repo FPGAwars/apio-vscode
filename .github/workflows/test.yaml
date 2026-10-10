@@ -17,6 +17,8 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
+
       matrix:
         os: [ubuntu-24.04, macos-latest, windows-latest]
         vscode-version: ["1.125.0", "stable"]
@@ -36,7 +38,7 @@ jobs:
         with:
           node-version-file: "package.json" # Detects from engines.node
 
-      # Install the node version management. 
+      # Install the node version management.
       # This sets a script at ~/.nvm/nvm.sh that need to be sourced
       # by any bash instance to define the 'nvm' command.
       - name: Install and configure nvm
