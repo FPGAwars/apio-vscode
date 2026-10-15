@@ -5,6 +5,9 @@
   need to modify it to match the new format (run in the apio shell
   `apio api get-fpgas` for examples), otherwise, no change is needed.
 
+- Added FPGAs definition. The number of FPGAs definition grew from 95 to 450+.
+  For a list of FPGAs definitions type `apio fpgas` or `apio api get-fpgas`.
+
 - The legacy sim/test macro `VCD_OUTPUT` was removed. See more details
   at https://github.com/FPGAwars/apio/issues/560
 
@@ -12,7 +15,7 @@
   your `apio.ini` file the env `[env]`, change it to `[env:default]` or any
   other name you like.
 
-- Zadig version on window changed to 2.9 (was 2.8).
+- On windows, Zadig version changed from 2.8 to 2.9.
 
 - Switched to the latest implementation of OpenXC7 Xilinx place-and-route
   which may have slightly different timing results. This implementation
