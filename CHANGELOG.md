@@ -5,7 +5,7 @@
   need to modify it to match the new format (run in the apio shell
   `apio api get-fpgas` for examples), otherwise, no change is needed.
 
-- Added FPGAs definition. The number of FPGAs definition grew from 95 to 526.
+- Added FPGAs definition. The number of FPGAs definition grew from 95 to 450+.
   For a list of FPGAs definitions type `apio fpgas` or `apio api get-fpgas`.
 
 - The legacy sim/test macro `VCD_OUTPUT` was removed. See more details
