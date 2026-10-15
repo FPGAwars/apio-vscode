@@ -1,5 +1,10 @@
 ## [0.1.13]
 
+- Restructured the fields of FPGA definitions for clarity. If your project
+  contains a custom `fpgas.json` file you will get a runtime error and will
+  need to modify it to match the new format (run in the apio shell
+  `apio api get-fpgas` for examples), otherwise, no change is needed.
+
 - The legacy sim/test macro `VCD_OUTPUT` was removed. See more details
   at https://github.com/FPGAwars/apio/issues/560
 
@@ -13,6 +18,9 @@
   which may have slightly different timing results. This implementation
   is intended to be merged in the future into the official YosysHQ's 
   oss-cad-suite packagte.
+
+- Deleted the definition of the fpga ice40ul1k-cm36a because it's not
+  supported by yosys.  
 
 ## [0.1.10]
 
