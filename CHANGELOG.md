@@ -29,8 +29,9 @@
   supported by Yosys.
 
 - If you are using the `APIO_PACKAGES` env variable (typically unnecessary),
-  the path is now required to have the word `apio`, in addition to the
-  existing `packages` (case insensitive, order doesn't matter) for extra safety.
+  the path has more strict requirements for extra safety against unintentional
+  deletions. If Apio will fail with an error message, change the path to
+  be comply with the new requirements.
 
 ## [0.1.10]
 
