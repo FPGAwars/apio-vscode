@@ -1,29 +1,32 @@
 ## [0.1.13]
 
-- Restructured the fields of FPGA definitions for clarity. If your project
-  contains a custom `fpgas.json` file you will get a runtime error and will
-  need to modify it to match the new format (run in the apio shell
-  `apio api get-fpgas` for examples), otherwise, no change is needed.
+- Restructured the fields of the FPGA definitions for clarity. If your project
+  contains a custom `fpgas.json` file, you will get a runtime error and will
+  need to adapt it to the new format (run `apio api get-fpgas` in the Apio
+  shell for examples). Otherwise, no change is needed.
 
-- Added FPGAs definition. The number of FPGAs definition grew from 95 to 450+.
-  For a list of FPGAs definitions type `apio fpgas` or `apio api get-fpgas`.
+- FPGA definitions are now generated automatically for all the FPGAs that
+  the underlying tools support, increasing the number of FPGA definitions
+  to 500+ (was 95). A custom `fpgas.json` file can still be used, but in most
+  cases it's unnecessary. For a list of FPGA definitions, run `apio fpgas`
+  or `apio api get-fpgas`.
 
-- The legacy sim/test macro `VCD_OUTPUT` was removed. See more details
-  at https://github.com/FPGAwars/apio/issues/560
+- Switched to openXC7's current nextpnr-xilinx engine, which openXC7
+  maintains and intends to merge into YosysHQ's oss-cad-suite. Timing
+  results may differ slightly. Apio now supports all 200+ Artix-7, Spartan-7,
+  and Zynq-7000 FPGAs that this engine supports.
 
-- The legacy support for unnamed env in `apio.ini` was removed. If you have in
-  your `apio.ini` file the env `[env]`, change it to `[env:default]` or any
+- Removed the legacy sim/test macro `VCD_OUTPUT`. For more details, see
+  https://github.com/FPGAwars/apio/issues/560
+
+- Removed the legacy support for an unnamed env in `apio.ini`. If your
+  `apio.ini` file contains `[env]`, rename it to `[env:default]` or use
   other name you like.
 
-- On windows, Zadig version changed from 2.8 to 2.9.
+- On Windows, upgraded Zadig from version 2.8 to 2.9.
 
-- Switched to the latest implementation of OpenXC7 Xilinx place-and-route
-  which may have slightly different timing results. This implementation
-  is intended to be merged in the future into the official YosysHQ's 
-  oss-cad-suite packagte.
-
-- Deleted the definition of the fpga ice40ul1k-cm36a because it's not
-  supported by yosys.  
+- Removed the definition of the FPGA `ice40ul1k-cm36a` because it's not
+  supported by Yosys.
 
 ## [0.1.10]
 

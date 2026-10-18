@@ -36,6 +36,7 @@
         "xattr",
         "yosys",
         "Yoyodyne",
-        "zapta"
+        "zapta",
+        "Zynq"
     ]
 }
