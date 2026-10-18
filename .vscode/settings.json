@@ -19,6 +19,7 @@
         "makefiles",
         "mkdocs",
         "nextpnr",
+        "packagte",
         "pinout",
         "pipefail",
         "prexists",
@@ -36,6 +37,7 @@
         "xattr",
         "yosys",
         "Yoyodyne",
-        "zapta"
+        "zapta",
+        "Zynq"
     ]
 }
