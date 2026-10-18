@@ -28,6 +28,10 @@
 - Removed the definition of the FPGA `ice40ul1k-cm36a` because it's not
   supported by Yosys.
 
+- If you are using the `APIO_PACKAGES` env variable (typically unnecessary),
+  the path is now required to have the word `apio`, in addition to the
+  existing `packages` (case insensitive, order doesn't matter) for extra safety.
+
 ## [0.1.10]
 
 - Extended the list of supported Xilinx devices and boards.
