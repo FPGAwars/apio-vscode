@@ -29,8 +29,9 @@ async function _launchAction(
 
     // Expand the placeholders.
     taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", apioEnvFlag));
+    // The apio binary path is quoted since it may contain spaces.
     taskCmds = taskCmds.map((cmd) =>
-      cmd.replace("{apio-bin}", utils.apioBinaryPath()),
+      cmd.replace("{apio-bin}", `"${utils.apioBinaryPath()}"`),
     );
 
     // Execute the commands and wait for completion.

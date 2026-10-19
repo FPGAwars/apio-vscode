@@ -56,6 +56,7 @@ async function execCommandsInATask(
   const titleMessage = `${taskTitle}`;
 
   // The path to the apio bin so we can invoke 'apio api echo ...'.
+  // Quote it in the commands since it may contain spaces.
   const apioBin = utils.apioBinaryPath();
 
   let shell;
@@ -73,7 +74,7 @@ async function execCommandsInATask(
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
       `  echo.`,
-      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
+      `  "${apioBin}" api echo -t "${failMessage}" -s ERROR`,
       preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
@@ -81,13 +82,13 @@ async function execCommandsInATask(
       "@echo off",
       "setlocal",
       "verify >nul",
-      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
+      `"${apioBin}" api echo -t "${titleMessage}" -s EMPH3`,
       `echo.`,
       ...cmdsLines,
       " ",
       `echo.`,
       // `echo ${okMessage}`,
-      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
+      ...okMessage.map((s) => `"${apioBin}" api echo -t "${s}" -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, true)),
       "exit /b 0",
     ];
@@ -107,20 +108,20 @@ async function execCommandsInATask(
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
-      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
+      `  "${apioBin}" api echo -t "${failMessage}" -s ERROR`,
       preserveExitCode ? `  exit $ERR` : `  exit 0`,
       `fi`,
     ]);
     // Combine all the lines.
     const lines = [
       "#!/usr/bin/env bash",
-      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
+      `"${apioBin}" api echo -t "${titleMessage}" -s EMPH3`,
       "echo",
       ...cmdsLines,
       " ",
       "echo",
       // `echo "${okMessage}"`,
-      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
+      ...okMessage.map((s) => `"${apioBin}" api echo -t "${s}" -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
@@ -239,9 +240,10 @@ async function openProjectFromExample(
     const exampleId = board + "/" + example;
 
     // Run 'apio examples fetch board/example' in the demo folder.
+    // Paths are quoted since they may contain spaces.
     const taskCmds = [
-      `cd ${folder}`,
-      `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
+      platforms.isWindows() ? `chdir /d "${folder}"` : `cd "${folder}"`,
+      `"${utils.apioBinaryPath()}" examples fetch ${exampleId}`,
     ];
     const aborted = await execCommandsInATask(
       `Create project`,

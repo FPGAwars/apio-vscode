@@ -170,9 +170,9 @@ const TOOLS_TREE = [
         id: "apio.getExample",
         action: {
           cmds: [
-            `{apio-bin} api get-examples -f -o ${utils.apioTmpChild(
+            `{apio-bin} api get-examples -f -o "${utils.apioTmpChild(
               "examples.json",
-            )}`,
+            )}"`,
           ],
           completionMsgs: [
             "The Apio examples list was retrieved successfully.",
