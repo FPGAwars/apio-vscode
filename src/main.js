@@ -28,6 +28,7 @@ const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const notice = require("./notice-view.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 const wizard = require("./get-example-wizard.js");
 const tasks = require("./tasks.js");
 const actions = require("./actions.js");
@@ -375,12 +376,12 @@ function activate(context) {
     if (platforms.isWindows()) {
       // Windows (cmd.exe)
       if (wsInfo.wsDirPath) {
-        preCmds.push(`chdir /d "${wsInfo.wsDirPath}"`);
+        preCmds.push(`chdir /d ${shellSafe(wsInfo.wsDirPath)}`);
       }
     } else {
       // MacOS and Linux (bash)
       if (wsInfo.wsDirPath) {
-        preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+        preCmds.push(`cd ${shellSafe(wsInfo.wsDirPath)}`);
       }
     }
 

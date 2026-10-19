@@ -7,6 +7,7 @@ const vscode = require("vscode");
 // Local imports.
 const apioLog = require("./apio-log.js");
 const actions = require("./actions.js");
+const { shellSafe } = require("./utils.js");
 
 // A callback for handling commands invocations from vscode context
 // right click menu.
@@ -40,7 +41,11 @@ async function contextCmdHandler(taskTitle, taskCmds, contextUri) {
   // Expand the {context-path} placeholder in the task title and
   // in the commands.
   taskTitle = taskTitle.replace("{context-path}", contextPath);
-  taskCmds = taskCmds.map((cmd) => cmd.replace("{context-path}", contextPath));
+  // In the commands, the path is quoted if needed, e.g. if it contains spaces.
+  const safeContextPath = shellSafe(contextPath);
+  taskCmds = taskCmds.map((cmd) =>
+    cmd.replace("{context-path}", safeContextPath),
+  );
 
   // Launch the commands as a task.
   launcher = actions.getActionLauncher(
@@ -61,22 +66,22 @@ function registerFileContextHandlers(context, preCmds) {
     [
       "apio.context.sim",
       "Context / sim",
-      [...preCmds, `{apio-bin} sim "{context-path}" {env-flag}`],
+      [...preCmds, `{apio-bin} sim {context-path} {env-flag}`],
     ],
     [
       "apio.context.test",
       "Context / test",
-      [...preCmds, `{apio-bin} test "{context-path}" {env-flag}`],
+      [...preCmds, `{apio-bin} test {context-path} {env-flag}`],
     ],
     [
       "apio.context.lint",
       "Context / lint",
-      [...preCmds, `{apio-bin} lint "{context-path}" {env-flag}`],
+      [...preCmds, `{apio-bin} lint {context-path} {env-flag}`],
     ],
     [
       "apio.context.format",
       "Context / format",
-      [...preCmds, `{apio-bin} format "{context-path}" {env-flag}`],
+      [...preCmds, `{apio-bin} format {context-path} {env-flag}`],
     ],
   ];
 
