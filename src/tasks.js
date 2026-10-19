@@ -103,7 +103,10 @@ async function execCommandsInATask(
     // Generate for each command.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo '$ ${cmd}'`,
+      // cmd is echoed inside '...', and bash can't escape a ' inside '...'.
+      // So each ' in cmd (e.g. in /Users/o'brien) is replaced with '\''
+      // which exits the quotes, adds an escaped ', and reenters the quotes.
+      `echo '$ ${cmd.replaceAll("'", "'\\''")}'`,
       `${cmd}`,
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
