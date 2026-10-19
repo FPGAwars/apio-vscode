@@ -7,8 +7,8 @@ const assert = require("assert");
 const utils = require("../src/utils.js");
 const platforms = require("../src/platforms.js");
 
-suite("utils.shellSafe()", () => {
-  test("safe strings are returned as is", () => {
+suite("Utils tests", () => {
+  test("test-shell-safe-safe-chars", () => {
     assert.strictEqual(utils.shellSafe("apio"), "apio");
     assert.strictEqual(
       utils.shellSafe("/home/user/.apio/bin/apio"),
@@ -17,7 +17,7 @@ suite("utils.shellSafe()", () => {
     assert.strictEqual(utils.shellSafe("a-b_c.d/0-9"), "a-b_c.d/0-9");
   });
 
-  test("strings with unsafe chars are quoted", () => {
+  test("test-shell-safe-unsafe-chars", () => {
     assert.strictEqual(
       utils.shellSafe("/home/John Smith/.apio/bin/apio"),
       '"/home/John Smith/.apio/bin/apio"',
@@ -30,11 +30,11 @@ suite("utils.shellSafe()", () => {
     assert.strictEqual(utils.shellSafe("a$b"), '"a$b"');
   });
 
-  test("empty string is quoted", () => {
+  test("test-shell-safe-empty-string", () => {
     assert.strictEqual(utils.shellSafe(""), '""');
   });
 
-  test("backslash and colon are safe only on windows", () => {
+  test("test-shell-safe-windows-chars", () => {
     const winPath = "C:\\Users\\john\\.apio\\bin\\apio.exe";
     if (platforms.isWindows()) {
       assert.strictEqual(utils.shellSafe(winPath), winPath);
