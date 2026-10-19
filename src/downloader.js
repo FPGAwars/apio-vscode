@@ -42,7 +42,7 @@ function init(context) {
 
   // Determine download information.
   const yyyymmdd = tag.replaceAll("-", "");
-  const platformId = platforms.getPlatformId();
+  const platformId = platforms.getApioPlatformId();
   const baseUrl =
     "https://github.com/" +
     repo +
