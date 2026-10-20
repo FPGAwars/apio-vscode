@@ -249,6 +249,16 @@ function timing(label) {
   };
 }
 
+// Returns the string in a form that is safe to use in a shell command.
+// The string is returned as is if it contains only safe chars, otherwise
+// it's wrapped in double quotes, e.g. if it contains a space.
+function shellSafe(str) {
+  const safeChars = platforms.isWindows()
+    ? /^[a-zA-Z0-9_.\-/\\:]+$/
+    : /^[a-zA-Z0-9_.\-/]+$/;
+  return safeChars.test(str) ? str : `"${str}"`;
+}
+
 // Exported for require().
 module.exports = {
   extractApioIniEnvs,
@@ -266,4 +276,5 @@ module.exports = {
   prepareEmptyApioDemoDir,
   willCauseWorkspaceChange,
   timing,
+  shellSafe,
 };

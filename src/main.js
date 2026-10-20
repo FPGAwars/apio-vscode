@@ -28,6 +28,7 @@ const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const notice = require("./notice-view.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 const wizard = require("./get-example-wizard.js");
 const tasks = require("./tasks.js");
 const actions = require("./actions.js");
@@ -44,8 +45,9 @@ const demoCmd = require("./demo-cmd.js");
 const PLATFORM_NOT_SUPPORTED_NOTICE = (platformId) =>
   `#### Unsupported platform
 
-The platform *${platformId}* is currently not supported. Please \
-[file a feature request](https://github.com/fpgawars/apio/issues).
+The platform *${platformId}* is not currently supported. You can \
+[file a feature request](https://github.com/fpgawars/apio/issues) \
+with the Apio team.
 `.trim();
 
 // Markdown notice to show when there is no open apio project.
@@ -335,11 +337,15 @@ function activate(context) {
 
   // Determine if the underlying host is supported. This depends on the
   // availability of platform_id in apio build releases.
-  const platformId = platforms.getPlatformId();
-  apioLog.msg(`Platform id: ${platformId}`);
-  if (!platforms.SUPPORTED_PLATFORMS_IDS.includes(platformId)) {
-    apioLog.msg(`Platform not supported: ${platformId}`);
-    notice.showMarkdown(PLATFORM_NOT_SUPPORTED_NOTICE(platformId));
+  try {
+    const apioPlatformId = platforms.getApioPlatformId();
+    apioLog.msg(`Platform id: ${apioPlatformId}`);
+  } catch (err) {
+    if (!(err instanceof platforms.UnsupportedPlatformError)) {
+      throw err; // Not ours, let it propagate.
+    }
+    apioLog.msg(`Platform not supported: ${err.hostType}`);
+    notice.showMarkdown(PLATFORM_NOT_SUPPORTED_NOTICE(err.hostType));
     return;
   }
 
@@ -370,12 +376,12 @@ function activate(context) {
     if (platforms.isWindows()) {
       // Windows (cmd.exe)
       if (wsInfo.wsDirPath) {
-        preCmds.push(`chdir /d "${wsInfo.wsDirPath}"`);
+        preCmds.push(`chdir /d ${shellSafe(wsInfo.wsDirPath)}`);
       }
     } else {
       // MacOS and Linux (bash)
       if (wsInfo.wsDirPath) {
-        preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+        preCmds.push(`cd ${shellSafe(wsInfo.wsDirPath)}`);
       }
     }
 

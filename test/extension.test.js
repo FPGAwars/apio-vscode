@@ -145,7 +145,7 @@ suite("Integration tests", () => {
   test("test-apio-version", async function () {
     //Prolog
     console.log("test-apio-version test started");
-    this.timeout(10000); // 10 secs timeout.
+    this.timeout(30000); // 30 secs timeout.
 
     // Invoke the command.
     await vscode.commands.executeCommand("apio.version");

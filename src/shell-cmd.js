@@ -6,6 +6,7 @@ const fs = require("fs");
 // Local imports
 const downloader = require("./downloader.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 
@@ -29,13 +30,13 @@ function registerApioShellCommand(context, wsInfo) {
         // For windows, (no Powershell, we force CMD below.).
         preCmds.push("cls");
         preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
-        if (wsDirExists) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+        if (wsDirExists) preCmds.push(`cd ${shellSafe(wsInfo.wsDirPath)}`);
         preCmds.push("apio -h");
       } else {
         // For macOS and Linux (bash)
         preCmds.push("printf '\\ec'"); // cls
         preCmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
-        if (wsDirExists) preCmds.push(`cd "${wsInfo.wsDirPath}"`);
+        if (wsDirExists) preCmds.push(`cd ${shellSafe(wsInfo.wsDirPath)}`);
         preCmds.push("apio -h");
       }
       apioLog.msg(`Shell preCmds: ${preCmds}`);

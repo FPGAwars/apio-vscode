@@ -9,6 +9,7 @@ const downloader = require("./downloader.js");
 const tasks = require("./tasks.js");
 const apioLog = require("./apio-log.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 
 // A function to execute an action. Action can have commands anr/or url.
 // Cmds include the pre commands but may contain placeholders that need
@@ -29,9 +30,9 @@ async function _launchAction(
 
     // Expand the placeholders.
     taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", apioEnvFlag));
-    taskCmds = taskCmds.map((cmd) =>
-      cmd.replace("{apio-bin}", utils.apioBinaryPath()),
-    );
+    // The apio binary path is quoted if needed, e.g. if it contains spaces.
+    const safeApioBin = shellSafe(utils.apioBinaryPath());
+    taskCmds = taskCmds.map((cmd) => cmd.replace("{apio-bin}", safeApioBin));
 
     // Execute the commands and wait for completion.
     const aborted = await tasks.execCommandsInATask(

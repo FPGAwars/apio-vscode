@@ -1,96 +1,57 @@
-/**
- * platforms.js
- * -------------
- * Platform detection utilities for VS Code extensions.
- *
- * Exported API:
- *   getPlatformId() → string          // one of the 5 standardized IDs (cached)
- *   isWindows()     → boolean
- *   isDarwin()      → boolean
- *   isLinux()       → boolean
- *
- * Supported platform IDs:
- *   darwin-arm64, darwin-x86-64, linux-x86-64,
- *   linux-aarch64, windows-amd64
- */
+// Platform detection utilities
 
 const process = require("process");
 
-// The set of platforms ids that are supported by this extension.
-// Generally speaking we support platforms for which we build an
-// (pyinstaller) Apio release bundle.
-const SUPPORTED_PLATFORMS_IDS = [
-  "darwin-arm64",
-  "darwin-x86-64",
-  "linux-x86-64",
-  "windows-amd64",
-];
+// Maps the host type of to apio platform id.
+const SUPPORTED_HOST_TYPES = {
+  "darwin-arm64": "darwin-arm64",
+  "linux-x64": "linux-x86-64",
+  "win32-x64": "windows-amd64",
+};
 
-/**
- * Cached platform identifier.
- * Set on first successful call to getPlatformId().
- * @type {string|null}
- */
-let _cachedPlatformId = null;
-
-/**
- * Returns the standardized platform identifier.
- * The result is cached after the first successful call.
- *
- * @returns {string} One of the five supported platform IDs.
- * @throws {Error} If the platform/architecture is unsupported.
- */
-function getPlatformId() {
-  // Return cached value if already computed
-  if (_cachedPlatformId !== null) {
-    return _cachedPlatformId;
+// Thrown by getApioPlatformId() when the platform is not supported by apio.
+class UnsupportedPlatformError extends Error {
+  constructor(hostType) {
+    super(`Unsupported platform: ${hostType}`);
+    this.name = "UnsupportedPlatformError";
+    this.hostType = hostType;
   }
-
-  const platform = process.platform; // 'darwin' | 'linux' | 'win32' | ...
-  const arch = process.arch; // 'arm64' | 'x64' | ...
-
-  let id;
-
-  // macOS
-  if (platform === "darwin") {
-    if (arch === "arm64") id = "darwin-arm64";
-  }
-  // Linux
-  else if (platform === "linux") {
-    if (arch === "x64") id = "linux-x86-64";
-  }
-  // Windows
-  else if (platform === "win32") {
-    if (arch === "x64") id = "windows-amd64";
-  }
-
-  // Unknown platform -> fatal error.
-  if (!id) {
-    throw new Error(`Unsupported platform: ${platform}-${arch}`);
-  }
-
-  // Cache and return
-  _cachedPlatformId = id;
-  return id;
 }
 
-/**
- * Quick boolean checks – all based on the cached platform ID.
- */
+// Returns the apio platform id (a string). Throws UnsupportedPlatformError
+// if the platform is not supported by apio.
+function getApioPlatformId() {
+  // The raw host type, e.g. 'darwin-x64'. This is not an apio platform id.
+  const hostType = `${process.platform}-${process.arch}`;
+  const platformId = SUPPORTED_HOST_TYPES[hostType];
+  if (!platformId) {
+    throw new UnsupportedPlatformError(hostType);
+  }
+  return platformId;
+}
+
+// Returns true if running on windows, regardless if the
+// platform is supported by Apio.
 function isWindows() {
-  return getPlatformId().startsWith("windows-");
+  return process.platform === "win32";
 }
+
+// Return true if running on darwin, regardless if the
+// platform is supported by Apio.
 function isDarwin() {
-  return getPlatformId().startsWith("darwin-");
+  return process.platform === "darwin";
 }
+
+// Return true if running on linux, regardless if the
+// platform is supported by Apio.
 function isLinux() {
-  return getPlatformId().startsWith("linux-");
+  return process.platform === "linux";
 }
 
 // Export for require()
 module.exports = {
-  SUPPORTED_PLATFORMS_IDS,
-  getPlatformId,
+  UnsupportedPlatformError,
+  getApioPlatformId,
   isWindows,
   isDarwin,
   isLinux,

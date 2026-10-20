@@ -3,6 +3,7 @@
 // sidebar view entries, and status bar buttons.
 
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 
 // Commands for the PROJECT view. Thee commands are used only
 // in the PROJECT mode and always have an open workspace and
@@ -170,8 +171,8 @@ const TOOLS_TREE = [
         id: "apio.getExample",
         action: {
           cmds: [
-            `{apio-bin} api get-examples -f -o ${utils.apioTmpChild(
-              "examples.json",
+            `{apio-bin} api get-examples -f -o ${shellSafe(
+              utils.apioTmpChild("examples.json"),
             )}`,
           ],
           completionMsgs: [

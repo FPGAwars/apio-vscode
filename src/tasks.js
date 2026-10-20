@@ -9,6 +9,7 @@ const fs = require("fs");
 const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 
 // A global vscode apio flag name to indicate to activate() to
 // open apio.ini after creating a new project, e.g. demo or an
@@ -55,8 +56,13 @@ async function execCommandsInATask(
   const failMessage = "Task failed.";
   const titleMessage = `${taskTitle}`;
 
-  // The path to the apio bin so we can invoke 'apio api echo ...'.
-  const apioBin = utils.apioBinaryPath();
+  // Shell safe forms of the apio binary path and messages for the
+  // 'apio api echo ...' commands. Quoted if needed, e.g. if they contain
+  // spaces.
+  const safeApioBin = shellSafe(utils.apioBinaryPath());
+  const safeFailMessage = shellSafe(failMessage);
+  const safeTitleMessage = shellSafe(titleMessage);
+  const safeOkMessages = okMessage.map((s) => shellSafe(s));
 
   let shell;
   let shellArgs;
@@ -73,7 +79,7 @@ async function execCommandsInATask(
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
       `  echo.`,
-      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
+      `  ${safeApioBin} api echo -t ${safeFailMessage} -s ERROR`,
       preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
@@ -81,13 +87,13 @@ async function execCommandsInATask(
       "@echo off",
       "setlocal",
       "verify >nul",
-      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
+      `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
       `echo.`,
       ...cmdsLines,
       " ",
       `echo.`,
       // `echo ${okMessage}`,
-      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
+      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, true)),
       "exit /b 0",
     ];
@@ -102,25 +108,28 @@ async function execCommandsInATask(
     // Generate for each command.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo '$ ${cmd}'`,
+      // cmd is echoed inside '...', and bash can't escape a ' inside '...'.
+      // So each ' in cmd (e.g. in /Users/o'brien) is replaced with '\''
+      // which exits the quotes, adds an escaped ', and reenters the quotes.
+      `echo '$ ${cmd.replaceAll("'", "'\\''")}'`,
       `${cmd}`,
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
       `  echo`,
-      `  ${apioBin} api echo -t "${failMessage}" -s ERROR`,
+      `  ${safeApioBin} api echo -t ${safeFailMessage} -s ERROR`,
       preserveExitCode ? `  exit $ERR` : `  exit 0`,
       `fi`,
     ]);
     // Combine all the lines.
     const lines = [
       "#!/usr/bin/env bash",
-      `${apioBin} api echo -t "${titleMessage}" -s EMPH3`,
+      `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
       "echo",
       ...cmdsLines,
       " ",
       "echo",
       // `echo "${okMessage}"`,
-      ...okMessage.map((s) => `${apioBin} api echo -t "${s}" -s ${okStyle}`),
+      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
       // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
@@ -239,9 +248,11 @@ async function openProjectFromExample(
     const exampleId = board + "/" + example;
 
     // Run 'apio examples fetch board/example' in the demo folder.
+    // Paths are quoted if needed, e.g. if they contain spaces.
+    const safeFolder = shellSafe(folder);
     const taskCmds = [
-      `cd ${folder}`,
-      `${utils.apioBinaryPath()} examples fetch ${exampleId}`,
+      platforms.isWindows() ? `chdir /d ${safeFolder}` : `cd ${safeFolder}`,
+      `${shellSafe(utils.apioBinaryPath())} examples fetch ${exampleId}`,
     ];
     const aborted = await execCommandsInATask(
       `Create project`,

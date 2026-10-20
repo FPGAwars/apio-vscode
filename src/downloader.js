@@ -4,6 +4,7 @@
 // It's downloaded and installed on the fly.
 
 // Standard imports
+const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
 const stream = require("node:stream");
@@ -42,7 +43,7 @@ function init(context) {
 
   // Determine download information.
   const yyyymmdd = tag.replaceAll("-", "");
-  const platformId = platforms.getPlatformId();
+  const platformId = platforms.getApioPlatformId();
   const baseUrl =
     "https://github.com/" +
     repo +
@@ -85,7 +86,14 @@ async function ensureApioBinary() {
     } else {
       // Binary is missing or not good, will download and install it.
       apioLog.msg("Need to download and install a new binary.");
-      await _downloadAndInstall();
+      // Show a progress notification since this may take a while.
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "Apio: Downloading and installing the Apio CLI...",
+        },
+        () => _downloadAndInstall(),
+      );
       apioLog.msg(`[Apio] Binary installed: ${utils.apioBinaryPath()}`);
     }
   } catch (err) {
