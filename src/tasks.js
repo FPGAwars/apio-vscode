@@ -73,7 +73,7 @@ async function execCommandsInATask(
     // (MSYS), a command such as 'cmd.exe /c <batchFile>' fails because the
     // '/c' flag is converted to the path 'C:/' and the backslashes in the
     // batch file path are mangled.
-    taskExecution = new vscode.ShellExecution(batchFile, {
+    taskExecution = new vscode.ShellExecution(shellSafe(batchFile), {
       executable: "cmd.exe",
       shellArgs: ["/d", "/c"],
     });
@@ -99,7 +99,9 @@ async function execCommandsInATask(
       ...cmdsLines,
       " ",
       `echo.`,
-      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
+      ...safeOkMessages.map(
+        (s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`,
+      ),
       "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
@@ -134,7 +136,9 @@ async function execCommandsInATask(
       " ",
       "echo",
       // `echo "${okMessage}"`,
-      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
+      ...safeOkMessages.map(
+        (s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`,
+      ),
       // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
