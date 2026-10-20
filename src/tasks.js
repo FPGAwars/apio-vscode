@@ -80,7 +80,13 @@ async function execCommandsInATask(
     // Construct the task batch file task.cmd.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo 🔹 ${cmd}`,
+      // We switch code page temporarily to UTF8 so we can show the blue diamond
+      // character. APIO_CP is the original code page that is saved below at
+      // the beginning of the task. We escape % as %% to avoid expansion of
+      // env vars in the displayed command (PATH can be very long).
+      `chcp 65001 >nul`,
+      `echo 🔹 ${cmd.replaceAll("%", "%%")}`,
+      `chcp %APIO_CP% >nul`,
       `${cmd}`,
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
@@ -92,7 +98,17 @@ async function execCommandsInATask(
     // Combine all the lines.
     const lines = [
       "@echo off",
+      // Keep env var changes, such as PATH, ERR and APIO_CP, local to this
+      // script so they don't leak into the calling shell.
       "setlocal",
+      // Save the original code page number in APIO_CP:
+      //   ('chcp')      runs chcp, which prints e.g. 'Active code page: 437'
+      //   delims=:.     splits the output at ':' and '.' (some locales end
+      //                 with a '.', e.g. 'Aktive Codepage: 850.')
+      //   tokens=2      takes the second part, e.g. ' 437', into %%p
+      `for /f "tokens=2 delims=:." %%p in ('chcp') do set "APIO_CP=%%p"`,
+      // A common idiom to reset %errorlevel% to 0, so the error checks
+      // below don't see a stale error from earlier lines.
       "verify >nul",
       `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
       `echo.`,
