@@ -33,6 +33,11 @@
   deletions. If Apio will fail with an error message, change the path to
   be comply with the new requirements.
 
+- On Windows, tasks are now dispatched correctly to a CMD.exe shell, 
+  instead of failing, even if the user set the VSCode default terminal
+  Git Bash.
+  
+
 ## [0.1.10]
 
 - Extended the list of supported Xilinx devices and boards.

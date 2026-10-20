@@ -374,12 +374,14 @@ function activate(context) {
   preCmds = [];
   {
     if (platforms.isWindows()) {
-      // Windows (cmd.exe)
+      // Case 1: Windows (cmd.exe)
+      preCmds.push(`set "PATH=${utils.apioBinDir()};%PATH%"`);
       if (wsInfo.wsDirPath) {
         preCmds.push(`chdir /d ${shellSafe(wsInfo.wsDirPath)}`);
       }
     } else {
-      // MacOS and Linux (bash)
+      // Case 2: MacOS and Linux (bash)
+      preCmds.push(`export PATH="${utils.apioBinDir()}:$PATH"`);
       if (wsInfo.wsDirPath) {
         preCmds.push(`cd ${shellSafe(wsInfo.wsDirPath)}`);
       }

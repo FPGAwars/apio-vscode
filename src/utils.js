@@ -72,10 +72,14 @@ function apioTmpChild(fname) {
   return path.join(apioTmpDir(), fname);
 }
 
+// Get apio executable name.
+function apioBinaryName() {
+  return platforms.isWindows() ? "apio.exe" : "apio";
+}
+
 // Get apio executable path.
 function apioBinaryPath() {
-  const apioBinaryName = platforms.isWindows() ? "apio.exe" : "apio";
-  return path.join(apioBinDir(), apioBinaryName);
+  return path.join(apioBinDir(), apioBinaryName());
 }
 
 // Get apio demo dir (under the temp directory).
@@ -267,6 +271,7 @@ module.exports = {
   apioBinDir,
   apioTmpDir,
   apioTmpChild,
+  apioBinaryName,
   apioBinaryPath,
   apioDemoDir,
   asyncSleepMs,

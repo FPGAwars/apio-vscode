@@ -64,17 +64,29 @@ async function execCommandsInATask(
   const safeTitleMessage = shellSafe(titleMessage);
   const safeOkMessages = okMessage.map((s) => shellSafe(s));
 
-  let shell;
-  let shellArgs;
+  let taskExecution;
   if (platforms.isWindows()) {
     // Handle the case of Windows.
     const batchFile = path.join(utils.apioTmpDir(), "task.cmd");
-    shell = "cmd.exe";
-    shellArgs = ["/c", batchFile];
+    // We explicitly specify cmd.exe as the shell rather than letting the
+    // task run in the user's default terminal shell. If that is Git Bash
+    // (MSYS), a command such as 'cmd.exe /c <batchFile>' fails because the
+    // '/c' flag is converted to the path 'C:/' and the backslashes in the
+    // batch file path are mangled.
+    taskExecution = new vscode.ShellExecution(shellSafe(batchFile), {
+      executable: "cmd.exe",
+      shellArgs: ["/d", "/c"],
+    });
     // Construct the task batch file task.cmd.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo $ ${cmd}`,
+      // We switch code page temporarily to UTF8 so we can show the blue diamond
+      // character. APIO_CP is the original code page that is saved below at
+      // the beginning of the task. We escape % as %% to avoid expansion of
+      // env vars in the displayed command (PATH can be very long).
+      `chcp 65001 >nul`,
+      `echo 🔹 ${cmd.replaceAll("%", "%%")}`,
+      `chcp %APIO_CP% >nul`,
       `${cmd}`,
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
@@ -83,26 +95,36 @@ async function execCommandsInATask(
       preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
+    // Combine all the lines.
     const lines = [
       "@echo off",
+      // Keep env var changes, such as PATH, ERR and APIO_CP, local to this
+      // script so they don't leak into the calling shell.
       "setlocal",
+      // Save the original code page number in APIO_CP:
+      //   ('chcp')      runs chcp, which prints e.g. 'Active code page: 437'
+      //   delims=:.     splits the output at ':' and '.' (some locales end
+      //                 with a '.', e.g. 'Aktive Codepage: 850.')
+      //   tokens=2      takes the second part, e.g. ' 437', into %%p
+      `for /f "tokens=2 delims=:." %%p in ('chcp') do set "APIO_CP=%%p"`,
+      // A common idiom to reset %errorlevel% to 0, so the error checks
+      // below don't see a stale error from earlier lines.
       "verify >nul",
       `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
       `echo.`,
       ...cmdsLines,
       " ",
       `echo.`,
-      // `echo ${okMessage}`,
-      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
-      // ...okMessage.map((s) => makeGreenEcho(s, true)),
+      ...safeOkMessages.map(
+        (s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`,
+      ),
       "exit /b 0",
     ];
     utils.writeFileFromLines(batchFile, lines);
   } else {
     // Handle the case of macOS and Linux
     const batchFile = path.join(utils.apioTmpDir(), "task.bash");
-    shell = "bash";
-    shellArgs = [batchFile];
+    taskExecution = new vscode.ShellExecution("bash", [batchFile]);
     // Construct the task batch file task.bash.
     //
     // Generate for each command.
@@ -111,7 +133,7 @@ async function execCommandsInATask(
       // cmd is echoed inside '...', and bash can't escape a ' inside '...'.
       // So each ' in cmd (e.g. in /Users/o'brien) is replaced with '\''
       // which exits the quotes, adds an escaped ', and reenters the quotes.
-      `echo '$ ${cmd.replaceAll("'", "'\\''")}'`,
+      `echo '🔹 ${cmd.replaceAll("'", "'\\''")}'`,
       `${cmd}`,
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
@@ -129,7 +151,9 @@ async function execCommandsInATask(
       " ",
       "echo",
       // `echo "${okMessage}"`,
-      ...safeOkMessages.map((s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`),
+      ...safeOkMessages.map(
+        (s) => `${safeApioBin} api echo -t ${s} -s ${okStyle}`,
+      ),
       // ...okMessage.map((s) => makeGreenEcho(s, false)),
       "exit 0",
     ];
@@ -146,7 +170,7 @@ async function execCommandsInATask(
     vscode.TaskScope.Workspace,
     taskName,
     "apio",
-    new vscode.ShellExecution(shell, shellArgs),
+    taskExecution,
   );
 
   task.presentationOptions = {

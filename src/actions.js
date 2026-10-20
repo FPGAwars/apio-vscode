@@ -30,8 +30,7 @@ async function _launchAction(
 
     // Expand the placeholders.
     taskCmds = taskCmds.map((cmd) => cmd.replace("{env-flag}", apioEnvFlag));
-    // The apio binary path is quoted if needed, e.g. if it contains spaces.
-    const safeApioBin = shellSafe(utils.apioBinaryPath());
+    const safeApioBin = shellSafe(utils.apioBinaryName());
     taskCmds = taskCmds.map((cmd) => cmd.replace("{apio-bin}", safeApioBin));
 
     // Execute the commands and wait for completion.
