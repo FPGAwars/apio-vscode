@@ -6,6 +6,7 @@ const fs = require("fs");
 // Local imports
 const downloader = require("./downloader.js");
 const utils = require("./utils.js");
+const { shellSafe } = require("./utils.js");
 const platforms = require("./platforms.js");
 const apioLog = require("./apio-log.js");
 
