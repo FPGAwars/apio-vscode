@@ -80,8 +80,7 @@ async function execCommandsInATask(
     // Construct the task batch file task.cmd.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo.`,
-      `echo $ ${cmd}`,
+      `echo 🔹 ${cmd}`,
       `${cmd}`,
       `set "ERR=%errorlevel%"`,
       `if %ERR% neq 0 (`,
@@ -90,12 +89,13 @@ async function execCommandsInATask(
       preserveExitCode ? `  exit /b %ERR%` : `  exit /b 0`,
       `)`,
     ]);
+    // Combine all the lines.
     const lines = [
       "@echo off",
       "setlocal",
       "verify >nul",
       `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
-      // `echo.`,
+      `echo.`,
       ...cmdsLines,
       " ",
       `echo.`,
@@ -114,11 +114,10 @@ async function execCommandsInATask(
     // Generate for each command.
     const cmdsLines = taskCmds.flatMap((cmd) => [
       " ",
-      `echo`,
       // cmd is echoed inside '...', and bash can't escape a ' inside '...'.
       // So each ' in cmd (e.g. in /Users/o'brien) is replaced with '\''
       // which exits the quotes, adds an escaped ', and reenters the quotes.
-      `echo '$ ${cmd.replaceAll("'", "'\\''")}'`,
+      `echo '🔹 ${cmd.replaceAll("'", "'\\''")}'`,
       `${cmd}`,
       `ERR=$?`,
       `if [ $ERR -ne 0 ]; then`,
@@ -131,7 +130,7 @@ async function execCommandsInATask(
     const lines = [
       "#!/usr/bin/env bash",
       `${safeApioBin} api echo -t ${safeTitleMessage} -s EMPH3`,
-      // "echo",
+      "echo",
       ...cmdsLines,
       " ",
       "echo",
