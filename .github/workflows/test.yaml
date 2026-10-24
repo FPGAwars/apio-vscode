@@ -38,23 +38,19 @@ jobs:
         with:
           node-version-file: "package.json" # Detects from engines.node
 
-      # Install the node version management.
-      # This sets a script at ~/.nvm/nvm.sh that need to be sourced
-      # by any bash instance to define the 'nvm' command.
-      - name: Install and configure nvm
-        run: |
-          set -x
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          find ~/.nvm
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
 
-      - name: Run lint
+      # Installs invoke and the other packages used by tasks.py.
+      - name: Install Python requirements
         run: |
-          set -x
-          ./scripts/lint.sh
+          pip install -r requirements.txt
 
-      - name: Init test environment
+      - name: Set up test environment
         run: |
-          ./scripts/init-test-env.sh
+          invoke setup
 
       - name: List directories
         run: |
@@ -63,11 +59,12 @@ jobs:
           ls -al .vscode-test
           ls -al .vscode-test/workspace
 
-      - name: Run tests
+      # Runs lint and then the tests.
+      - name: Run lint and tests
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
             # On Ubuntu we need to run headless.
-            xvfb-run -a ./scripts/test.sh ${{ matrix.vscode-version }}
+            xvfb-run -a invoke test --code-version ${{ matrix.vscode-version }}
           else
-            ./scripts/test.sh ${{ matrix.vscode-version }}
+            invoke test --code-version ${{ matrix.vscode-version }}
           fi

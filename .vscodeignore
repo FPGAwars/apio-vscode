@@ -10,3 +10,11 @@ scripts
 .run.sh
 docs
 mkdocs.yml
+tasks.py
+requirements.txt
+__pycache__
+test
+.vscode-test.cjs
+CLAUDE.md
+CLAUDE.local.md
+.claude

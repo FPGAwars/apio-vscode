@@ -66,6 +66,16 @@ jobs:
       - name: Verify npx
         run: npx --version
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      # Installs invoke and the other packages used by tasks.py.
+      - name: Install Python requirements
+        run: |
+          pip install -r requirements.txt
+
       - name: List repo files
         run: |
           ls -al
@@ -127,7 +137,7 @@ jobs:
 
       - name: Build the .vsix file
         run: |
-          ./scripts/build.sh
+          invoke build
 
       - name: Rename package file
         run: |
