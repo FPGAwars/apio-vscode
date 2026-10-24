@@ -1,8 +1,9 @@
 These tests can be executed in two ways:
 
 ### Batch
-- ./script/init-test-env.sh
-- ./script/test.sh
+- pip install -r requirements.txt   (once)
+- invoke setup
+- invoke test
 
 ### Interactive in vscode:
 Install the extension Extension Test Runner" by Microsoft and 

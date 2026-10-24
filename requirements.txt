@@ -1,0 +1,4 @@
+# Python packages required to run the Invoke tasks in tasks.py.
+# Install with: pip install -r requirements.txt
+invoke==2.2.1
+rich==14.0.0
