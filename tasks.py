@@ -421,7 +421,7 @@ def uninstall_task(ctx: Context):
     )
 
 
-@task(name="update-locks", aliases=["ul"])
+@task(name="update-versions", aliases=[])
 def update_locks_task(ctx: Context):
     """Update package-lock.json to the latest allowed versions."""
     announce_task(ctx, "update-locks")
